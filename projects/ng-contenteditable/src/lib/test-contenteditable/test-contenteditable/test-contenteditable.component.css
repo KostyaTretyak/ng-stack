@@ -1,0 +1,10 @@
+.is-editable {
+  border: 1px green dashed;
+}
+.is-not-editable {
+  border: 1px red dashed;
+}
+
+.is-editable, .is-not-editable {
+  padding: 3px;
+}

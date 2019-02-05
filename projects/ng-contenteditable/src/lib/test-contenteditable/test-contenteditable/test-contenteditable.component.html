@@ -1,0 +1,26 @@
+<button type="button" (click)="isContenteditable = !isContenteditable">isContenteditable: {{ isContenteditable }}</button>
+
+<form #testForm="ngForm">
+  <p
+    [contenteditable]="isContenteditable"
+    name="myFormName"
+    [(ngModel)]="templateDrivenForm"
+    [ngClass]="{'is-editable': isContenteditable, 'is-not-editable': !isContenteditable}"
+    ></p>
+</form>
+ 
+<pre>
+  {{ testForm.value | json }}
+</pre>
+
+<hr>
+
+<p
+  [contenteditable]="isContenteditable"
+  [formControl]="myControl"
+  [ngClass]="{'is-editable': isContenteditable, 'is-not-editable': !isContenteditable}"
+></p>
+
+<pre>
+  {{ myControl.value | json }}
+</pre>
