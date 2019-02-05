@@ -134,6 +134,41 @@
           }
         }
       }
+    },
+    "ng-contenteditable": {
+      "root": "projects/ng-contenteditable",
+      "sourceRoot": "projects/ng-contenteditable/src",
+      "projectType": "library",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/ng-contenteditable/tsconfig.lib.json",
+            "project": "projects/ng-contenteditable/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ng-contenteditable/src/test.ts",
+            "tsConfig": "projects/ng-contenteditable/tsconfig.spec.json",
+            "karmaConfig": "projects/ng-contenteditable/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/ng-contenteditable/tsconfig.lib.json",
+              "projects/ng-contenteditable/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "ng-stack"

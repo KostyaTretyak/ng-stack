@@ -17,6 +17,14 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "ng-contenteditable": [
+        "dist/ng-contenteditable"
+      ],
+      "ng-contenteditable/*": [
+        "dist/ng-contenteditable/*"
+      ]
+    }
   }
 }
