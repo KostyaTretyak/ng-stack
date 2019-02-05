@@ -23,4 +23,32 @@ describe('TestContenteditableComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should p[name=myFormName] has contenteditable="true"', () => {
+    const nativeElement: HTMLElement = fixture.nativeElement;
+    expect(nativeElement.querySelector('p[name=myFormName]').getAttribute('contenteditable')).toEqual('true');
+  });
+
+  it('should p[name=myReactiveFormName] has contenteditable="true"', () => {
+    const nativeElement: HTMLElement = fixture.nativeElement;
+    expect(nativeElement.querySelector('p[name=myReactiveFormName]').getAttribute('contenteditable')).toEqual('true');
+  });
+
+  it('should not throw error when click toggleEditable()', () => {
+    expect(() => component.toggleEditable()).not.toThrow();
+  });
+
+  it('should p[name=myFormName] has contenteditable="false" after click the button', () => {
+    expect(() => component.toggleEditable()).not.toThrow();
+    fixture.detectChanges();
+    const nativeElement: HTMLElement = fixture.nativeElement;
+    expect(nativeElement.querySelector('p[name=myFormName]').getAttribute('contenteditable')).toEqual('false');
+  });
+
+  it('should p[name=myReactiveFormName] has contenteditable="false" after click the button', () => {
+    expect(() => component.toggleEditable()).not.toThrow();
+    fixture.detectChanges();
+    const nativeElement: HTMLElement = fixture.nativeElement;
+    expect(nativeElement.querySelector('p[name=myReactiveFormName]').getAttribute('contenteditable')).toEqual('false');
+  });
 });

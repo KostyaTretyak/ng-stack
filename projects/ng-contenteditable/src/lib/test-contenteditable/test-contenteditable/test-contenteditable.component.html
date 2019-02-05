@@ -1,22 +1,23 @@
-<button type="button" (click)="isContenteditable = !isContenteditable">isContenteditable: {{ isContenteditable }}</button>
+<button type="button" (click)="toggleEditable()">isContenteditable: {{ isContenteditable }}</button>
 
-<form #testForm="ngForm">
+<form #templateDrivenForm="ngForm">
   <p
     [contenteditable]="isContenteditable"
     name="myFormName"
-    [(ngModel)]="templateDrivenForm"
+    [(ngModel)]="templateDrivenFormText"
     [ngClass]="{'is-editable': isContenteditable, 'is-not-editable': !isContenteditable}"
     ></p>
 </form>
  
 <pre>
-  {{ testForm.value | json }}
+  {{ templateDrivenForm.value | json }}
 </pre>
 
 <hr>
 
 <p
   [contenteditable]="isContenteditable"
+  name="myReactiveFormName"
   [formControl]="myControl"
   [ngClass]="{'is-editable': isContenteditable, 'is-not-editable': !isContenteditable}"
 ></p>
