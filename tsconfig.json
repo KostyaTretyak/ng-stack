@@ -24,6 +24,12 @@
       ],
       "@ng-stack/contenteditable/*": [
         "dist/contenteditable/*"
+      ],
+      "@ng-stack/api-mock": [
+        "dist/api-mock"
+      ],
+      "@ng-stack/api-mock/*": [
+        "dist/api-mock/*"
       ]
     }
   }

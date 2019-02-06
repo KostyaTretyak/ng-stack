@@ -169,6 +169,41 @@
           }
         }
       }
+    },
+    "api-mock": {
+      "root": "projects/api-mock",
+      "sourceRoot": "projects/api-mock/src",
+      "projectType": "library",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/api-mock/tsconfig.lib.json",
+            "project": "projects/api-mock/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/api-mock/src/test.ts",
+            "tsConfig": "projects/api-mock/tsconfig.spec.json",
+            "karmaConfig": "projects/api-mock/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/api-mock/tsconfig.lib.json",
+              "projects/api-mock/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "ng-stack"
