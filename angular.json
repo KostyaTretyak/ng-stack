@@ -135,33 +135,33 @@
         }
       }
     },
-    "ng-contenteditable": {
-      "root": "projects/ng-contenteditable",
-      "sourceRoot": "projects/ng-contenteditable/src",
+    "contenteditable": {
+      "root": "projects/contenteditable",
+      "sourceRoot": "projects/contenteditable/src",
       "projectType": "library",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
-            "tsConfig": "projects/ng-contenteditable/tsconfig.lib.json",
-            "project": "projects/ng-contenteditable/ng-package.json"
+            "tsConfig": "projects/contenteditable/tsconfig.lib.json",
+            "project": "projects/contenteditable/ng-package.json"
           }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "main": "projects/ng-contenteditable/src/test.ts",
-            "tsConfig": "projects/ng-contenteditable/tsconfig.spec.json",
-            "karmaConfig": "projects/ng-contenteditable/karma.conf.js"
+            "main": "projects/contenteditable/src/test.ts",
+            "tsConfig": "projects/contenteditable/tsconfig.spec.json",
+            "karmaConfig": "projects/contenteditable/karma.conf.js"
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "projects/ng-contenteditable/tsconfig.lib.json",
-              "projects/ng-contenteditable/tsconfig.spec.json"
+              "projects/contenteditable/tsconfig.lib.json",
+              "projects/contenteditable/tsconfig.spec.json"
             ],
             "exclude": [
               "**/node_modules/**"

@@ -19,11 +19,11 @@
       "dom"
     ],
     "paths": {
-      "ng-contenteditable": [
-        "dist/ng-contenteditable"
+      "@ng-stack/contenteditable": [
+        "dist/contenteditable"
       ],
-      "ng-contenteditable/*": [
-        "dist/ng-contenteditable/*"
+      "@ng-stack/contenteditable/*": [
+        "dist/contenteditable/*"
       ]
     }
   }

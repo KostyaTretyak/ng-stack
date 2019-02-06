@@ -1,9 +1,9 @@
 {
-  "name": "@ng-stack/ng-contenteditable",
-  "version": "2.2.0",
+  "name": "@ng-stack/contenteditable",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/KostyaTretyak/ng-stack/tree/master/projects/ng-contenteditable"
+    "url": "https://github.com/KostyaTretyak/ng-stack/tree/master/projects/contenteditable"
   },
   "author": {
     "name": "Костя Третяк",

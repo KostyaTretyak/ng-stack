@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { ContenteditableModule } from 'ng-contenteditable';
+import { ContenteditableModule } from '@ng-stack/contenteditable';
 
 import { TestContenteditableComponent } from './test-contenteditable/test-contenteditable.component';
 

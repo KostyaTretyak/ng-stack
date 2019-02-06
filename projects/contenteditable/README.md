@@ -5,10 +5,8 @@ It just implements [ControlValueAccessor](https://angular.io/api/forms/ControlVa
 
 # Install
 
-You can just copy and paste this [directive](src/contenteditable.directive.ts) or install it from npm:
-
 ```bash
-npm install ng-contenteditable --save
+npm install @ng-stack/contenteditable --save
 ```
 
 # Usage
@@ -17,7 +15,7 @@ Import and add `ContenteditableModule` to your project:
 
 ```ts
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ContenteditableModule } from 'ng-contenteditable';
+import { ContenteditableModule } from '@ng-stack/contenteditable';
 
 // ...
 
@@ -98,7 +96,7 @@ By default it using `textContent`.
 
 # `contenteditable` as @Input property
 
-Since version 2.1.0, `ng-contenteditable` accepts `contenteditable` as @Input property (note the square brackets):
+Since version 1.0.0, `@ng-stack/contenteditable` accepts `contenteditable` as @Input property (note the square brackets):
 
 ```html
 <p [contenteditable]="isContenteditable"></p>
