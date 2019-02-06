@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 import { TestContenteditableComponent } from './test-contenteditable.component';
-import { TestContenteditableModule } from '../test-contenteditable.module';
+import { TestModule } from '../test.module';
 
 describe('TestContenteditableComponent', () => {
   let component: TestContenteditableComponent;
@@ -11,9 +11,8 @@ describe('TestContenteditableComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [TestContenteditableModule]
-    })
-    .compileComponents();
+      imports: [TestModule],
+    }).compileComponents();
   }));
 
   beforeEach(() => {
@@ -117,7 +116,7 @@ describe('TestContenteditableComponent', () => {
 });
 
 function newEvent(eventName: string, bubbles = false, cancelable = false) {
-  let evt = document.createEvent('CustomEvent');  // MUST be 'CustomEvent'
+  const evt = document.createEvent('CustomEvent'); // MUST be 'CustomEvent'
   evt.initCustomEvent(eventName, bubbles, cancelable, null);
   return evt;
 }

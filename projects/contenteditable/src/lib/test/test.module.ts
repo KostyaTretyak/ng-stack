@@ -8,12 +8,7 @@ import { TestContenteditableComponent } from './test-contenteditable/test-conten
 
 @NgModule({
   declarations: [TestContenteditableComponent],
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    ContenteditableModule
-  ],
-  exports: [TestContenteditableComponent]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ContenteditableModule],
+  exports: [TestContenteditableComponent],
 })
-export class TestContenteditableModule { }
+export class TestModule {}
