@@ -59,14 +59,14 @@ export const STATUS = {
 
 /*tslint:disable:quotemark max-line-length one-line */
 export const STATUS_CODE_INFO = {
-  '100': {
+  100: {
     code: 100,
     text: 'Continue',
     description: '"The initial part of a request has been received and has not yet been rejected by the server."',
     spec_title: 'RFC7231#6.2.1',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.2.1',
   },
-  '101': {
+  101: {
     code: 101,
     text: 'Switching Protocols',
     description:
@@ -74,28 +74,28 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.2.2',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.2.2',
   },
-  '200': {
+  200: {
     code: 200,
     text: 'OK',
     description: '"The request has succeeded."',
     spec_title: 'RFC7231#6.3.1',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.3.1',
   },
-  '201': {
+  201: {
     code: 201,
     text: 'Created',
     description: '"The request has been fulfilled and has resulted in one or more new resources being created."',
     spec_title: 'RFC7231#6.3.2',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.3.2',
   },
-  '202': {
+  202: {
     code: 202,
     text: 'Accepted',
     description: '"The request has been accepted for processing, but the processing has not been completed."',
     spec_title: 'RFC7231#6.3.3',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.3.3',
   },
-  '203': {
+  203: {
     code: 203,
     text: 'Non-Authoritative Information',
     description:
@@ -103,7 +103,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.3.4',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.3.4',
   },
-  '204': {
+  204: {
     code: 204,
     text: 'No Content',
     description:
@@ -111,7 +111,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.3.5',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.3.5',
   },
-  '205': {
+  205: {
     code: 205,
     text: 'Reset Content',
     description:
@@ -119,7 +119,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.3.6',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.3.6',
   },
-  '206': {
+  206: {
     code: 206,
     text: 'Partial Content',
     description:
@@ -127,7 +127,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7233#4.1',
     spec_href: 'http://tools.ietf.org/html/rfc7233#section-4.1',
   },
-  '300': {
+  300: {
     code: 300,
     text: 'Multiple Choices',
     description:
@@ -135,7 +135,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.4.1',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.4.1',
   },
-  '301': {
+  301: {
     code: 301,
     text: 'Moved Permanently',
     description:
@@ -143,14 +143,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.4.2',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.4.2',
   },
-  '302': {
+  302: {
     code: 302,
     text: 'Found',
     description: '"The target resource resides temporarily under a different URI."',
     spec_title: 'RFC7231#6.4.3',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.4.3',
   },
-  '303': {
+  303: {
     code: 303,
     text: 'See Other',
     description:
@@ -158,7 +158,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.4.4',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.4.4',
   },
-  '304': {
+  304: {
     code: 304,
     text: 'Not Modified',
     description:
@@ -166,14 +166,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7232#4.1',
     spec_href: 'http://tools.ietf.org/html/rfc7232#section-4.1',
   },
-  '305': {
+  305: {
     code: 305,
     text: 'Use Proxy',
     description: '*deprecated*',
     spec_title: 'RFC7231#6.4.5',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.4.5',
   },
-  '307': {
+  307: {
     code: 307,
     text: 'Temporary Redirect',
     description:
@@ -181,7 +181,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.4.7',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.4.7',
   },
-  '400': {
+  400: {
     code: 400,
     text: 'Bad Request',
     description:
@@ -189,7 +189,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.1',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.1',
   },
-  '401': {
+  401: {
     code: 401,
     text: 'Unauthorized',
     description:
@@ -197,21 +197,21 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7235#6.3.1',
     spec_href: 'http://tools.ietf.org/html/rfc7235#section-3.1',
   },
-  '402': {
+  402: {
     code: 402,
     text: 'Payment Required',
     description: '*reserved*',
     spec_title: 'RFC7231#6.5.2',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.2',
   },
-  '403': {
+  403: {
     code: 403,
     text: 'Forbidden',
     description: '"The server understood the request but refuses to authorize it."',
     spec_title: 'RFC7231#6.5.3',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.3',
   },
-  '404': {
+  404: {
     code: 404,
     text: 'Not Found',
     description:
@@ -219,7 +219,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.4',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.4',
   },
-  '405': {
+  405: {
     code: 405,
     text: 'Method Not Allowed',
     description:
@@ -227,7 +227,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.5',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.5',
   },
-  '406': {
+  406: {
     code: 406,
     text: 'Not Acceptable',
     description:
@@ -235,14 +235,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.6',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.6',
   },
-  '407': {
+  407: {
     code: 407,
     text: 'Proxy Authentication Required',
     description: '"The client needs to authenticate itself in order to use a proxy."',
     spec_title: 'RFC7231#6.3.2',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.3.2',
   },
-  '408': {
+  408: {
     code: 408,
     text: 'Request Timeout',
     description:
@@ -250,14 +250,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.7',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.7',
   },
-  '409': {
+  409: {
     code: 409,
     text: 'Conflict',
     description: '"The request could not be completed due to a conflict with the current state of the resource."',
     spec_title: 'RFC7231#6.5.8',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.8',
   },
-  '410': {
+  410: {
     code: 410,
     text: 'Gone',
     description:
@@ -265,14 +265,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.9',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.9',
   },
-  '411': {
+  411: {
     code: 411,
     text: 'Length Required',
     description: '"The server refuses to accept the request without a defined Content-Length."',
     spec_title: 'RFC7231#6.5.10',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.10',
   },
-  '412': {
+  412: {
     code: 412,
     text: 'Precondition Failed',
     description:
@@ -280,7 +280,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7232#4.2',
     spec_href: 'http://tools.ietf.org/html/rfc7232#section-4.2',
   },
-  '413': {
+  413: {
     code: 413,
     text: 'Payload Too Large',
     description:
@@ -288,7 +288,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.11',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.11',
   },
-  '414': {
+  414: {
     code: 414,
     text: 'URI Too Long',
     description:
@@ -296,7 +296,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.12',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.12',
   },
-  '415': {
+  415: {
     code: 415,
     text: 'Unsupported Media Type',
     description:
@@ -304,7 +304,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.13',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.13',
   },
-  '416': {
+  416: {
     code: 416,
     text: 'Range Not Satisfiable',
     description:
@@ -312,7 +312,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7233#4.4',
     spec_href: 'http://tools.ietf.org/html/rfc7233#section-4.4',
   },
-  '417': {
+  417: {
     code: 417,
     text: 'Expectation Failed',
     description:
@@ -320,14 +320,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.14',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.14',
   },
-  '418': {
+  418: {
     code: 418,
     text: "I'm a teapot",
     description: '"1988 April Fools Joke. Returned by tea pots requested to brew coffee."',
     spec_title: 'RFC 2324',
     spec_href: 'https://tools.ietf.org/html/rfc2324',
   },
-  '426': {
+  426: {
     code: 426,
     text: 'Upgrade Required',
     description:
@@ -335,21 +335,21 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.5.15',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.5.15',
   },
-  '500': {
+  500: {
     code: 500,
     text: 'Internal Server Error',
     description: '"The server encountered an unexpected condition that prevented it from fulfilling the request."',
     spec_title: 'RFC7231#6.6.1',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.6.1',
   },
-  '501': {
+  501: {
     code: 501,
     text: 'Not Implemented',
     description: '"The server does not support the functionality required to fulfill the request."',
     spec_title: 'RFC7231#6.6.2',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.6.2',
   },
-  '502': {
+  502: {
     code: 502,
     text: 'Bad Gateway',
     description:
@@ -357,7 +357,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.6.3',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.6.3',
   },
-  '503': {
+  503: {
     code: 503,
     text: 'Service Unavailable',
     description:
@@ -365,7 +365,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.6.4',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.6.4',
   },
-  '504': {
+  504: {
     code: 504,
     text: 'Gateway Time-out',
     description:
@@ -373,7 +373,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.6.5',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.6.5',
   },
-  '505': {
+  505: {
     code: 505,
     text: 'HTTP Version Not Supported',
     description:
@@ -381,7 +381,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7231#6.6.6',
     spec_href: 'http://tools.ietf.org/html/rfc7231#section-6.6.6',
   },
-  '102': {
+  102: {
     code: 102,
     text: 'Processing',
     description:
@@ -389,14 +389,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC5218#10.1',
     spec_href: 'http://tools.ietf.org/html/rfc2518#section-10.1',
   },
-  '207': {
+  207: {
     code: 207,
     text: 'Multi-Status',
     description: '"Status for multiple independent operations."',
     spec_title: 'RFC5218#10.2',
     spec_href: 'http://tools.ietf.org/html/rfc2518#section-10.2',
   },
-  '226': {
+  226: {
     code: 226,
     text: 'IM Used',
     description:
@@ -404,7 +404,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC3229#10.4.1',
     spec_href: 'http://tools.ietf.org/html/rfc3229#section-10.4.1',
   },
-  '308': {
+  308: {
     code: 308,
     text: 'Permanent Redirect',
     description:
@@ -412,7 +412,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC7238',
     spec_href: 'http://tools.ietf.org/html/rfc7238',
   },
-  '422': {
+  422: {
     code: 422,
     text: 'Unprocessable Entity',
     description:
@@ -420,14 +420,14 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC5218#10.3',
     spec_href: 'http://tools.ietf.org/html/rfc2518#section-10.3',
   },
-  '423': {
+  423: {
     code: 423,
     text: 'Locked',
     description: '"The source or destination resource of a method is locked."',
     spec_title: 'RFC5218#10.4',
     spec_href: 'http://tools.ietf.org/html/rfc2518#section-10.4',
   },
-  '424': {
+  424: {
     code: 424,
     text: 'Failed Dependency',
     description:
@@ -435,35 +435,35 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC5218#10.5',
     spec_href: 'http://tools.ietf.org/html/rfc2518#section-10.5',
   },
-  '428': {
+  428: {
     code: 428,
     text: 'Precondition Required',
     description: '"The origin server requires the request to be conditional."',
     spec_title: 'RFC6585#3',
     spec_href: 'http://tools.ietf.org/html/rfc6585#section-3',
   },
-  '429': {
+  429: {
     code: 429,
     text: 'Too Many Requests',
     description: '"The user has sent too many requests in a given amount of time ("rate limiting")."',
     spec_title: 'RFC6585#4',
     spec_href: 'http://tools.ietf.org/html/rfc6585#section-4',
   },
-  '431': {
+  431: {
     code: 431,
     text: 'Request Header Fields Too Large',
     description: '"The server is unwilling to process the request because its header fields are too large."',
     spec_title: 'RFC6585#5',
     spec_href: 'http://tools.ietf.org/html/rfc6585#section-5',
   },
-  '451': {
+  451: {
     code: 451,
     text: 'Unavailable For Legal Reasons',
     description: '"The server is denying access to the resource in response to a legal demand."',
     spec_title: 'draft-ietf-httpbis-legally-restricted-status',
     spec_href: 'http://tools.ietf.org/html/draft-ietf-httpbis-legally-restricted-status',
   },
-  '506': {
+  506: {
     code: 506,
     text: 'Variant Also Negotiates',
     description:
@@ -471,7 +471,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC2295#8.1',
     spec_href: 'http://tools.ietf.org/html/rfc2295#section-8.1',
   },
-  '507': {
+  507: {
     code: 507,
     text: 'Insufficient Storage',
     description:
@@ -479,7 +479,7 @@ export const STATUS_CODE_INFO = {
     spec_title: 'RFC5218#10.6',
     spec_href: 'http://tools.ietf.org/html/rfc2518#section-10.6',
   },
-  '511': {
+  511: {
     code: 511,
     text: 'Network Authentication Required',
     description: '"The client needs to authenticate to gain network access."',
