@@ -1,8 +1,23 @@
 {
-  "name": "ng-contenteditable",
+  "name": "@ng-stack/ng-contenteditable",
   "version": "2.2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KostyaTretyak/ng-stack/tree/master/projects/ng-contenteditable"
+  },
+  "author": {
+    "name": "Костя Третяк",
+    "email": "ktretiak.in.ua@gmail.com"
+  },
+  "keywords": [
+    "angular",
+    "contenteditable"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KostyaTretyak/ng-stack/issues"
+  },
   "peerDependencies": {
-    "@angular/common": "^4.0.0",
     "@angular/core": "^4.0.0"
   }
 }
