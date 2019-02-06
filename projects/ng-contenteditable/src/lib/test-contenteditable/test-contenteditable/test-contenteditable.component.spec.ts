@@ -6,6 +6,8 @@ import { TestContenteditableModule } from '../test-contenteditable.module';
 describe('TestContenteditableComponent', () => {
   let component: TestContenteditableComponent;
   let fixture: ComponentFixture<TestContenteditableComponent>;
+  const defaultText1 = 'This is contenteditable text for template-driven form';
+  const defaultText2 = 'This is contenteditable text for reactive form';
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -17,7 +19,6 @@ describe('TestContenteditableComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(TestContenteditableComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -25,58 +26,73 @@ describe('TestContenteditableComponent', () => {
   });
 
   it('should p[name=myFormName] has contenteditable="true"', () => {
+    fixture.detectChanges();
     const nativeElement: HTMLElement = fixture.nativeElement;
     expect(nativeElement.querySelector('p[name=myFormName]').getAttribute('contenteditable')).toEqual('true');
   });
 
-  it('should contains default text after OnInit()', done => {
-    const nativeElement: HTMLElement = fixture.nativeElement;
-    fixture.whenStable().then(() => {
-      const text1 = 'This is contenteditable text for template-driven form';
-      const text2 = 'This is contenteditable text for reactive form';
-      expect(nativeElement.querySelector('p[name=myFormName]').textContent).toEqual(text1);
-      expect(nativeElement.querySelector('p[name=myReactiveFormName]').textContent).toEqual(text2);
-      done();
-    })
-    .catch(done.fail);
-  });
-
-  it('should contains changed text after change in direction: component -> forms', done => {
+  it('should templateDrivenForm contains changed text after change in direction: component -> forms', fakeAsync(() => {
     const nativeElement: HTMLElement = fixture.nativeElement;
     const changedText = 'direction: component -> forms';
-    component.reactiveForm.setValue(changedText);
+    const templateDrivenForm = nativeElement.querySelector('p[name=myFormName]');
+    expect(templateDrivenForm.textContent).toBe('', `At start templateDrivenForm.textContent should be empty`);
+    fixture.detectChanges();
+    // Wait until ngModel binds component.templateDrivenFormText to p[name=myFormName].
+    tick();
+    expect(templateDrivenForm.textContent).toBe(defaultText1, `At start defaultText1 should be ${defaultText1}`);
+
     component.templateDrivenFormText = changedText;
     fixture.detectChanges();
-    fixture.whenStable().then(() => {
-      expect(nativeElement.querySelector('p[name=myFormName]').textContent).toEqual(changedText);
-      expect(nativeElement.querySelector('p[name=myReactiveFormName]').textContent).toEqual(changedText);
-      done();
-    })
-    .catch(done.fail);
+    tick();
+    expect(nativeElement.querySelector('p[name=myFormName]').textContent).toEqual(changedText);
+  }));
+
+  it('should reactiveForm contains changed text after change in direction: component -> forms', () => {
+    const nativeElement: HTMLElement = fixture.nativeElement;
+    const reactiveForm = nativeElement.querySelector('p[name=myReactiveFormName]');
+    expect(reactiveForm.textContent).toBe('', `At start reactiveForm.textContent should be empty`);
+    fixture.detectChanges();
+    expect(reactiveForm.textContent).toBe(defaultText2, `At start defaultText2 should be ${defaultText2}`);
+    const changedText = 'direction: component -> forms';
+    component.reactiveForm.setValue(changedText);
+    expect(reactiveForm.textContent).toEqual(changedText);
   });
 
-  it('should contains changed text after change in direction: forms -> component', done => {
+  it('should templateDrivenForm contains changed text after change in direction: forms -> component', fakeAsync(() => {
+    fixture.detectChanges();
     const nativeElement: HTMLElement = fixture.nativeElement;
     const changedText = 'direction: forms -> component';
     const templateDrivenForm = nativeElement.querySelector('p[name=myFormName]');
-    const reactiveForm = nativeElement.querySelector('p[name=myReactiveFormName]');
-    templateDrivenForm.textContent = changedText;
-    reactiveForm.textContent = changedText;
-    templateDrivenForm.dispatchEvent(newEvent('input'));
-    reactiveForm.dispatchEvent(newEvent('input'));
+    expect(component.templateDrivenFormText).toBe(defaultText1, `At start defaultText1 should be ${defaultText1}`);
+    expect(templateDrivenForm.textContent).toBe('', `At start templateDrivenForm.textContent should be empty`);
+    // Wait until ngModel binds component.templateDrivenFormText to p[name=myFormName].
+    tick();
+    expect(templateDrivenForm.textContent).toBe(defaultText1, `At start defaultText1 should be ${defaultText1}`);
 
+    templateDrivenForm.textContent = changedText;
+    templateDrivenForm.dispatchEvent(newEvent('input'));
+    // Here works contenteditable directive.
+    expect(component.templateDrivenFormText).toEqual(changedText);
+  }));
+
+  it('should reactiveForm contains changed text after change in direction: forms -> component', () => {
+    const nativeElement: HTMLElement = fixture.nativeElement;
+    const changedText = 'direction: forms -> component';
+    const reactiveForm = nativeElement.querySelector('p[name=myReactiveFormName]');
+    expect(component.reactiveForm.value).toBe(null, `At start component.reactiveForm.value should be empty`);
+    expect(reactiveForm.textContent).toBe('', `At start reactiveForm.textContent should be empty`);
     fixture.detectChanges();
-    fixture.whenStable().then(() => {
-      // expect(component.templateDrivenFormText).toEqual(changedText);
-      console.log('component.templateDrivenFormText:', component.templateDrivenFormText);
-      console.log('component.reactiveForm.value:', component.reactiveForm.value);
-      expect(component.reactiveForm.value).toEqual(changedText);
-      done();
-    })
-    .catch(done.fail);
+    expect(component.reactiveForm.value).toBe(defaultText2, `At start defaultText2 should be ${defaultText2}`);
+    expect(reactiveForm.textContent).toBe(defaultText2, `At start defaultText2 should be ${defaultText2}`);
+
+    reactiveForm.textContent = changedText;
+    reactiveForm.dispatchEvent(newEvent('input'));
+    // Here works contenteditable directive.
+    expect(component.reactiveForm.value).toEqual(changedText);
   });
 
   it('should p[name=myReactiveFormName] has contenteditable="true"', () => {
+    fixture.detectChanges();
     const nativeElement: HTMLElement = fixture.nativeElement;
     expect(nativeElement.querySelector('p[name=myReactiveFormName]').getAttribute('contenteditable')).toEqual('true');
   });
