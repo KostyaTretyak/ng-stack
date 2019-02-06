@@ -9,10 +9,10 @@ import { FormControl } from '@angular/forms';
 export class TestContenteditableComponent implements OnInit {
   isContenteditable = true;
   templateDrivenFormText = 'This is contenteditable text for template-driven form';
-  myControl = new FormControl;
+  reactiveForm = new FormControl;
 
   ngOnInit() {
-    this.myControl.setValue(`This is contenteditable text for reactive form`);
+    this.reactiveForm.setValue(`This is contenteditable text for reactive form`);
   }
 
   toggleEditable() {

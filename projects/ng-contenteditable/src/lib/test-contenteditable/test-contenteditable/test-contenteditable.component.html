@@ -18,10 +18,10 @@
 <p
   [contenteditable]="isContenteditable"
   name="myReactiveFormName"
-  [formControl]="myControl"
+  [formControl]="reactiveForm"
   [ngClass]="{'is-editable': isContenteditable, 'is-not-editable': !isContenteditable}"
 ></p>
 
 <pre>
-  {{ myControl.value | json }}
+  {{ reactiveForm.value | json }}
 </pre>
