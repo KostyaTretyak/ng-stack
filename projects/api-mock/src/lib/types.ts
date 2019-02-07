@@ -104,7 +104,7 @@ export type MockRouteGroup = [MockRouteRoot, ...MockRoute[]];
 
 export type MockRootRoutes = Array<{ path: string; length: number; index: number }>;
 
-export interface GetResponseReturns {
+export interface GetDataReturns {
   routeIndex: number;
   mockData: MockData;
   parents: MockData[];

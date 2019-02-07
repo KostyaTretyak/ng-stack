@@ -24,8 +24,8 @@ describe('HttpBackendService', () => {
       return super.findRouteGroupIndex(rootRoutes, url);
     }
 
-    getResponses(normalizedUrl: string, routeGroup: MockRouteGroup) {
-      return super.getResponses(normalizedUrl, routeGroup);
+    getData(normalizedUrl: string, routeGroup: MockRouteGroup) {
+      return super.getData(normalizedUrl, routeGroup);
     }
   }
 

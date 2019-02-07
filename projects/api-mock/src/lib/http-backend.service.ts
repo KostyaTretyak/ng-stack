@@ -19,7 +19,7 @@ import { delay } from 'rxjs/operators';
 import {
   ApiMockConfig,
   ApiMockService,
-  GetResponseReturns,
+  GetDataReturns,
   MockData,
   MockDataCache,
   MockRouteGroup,
@@ -135,25 +135,25 @@ export class HttpBackendService implements HttpBackend {
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
     const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
-    let getResponseReturns: GetResponseReturns;
+    let data: GetDataReturns;
 
     if (routeGroupIndex != -1) {
       try {
-        getResponseReturns = this.getResponses(normalizedUrl, this.routeGroups[routeGroupIndex]);
+        data = this.getData(normalizedUrl, this.routeGroups[routeGroupIndex]);
       } catch (err) {
         console.log(err);
       }
     }
 
-    if (req.method !== 'GET' || routeGroupIndex == -1 || !getResponseReturns) {
+    if (req.method !== 'GET' || routeGroupIndex == -1 || !data) {
       return this.createPassThruBackend(req);
     }
 
-    const lastRestId: string = getResponseReturns.lastRestId;
-    const primaryKey: string = getResponseReturns.primaryKey;
-    const clonedCache: MockData = JSON.parse(JSON.stringify(getResponseReturns.mockData));
-    const routeIndex: number = getResponseReturns.routeIndex;
-    const parents: MockData[] = getResponseReturns.parents;
+    const lastRestId: string = data.lastRestId;
+    const primaryKey: string = data.primaryKey;
+    const clonedCache: MockData = JSON.parse(JSON.stringify(data.mockData));
+    const routeIndex: number = data.routeIndex;
+    const parents: MockData[] = data.parents;
     const callbackResponse = this.routeGroups[routeGroupIndex][routeIndex].callbackResponse;
     const body = callbackResponse(clonedCache, primaryKey, lastRestId, parents);
 
@@ -205,7 +205,7 @@ export class HttpBackendService implements HttpBackend {
    * @param normalizedUrl If we have URL without host, removed slash from the start.
    * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
    */
-  protected getResponses(normalizedUrl: string, routeGroup: MockRouteGroup): GetResponseReturns {
+  protected getData(normalizedUrl: string, routeGroup: MockRouteGroup): GetDataReturns {
     /**
      * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
      */
