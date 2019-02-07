@@ -111,3 +111,11 @@ export interface GetDataReturns {
   primaryKey: string;
   lastRestId: string;
 }
+
+export class RouteMatchMetadata {
+  splitedUrl: string[];
+  splitedRoute: string[];
+  hasLastRestId: boolean;
+  route: MockRoute | MockRouteRoot;
+  routeIndex: number;
+}

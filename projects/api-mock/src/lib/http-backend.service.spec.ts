@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { HttpBackendService } from './http-backend.service';
-import { MockRouteGroup, MockData, ApiMockService, MockRootRoutes } from './types';
+import { MockRouteGroup, MockData, ApiMockService, MockRootRoutes, RouteMatchMetadata, MockRoute } from './types';
 import { ApiMockModule } from './api-mock.module';
 
 describe('HttpBackendService', () => {
@@ -24,12 +24,12 @@ describe('HttpBackendService', () => {
       return super.findRouteGroupIndex(rootRoutes, url);
     }
 
-    getData(normalizedUrl: string, routeGroup: MockRouteGroup) {
-      return super.getData(normalizedUrl, routeGroup);
+    getDryRouteMatch(normalizedUrl: string, routeGroup: MockRouteGroup) {
+      return super.getDryRouteMatch(normalizedUrl, routeGroup);
     }
   }
 
-  class MyApiMockService extends ApiMockService {
+  class MyApiMockService implements ApiMockService {
     getRouteGroups() {
       return [];
     }
@@ -50,7 +50,7 @@ describe('HttpBackendService', () => {
     expect(httpBackendService instanceof HttpBackendService2).toBeTruthy();
   });
 
-  const route = {
+  const route: MockRoute = {
     path: 'one/two/three/:primaryId',
     callbackData: () => {
       return {} as MockData;
@@ -205,6 +205,65 @@ describe('HttpBackendService', () => {
         routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
         expect(routeIndex).toEqual(-1);
       });
+    });
+  });
+
+  fdescribe('call getDryRouteMatch()', () => {
+    let dryMatch: RouteMatchMetadata | void;
+    let routeGroup: MockRouteGroup;
+    let url: string;
+    let splitedUrl: string[];
+    let splitedRoute: string[];
+    it('should an url match a route', () => {
+      routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
+      dryMatch = httpBackendService.getDryRouteMatch('one/two/three-other/123', routeGroup) as RouteMatchMetadata;
+      expect(dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeTruthy();
+      splitedUrl = ['one', 'two', 'three-other', '123'];
+      splitedRoute = ['one', 'two', 'three', ':primaryId'];
+      expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
+      expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+    });
+
+    it('should an url match a route', () => {
+      routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
+      dryMatch = httpBackendService.getDryRouteMatch('one/two/three-other', routeGroup) as RouteMatchMetadata;
+      expect(dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeFalsy();
+      splitedUrl = ['one', 'two', 'three-other'];
+      splitedRoute = ['one', 'two', 'three'];
+      expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
+      expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+    });
+
+    it('should an url match a route', () => {
+      routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
+      dryMatch = httpBackendService.getDryRouteMatch('one/two/three-other/four/five', routeGroup);
+      expect(dryMatch).toBeFalsy();
+    });
+
+    it('should an url match a route', () => {
+      url = 'https://example.com/one/two/123';
+      routeGroup = [{ ...route, host: 'https://example.com', path: 'one/two/:primaryId' }];
+      dryMatch = httpBackendService.getDryRouteMatch(url, routeGroup) as RouteMatchMetadata;
+      expect(dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeTruthy();
+      splitedUrl = ['https:', '', 'example.com', 'one', 'two', '123'];
+      splitedRoute = ['https:', '', 'example.com', 'one', 'two', ':primaryId'];
+      expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
+      expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+    });
+
+    it('should an url match a route', () => {
+      url = 'https://example.com/one/two-other';
+      routeGroup = [{ ...route, host: 'https://example.com', path: 'one/two/:primaryId' }];
+      dryMatch = httpBackendService.getDryRouteMatch(url, routeGroup) as RouteMatchMetadata;
+      expect(dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeFalsy();
+      splitedUrl = ['https:', '', 'example.com', 'one', 'two-other'];
+      splitedRoute = ['https:', '', 'example.com', 'one', 'two'];
+      expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
+      expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
     });
   });
 });

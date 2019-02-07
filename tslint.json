@@ -80,6 +80,7 @@
     "triple-equals": [
       false,
       "allow-null-check"
-    ]
+    ],
+    "no-shadowed-variable": false
   }
 }
