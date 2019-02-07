@@ -25,6 +25,7 @@ import {
   MockRouteGroup,
   MockRouteRoot,
   MockRootRoutes,
+  MockRoute,
 } from './types';
 
 @Injectable()
@@ -139,7 +140,7 @@ export class HttpBackendService implements HttpBackend {
 
     if (routeGroupIndex != -1) {
       try {
-        data = this.getData(normalizedUrl, this.routeGroups[routeGroupIndex]);
+        data = this.getRouteMatchMetadata(normalizedUrl, this.routeGroups[routeGroupIndex]);
       } catch (err) {
         console.log(err);
       }
@@ -205,7 +206,7 @@ export class HttpBackendService implements HttpBackend {
    * @param normalizedUrl If we have URL without host, removed slash from the start.
    * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
    */
-  protected getData(normalizedUrl: string, routeGroup: MockRouteGroup): GetDataReturns {
+  protected getRouteMatchMetadata(normalizedUrl: string, routeGroup: MockRouteGroup) {
     /**
      * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
      */
@@ -235,60 +236,68 @@ export class HttpBackendService implements HttpBackend {
       } else {
         // countPartOfUrl == countPartOfRoute
       }
+      return { splitedUrl, splitedRoute, hasLastRestId, route, routeIndex: i };
+    }
+  }
 
-      let restId = '';
-      let primaryKey = '';
-      const params: Array<{ cacheKey: string; primaryKey?: string; restId?: string }> = [];
+  protected getData(
+    splitedUrl: string[],
+    splitedRoute: string[],
+    hasLastRestId: boolean,
+    route: MockRoute | MockRouteRoot,
+    routeIndex: number
+  ): GetDataReturns {
+    let restId = '';
+    let primaryKey = '';
+    const params: Array<{ cacheKey: string; primaryKey?: string; restId?: string }> = [];
 
-      /**
-       * Have result of transformations like this:
-       * - `posts/:postId` -> `posts`
-       * - or `posts/:postId/comments/:commentId` -> `posts/comments`
-       */
-      const partsOfRoute: string[] = [];
-      /**
-       * Have result of transformations like this:
-       * - `posts/123` -> `posts`
-       * - or `posts/123/comments/456` -> `posts/comments`
-       */
-      const partsOfUrl: string[] = [];
+    /**
+     * Have result of transformations like this:
+     * - `posts/:postId` -> `posts`
+     * - or `posts/:postId/comments/:commentId` -> `posts/comments`
+     */
+    const partsOfRoute: string[] = [];
+    /**
+     * Have result of transformations like this:
+     * - `posts/123` -> `posts`
+     * - or `posts/123/comments/456` -> `posts/comments`
+     */
+    const partsOfUrl: string[] = [];
 
-      const parents: MockData[] = [];
+    const parents: MockData[] = [];
 
-      splitedRoute.forEach((part, j) => {
-        if (part.charAt(0) == ':') {
-          restId = splitedUrl[j];
-          primaryKey = part.slice(1);
-          /**
-           * cacheKey should be without a restId, e.g. `posts` or `posts/123/comments`,
-           * but not `posts/123` or `posts/123/comments/456`.
-           */
-          const cacheKey = splitedUrl.slice(0, j - 1).join('/');
-          params.push({ cacheKey, primaryKey, restId });
-        } else {
-          partsOfRoute.push(part);
-          partsOfUrl.push(splitedUrl[j]);
+    splitedRoute.forEach((part, j) => {
+      if (part.charAt(0) == ':') {
+        restId = splitedUrl[j];
+        primaryKey = part.slice(1);
+        /**
+         * cacheKey should be without a restId, e.g. `posts` or `posts/123/comments`,
+         * but not `posts/123` or `posts/123/comments/456`.
+         */
+        const cacheKey = splitedUrl.slice(0, j - 1).join('/');
+        params.push({ cacheKey, primaryKey, restId });
+      } else {
+        partsOfRoute.push(part);
+        partsOfUrl.push(splitedUrl[j]);
+      }
+    });
+
+    if (!hasLastRestId) {
+      const cacheKey = splitedUrl.join('/');
+      params.push({ cacheKey });
+    }
+
+    if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
+      // Signature of the route path is matched the URL.
+      params.forEach(param => {
+        if (!this.cachedData[param.cacheKey]) {
+          this.cachedData[param.cacheKey] = route.callbackData(restId, parents);
         }
+        parents.push(this.cachedData[param.cacheKey]);
       });
 
-      if (!hasLastRestId) {
-        const cacheKey = splitedUrl.join('/');
-        params.push({ cacheKey });
-      }
-
-      if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
-        // Signature of the route path is matched the URL.
-        params.forEach(param => {
-          if (!this.cachedData[param.cacheKey]) {
-            this.cachedData[param.cacheKey] = route.callbackData(restId, parents);
-          }
-          parents.push(this.cachedData[param.cacheKey]);
-        });
-
-        const mockData = parents.pop() || null;
-        return { routeIndex: i, mockData, parents, primaryKey, lastRestId: restId };
-      }
-      break;
+      const mockData = parents.pop() || null;
+      return { routeIndex, mockData, parents, primaryKey, lastRestId: restId };
     }
   }
 }
