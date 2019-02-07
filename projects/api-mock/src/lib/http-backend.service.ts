@@ -134,7 +134,7 @@ export class HttpBackendService implements HttpBackend {
 
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
-    const routeGroupIndex = this.findRouteGroupIndex(normalizedUrl);
+    const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
     let getResponseReturns: GetResponseReturns;
 
     if (routeGroupIndex != -1) {
@@ -184,8 +184,8 @@ export class HttpBackendService implements HttpBackend {
   /**
    * @param url URL with host.
    */
-  protected findRouteGroupIndex(url: string): number {
-    for (const rootRoute of this.rootRoutes) {
+  protected findRouteGroupIndex(rootRoutes: MockRootRoutes, url: string): number {
+    for (const rootRoute of rootRoutes) {
       // We have `rootRoute.length + 1` to avoid such case:
       // (url) `posts-other/123` == (route) `posts/123`
       const partUrl = url.substr(0, rootRoute.length + 1);
