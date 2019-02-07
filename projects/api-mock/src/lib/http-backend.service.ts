@@ -24,35 +24,9 @@ import {
   MockDataCache,
   MockRouteGroup,
   MockRouteRoot,
+  MockRootRoutes,
 } from './types';
 
-/**
- * For Angular `HttpClient` simulate the behavior of a RESTy web api
- * backed by the simple in-memory data store provided by the injected `MockInterceptorApiService`.
- * Conforms mostly to behavior described here:
- * http://www.restapitutorial.com/lessons/httpmethods.html
- *
- * ### Usage
- *
- * Create an in-memory data store class that implements `MockInterceptorApiService`.
- * Call `config` static method with this service class and optional configuration object:
- * ```
- * // other imports
- * import { HttpClientModule } from '@angular/common/http';
- * import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
- *
- * import { InMemHeroService, inMemConfig } from '../api/in-memory-hero.service';
- * @NgModule({
- *  imports: [
- *    HttpModule,
- *    HttpClientInMemoryWebApiModule.forRoot(InMemHeroService, inMemConfig),
- *    ...
- *  ],
- *  ...
- * })
- * export class AppModule { ... }
- * ```
- */
 @Injectable()
 export class HttpBackendService implements HttpBackend {
   private cachedData: MockDataCache = {};
@@ -64,7 +38,7 @@ export class HttpBackendService implements HttpBackend {
    *
    * Array of paths revert sorted by length.
    */
-  private rootRoutes: Array<{ path: string; length: number; index: number }>;
+  private rootRoutes: MockRootRoutes;
 
   constructor(
     private apiMockService: ApiMockService,
@@ -94,8 +68,11 @@ export class HttpBackendService implements HttpBackend {
   protected init() {
     const routeGroups = this.apiMockService.getRouteGroups();
     this.routeGroups = this.checkRouteGroups(routeGroups);
+    this.rootRoutes = this.getRootPaths(this.routeGroups);
+  }
 
-    const rootRoutes = this.routeGroups.map((route, index) => {
+  protected getRootPaths(routeGroups: MockRouteGroup[]): MockRootRoutes {
+    const rootRoutes = routeGroups.map((route, index) => {
       // Transformation: `https://example.com/part1/part2/part3/:paramName` -> `https://example.com/part1/part2/part3`
       const part = route[0].path.split('/:')[0];
       const host = route[0].host || '';
@@ -104,7 +81,7 @@ export class HttpBackendService implements HttpBackend {
       return { path, length, index };
     });
 
-    // Revert sorting.
+    // Revert sorting by path length.
     return rootRoutes.sort((a, b) => b.length - a.length);
   }
 

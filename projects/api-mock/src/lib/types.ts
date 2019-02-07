@@ -11,12 +11,6 @@ export abstract class ApiMockService {
 export class ApiMockConfig {
   showFakeApiLog? = true;
   /**
-   * assumed to be the first path segment
-   * The base path to the api, e.g, 'api/'.
-   * If not specified than `parseRequestUrl` assumes it is the first path segment in the request.
-   */
-  apiBase? = undefined;
-  /**
    * false (default) if search match should be case insensitive
    */
   caseSensitiveSearch? = false;
@@ -37,11 +31,6 @@ export class ApiMockConfig {
    * false (default) should 204 when object-to-delete not found; true: 404
    */
   delete404? = false;
-  /**
-   * default value is actually set in InMemoryBackendService ctor
-   * host for this service, e.g., 'localhost'
-   */
-  host? = undefined;
   /**
    * 404 if can't process URL
    * false (default) should pass unrecognized request URL through to original backend; true: 404
@@ -67,11 +56,6 @@ export class ApiMockConfig {
    * false (default) if item not found, create as new item; false: should 404.
    */
   put404? = false;
-  /**
-   * default value is actually set in InMemoryBackendService ctor
-   * root path _before_ any API call, e.g., ''
-   */
-  rootPath? = undefined;
 
   constructor(apiMockConfig?: ApiMockConfig) {
     Object.assign(this, apiMockConfig || {});
@@ -117,6 +101,8 @@ export interface MockRoute {
 export type MockRouteRoot = MockRoute & { host?: string };
 
 export type MockRouteGroup = [MockRouteRoot, ...MockRoute[]];
+
+export type MockRootRoutes = Array<{ path: string; length: number; index: number }>;
 
 export interface GetResponseReturns {
   routeIndex: number;
