@@ -3,9 +3,10 @@ import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { HttpBackendService } from './http-backend.service';
-import { MockData, MockRouteGroup } from './types';
+import { MockRouteGroup, MockData, ApiMockService } from './types';
+import { ApiMockModule } from './api-mock.module';
 
-describe('HttpBackendService', () => {
+fdescribe('HttpBackendService', () => {
   /**
    * Make all properties this class with public data accessor.
    */
@@ -24,11 +25,18 @@ describe('HttpBackendService', () => {
     }
   }
 
+  class MyApiMockService extends ApiMockService {
+    getRouteGroups() {
+      return [];
+    }
+  }
+
   let mockDataInterceptor: HttpBackendService2;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, ApiMockModule.forRoot(MyApiMockService)],
+      providers: [HttpBackendService2],
     });
 
     mockDataInterceptor = TestBed.get(HttpBackendService2);
@@ -99,7 +107,7 @@ describe('HttpBackendService', () => {
         [{ ...route, path: 'four/five/six/:primaryId' }],
         [{ ...route }],
       ];
-      const msg = `HttpBackendService detect duplicate route with path: "/one/two/three/"`;
+      const msg = `ApiMockModule detect duplicate route with path: "/one/two/three/"`;
       expect(() => mockDataInterceptor.checkRouteGroups(routes)).toThrowError(msg);
     });
   });

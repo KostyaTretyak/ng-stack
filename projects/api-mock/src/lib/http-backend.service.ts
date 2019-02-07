@@ -115,14 +115,14 @@ export class HttpBackendService implements HttpBackend {
         const host = (route as any).host;
         if (host && !/^https?:\/\/[^\/]+$/.test(host)) {
           throw new Error(
-            `NgApiMockModule detect wrong host "${host}".
+            `ApiMockModule detect wrong host "${host}".
             Every host should match regexp "^https?:\/\/[^\/]+$",
             for example "https://example.com" (without a trailing slash)`
           );
         }
         if (!/^(?:[\w-]+\/)+:\w+$/.test(path)) {
           throw new Error(
-            `NgApiMockModule detect wrong route with path "${path}".
+            `ApiMockModule detect wrong route with path "${path}".
             Every path should match regexp "^([a-zA-Z0-9_-]+\/)+:[a-zA-Z0-9_]+$",
             for example "posts/:postId", where "postId" is field name of primary key of collection "posts"`
           );
@@ -141,7 +141,7 @@ export class HttpBackendService implements HttpBackend {
 
     incomingRoutes.forEach(incomingRoute => {
       if (existingRoutes.includes(incomingRoute)) {
-        throw new Error(`NgApiMockModule detect duplicate route with path: "${incomingRoute}"`);
+        throw new Error(`ApiMockModule detect duplicate route with path: "${incomingRoute}"`);
       }
       existingRoutes.push(incomingRoute);
     });
