@@ -24,8 +24,8 @@ describe('HttpBackendService', () => {
       return super.findRouteGroupIndex(rootRoutes, url);
     }
 
-    getDryRouteMatch(normalizedUrl: string, routeGroup: MockRouteGroup) {
-      return super.getDryRouteMatch(normalizedUrl, routeGroup);
+    getRouteDryMatch(normalizedUrl: string, routeGroup: MockRouteGroup) {
+      return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
   }
 
@@ -208,60 +208,70 @@ describe('HttpBackendService', () => {
     });
   });
 
-  fdescribe('call getDryRouteMatch()', () => {
+  describe('call getRouteDryMatch()', () => {
     let dryMatch: RouteMatchMetadata | void;
     let routeGroup: MockRouteGroup;
     let url: string;
     let splitedUrl: string[];
     let splitedRoute: string[];
-    it('should an url match a route', () => {
+    it('should match an url with primary ID to a route', () => {
+      url = 'one/two/three-other/123';
       routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
-      dryMatch = httpBackendService.getDryRouteMatch('one/two/three-other/123', routeGroup) as RouteMatchMetadata;
-      expect(dryMatch).toBeTruthy();
-      expect(dryMatch.hasLastRestId).toBeTruthy();
       splitedUrl = ['one', 'two', 'three-other', '123'];
       splitedRoute = ['one', 'two', 'three', ':primaryId'];
+      dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteMatchMetadata;
+      expect(!!dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeTruthy();
       expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
       expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
     });
 
-    it('should an url match a route', () => {
+    it('should match an url without primary ID to a route', () => {
+      url = 'one/two/three-other';
       routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
-      dryMatch = httpBackendService.getDryRouteMatch('one/two/three-other', routeGroup) as RouteMatchMetadata;
-      expect(dryMatch).toBeTruthy();
-      expect(dryMatch.hasLastRestId).toBeFalsy();
       splitedUrl = ['one', 'two', 'three-other'];
       splitedRoute = ['one', 'two', 'three'];
+      dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteMatchMetadata;
+      expect(!!dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeFalsy();
       expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
       expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
     });
 
-    it('should an url match a route', () => {
+    it('should not match an long url with primary ID to a short route', () => {
+      url = 'one/two/three-other/four/123';
       routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
-      dryMatch = httpBackendService.getDryRouteMatch('one/two/three-other/four/five', routeGroup);
-      expect(dryMatch).toBeFalsy();
+      dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup);
+      expect(!!dryMatch).toBeFalsy();
     });
 
-    it('should an url match a route', () => {
+    it('should not match an short url with primary ID to a long route', () => {
+      url = 'one/two/three-other/123';
+      routeGroup = [{ ...route, path: 'one/two/three/five/six/:primaryId' }];
+      dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup);
+      expect(!!dryMatch).toBeFalsy();
+    });
+
+    it('should match an url with host and with primary ID to a route', () => {
       url = 'https://example.com/one/two/123';
       routeGroup = [{ ...route, host: 'https://example.com', path: 'one/two/:primaryId' }];
-      dryMatch = httpBackendService.getDryRouteMatch(url, routeGroup) as RouteMatchMetadata;
-      expect(dryMatch).toBeTruthy();
-      expect(dryMatch.hasLastRestId).toBeTruthy();
       splitedUrl = ['https:', '', 'example.com', 'one', 'two', '123'];
       splitedRoute = ['https:', '', 'example.com', 'one', 'two', ':primaryId'];
+      dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteMatchMetadata;
+      expect(!!dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeTruthy();
       expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
       expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
     });
 
-    it('should an url match a route', () => {
+    it('should match an url with host and without primary ID to a route', () => {
       url = 'https://example.com/one/two-other';
       routeGroup = [{ ...route, host: 'https://example.com', path: 'one/two/:primaryId' }];
-      dryMatch = httpBackendService.getDryRouteMatch(url, routeGroup) as RouteMatchMetadata;
-      expect(dryMatch).toBeTruthy();
-      expect(dryMatch.hasLastRestId).toBeFalsy();
       splitedUrl = ['https:', '', 'example.com', 'one', 'two-other'];
       splitedRoute = ['https:', '', 'example.com', 'one', 'two'];
+      dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteMatchMetadata;
+      expect(!!dryMatch).toBeTruthy();
+      expect(dryMatch.hasLastRestId).toBeFalsy();
       expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
       expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
     });
