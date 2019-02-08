@@ -11,6 +11,7 @@ import {
   RouteDryMatch,
   ApiMockRoute,
   ApiMockRouteRoot,
+  GetDataReturns,
 } from './types';
 import { ApiMockModule } from './api-mock.module';
 
@@ -36,14 +37,8 @@ describe('HttpBackendService', () => {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
 
-    getData(
-      splitedUrl: string[],
-      splitedRoute: string[],
-      hasLastRestId: boolean,
-      route: ApiMockRoute | ApiMockRouteRoot,
-      routeIndex: number
-    ) {
-      return super.getData(splitedUrl, splitedRoute, hasLastRestId, route, routeIndex);
+    getData(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
+      return super.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
     }
   }
 
@@ -71,10 +66,13 @@ describe('HttpBackendService', () => {
   const route: ApiMockRoute = {
     path: 'one/two/three/:primaryId',
     callbackData: () => {
-      return {} as ApiMockData;
+      return {
+        writeableData: [],
+        onlyreadData: [],
+      };
     },
     callbackResponse: () => {
-      return;
+      return {};
     },
   };
 
@@ -296,6 +294,62 @@ describe('HttpBackendService', () => {
   });
 
   describe('call getData()', () => {
-    it('', () => {});
+    let normalizedUrl: string;
+    let pathOfRoute: string;
+    let splitedUrl: string[];
+    let splitedRoute: string[];
+    let hasLastRestId: boolean;
+    let routes: ApiMockRouteGroup;
+    let data: GetDataReturns | void;
+
+    describe('url without a host', () => {
+      it('should match an url with restId to a route', () => {
+        normalizedUrl = 'posts/123';
+        pathOfRoute = 'posts/:postId';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: pathOfRoute }];
+        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes) as GetDataReturns;
+        expect(!!data).toBeTruthy();
+        expect(data.primaryKey).toBe('postId');
+        expect(data.lastRestId).toBe('123');
+      });
+
+      it('should not match an url with restId to a route', () => {
+        normalizedUrl = 'posts-other/123';
+        pathOfRoute = 'posts/:postId';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: pathOfRoute }];
+        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeFalsy();
+      });
+
+      it('should match an url without restId to a route', () => {
+        normalizedUrl = 'posts';
+        pathOfRoute = 'posts';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = false;
+        routes = [{ ...route, path: pathOfRoute }];
+        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes) as GetDataReturns;
+        expect(!!data).toBeTruthy();
+        expect(data.primaryKey).toBe('');
+        expect(data.lastRestId).toBe('');
+      });
+
+      it('should not match an url without restId to a route', () => {
+        normalizedUrl = 'posts-other';
+        pathOfRoute = 'posts';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = false;
+        routes = [{ ...route, path: pathOfRoute }];
+        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeFalsy();
+      });
+    });
   });
 });
