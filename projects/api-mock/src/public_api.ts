@@ -8,10 +8,11 @@ export * from './lib/http-backend.service';
 export {
   ApiMockService,
   ApiMockConfig,
-  ApiMockCallbackData,
   ApiMockData,
   ApiMockRoute,
   ApiMockRouteRoot,
   ApiMockRouteGroup,
+  ApiMockCallbackData,
+  ApiMockCallbackResponse,
   ObjectAny,
 } from './lib/types';

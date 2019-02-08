@@ -69,12 +69,6 @@ export interface ObjectAny {
   [key: string]: any;
 }
 
-export class CacheData {
-  [routeKey: string]: ApiMockData;
-}
-
-export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => ApiMockData;
-
 export class ApiMockData {
   /**
    * Array of full version of REST resource,
@@ -87,7 +81,9 @@ export class ApiMockData {
   onlyreadData: any[];
 }
 
-export type CallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
+export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => ApiMockData;
+
+export type ApiMockCallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
   mockData: ApiMockData,
   primaryKey?: string,
   restId?: string,
@@ -98,12 +94,16 @@ export type CallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
 export interface ApiMockRoute {
   path: string;
   callbackData: ApiMockCallbackData;
-  callbackResponse: CallbackResponse;
+  callbackResponse: ApiMockCallbackResponse;
 }
 
 export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
 
 export type ApiMockRouteGroup = [ApiMockRouteRoot, ...ApiMockRoute[]];
+
+export class CacheData {
+  [routeKey: string]: ApiMockData;
+}
 
 export type PartialRoutes = Array<{ path: string; length: number; index: number }>;
 

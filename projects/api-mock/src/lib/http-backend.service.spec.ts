@@ -3,7 +3,15 @@ import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { HttpBackendService } from './http-backend.service';
-import { ApiMockRouteGroup, ApiMockData, ApiMockService, PartialRoutes, RouteDryMatch, ApiMockRoute } from './types';
+import {
+  ApiMockRouteGroup,
+  ApiMockData,
+  ApiMockService,
+  PartialRoutes,
+  RouteDryMatch,
+  ApiMockRoute,
+  ApiMockRouteRoot,
+} from './types';
 import { ApiMockModule } from './api-mock.module';
 
 describe('HttpBackendService', () => {
@@ -26,6 +34,16 @@ describe('HttpBackendService', () => {
 
     getRouteDryMatch(normalizedUrl: string, routeGroup: ApiMockRouteGroup) {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
+    }
+
+    getData(
+      splitedUrl: string[],
+      splitedRoute: string[],
+      hasLastRestId: boolean,
+      route: ApiMockRoute | ApiMockRouteRoot,
+      routeIndex: number
+    ) {
+      return super.getData(splitedUrl, splitedRoute, hasLastRestId, route, routeIndex);
     }
   }
 

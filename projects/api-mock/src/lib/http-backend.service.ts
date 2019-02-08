@@ -137,7 +137,7 @@ export class HttpBackendService implements HttpBackend {
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
     const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
-    let data: GetDataReturns;
+    let data: GetDataReturns | void;
 
     if (routeGroupIndex != -1) {
       try {
@@ -149,15 +149,12 @@ export class HttpBackendService implements HttpBackend {
       }
     }
 
-    if (req.method !== 'GET' || routeGroupIndex == -1 || !data) {
+    if (req.method != 'GET' || routeGroupIndex == -1 || !data) {
       return this.createPassThruBackend(req);
     }
 
-    const lastRestId: string = data.lastRestId;
-    const primaryKey: string = data.primaryKey;
+    const { primaryKey, lastRestId, parents, routeIndex } = data;
     const clonedCache: ApiMockData = JSON.parse(JSON.stringify(data.mockData));
-    const routeIndex: number = data.routeIndex;
-    const parents: ApiMockData[] = data.parents;
     const callbackResponse = this.routeGroups[routeGroupIndex][routeIndex].callbackResponse;
     const body = callbackResponse(clonedCache, primaryKey, lastRestId, parents);
 
@@ -249,7 +246,7 @@ export class HttpBackendService implements HttpBackend {
     hasLastRestId: boolean,
     route: ApiMockRoute | ApiMockRouteRoot,
     routeIndex: number
-  ): GetDataReturns {
+  ): GetDataReturns | void {
     let restId = '';
     let primaryKey = '';
     const params: Array<{ cacheKey: string; primaryKey?: string; restId?: string }> = [];
@@ -269,19 +266,19 @@ export class HttpBackendService implements HttpBackend {
 
     const parents: ApiMockData[] = [];
 
-    splitedRoute.forEach((part, j) => {
+    splitedRoute.forEach((part, i) => {
       if (part.charAt(0) == ':') {
-        restId = splitedUrl[j];
+        restId = splitedUrl[i];
         primaryKey = part.slice(1);
         /**
-         * cacheKey should be without a restId, e.g. `posts` or `posts/123/comments`,
+         * cacheKey should be without a restId at the end of URL, e.g. `posts` or `posts/123/comments`,
          * but not `posts/123` or `posts/123/comments/456`.
          */
-        const cacheKey = splitedUrl.slice(0, j - 1).join('/');
+        const cacheKey = splitedUrl.slice(0, i - 1).join('/');
         params.push({ cacheKey, primaryKey, restId });
       } else {
         partsOfRoute.push(part);
-        partsOfUrl.push(splitedUrl[j]);
+        partsOfUrl.push(splitedUrl[i]);
       }
     });
 
@@ -291,7 +288,7 @@ export class HttpBackendService implements HttpBackend {
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
-      // Signature of the route path is matched the URL.
+      // Signature of a route path is matched an URL.
       params.forEach(param => {
         if (!this.cachedData[param.cacheKey]) {
           this.cachedData[param.cacheKey] = route.callbackData(restId, parents);
