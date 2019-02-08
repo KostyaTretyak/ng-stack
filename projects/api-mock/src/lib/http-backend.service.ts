@@ -20,19 +20,19 @@ import {
   ApiMockConfig,
   ApiMockService,
   GetDataReturns,
-  MockData,
-  MockDataCache,
-  MockRouteGroup,
-  MockRouteRoot,
-  MockRootRoutes,
-  MockRoute,
+  ApiMockData,
+  CacheData,
+  ApiMockRouteGroup,
+  ApiMockRouteRoot,
+  PartialRoutes,
+  ApiMockRoute,
   RouteDryMatch,
 } from './types';
 
 @Injectable()
 export class HttpBackendService implements HttpBackend {
-  private cachedData: MockDataCache = {};
-  private routeGroups: MockRouteGroup[] = [];
+  private cachedData: CacheData = {};
+  private routeGroups: ApiMockRouteGroup[] = [];
   /**
    * Root route paths with host, but without restId. Has result transformation:
    * - `part1/part2/:paramName` -> `part1/part2`
@@ -40,7 +40,7 @@ export class HttpBackendService implements HttpBackend {
    *
    * Array of paths revert sorted by length.
    */
-  private rootRoutes: MockRootRoutes;
+  private rootRoutes: PartialRoutes;
 
   constructor(
     private apiMockService: ApiMockService,
@@ -73,7 +73,7 @@ export class HttpBackendService implements HttpBackend {
     this.rootRoutes = this.getRootPaths(this.routeGroups);
   }
 
-  protected getRootPaths(routeGroups: MockRouteGroup[]): MockRootRoutes {
+  protected getRootPaths(routeGroups: ApiMockRouteGroup[]): PartialRoutes {
     const rootRoutes = routeGroups.map((route, index) => {
       // Transformation: `https://example.com/part1/part2/part3/:paramName` -> `https://example.com/part1/part2/part3`
       const part = route[0].path.split('/:')[0];
@@ -87,7 +87,7 @@ export class HttpBackendService implements HttpBackend {
     return rootRoutes.sort((a, b) => b.length - a.length);
   }
 
-  protected checkRouteGroups(routeGroups: MockRouteGroup[]) {
+  protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
     routeGroups.forEach(routeGroup => {
       routeGroup.forEach(route => {
         const path = route.path;
@@ -127,7 +127,7 @@ export class HttpBackendService implements HttpBackend {
 
     return routeGroups;
 
-    function getRootPath(route: MockRouteRoot[]) {
+    function getRootPath(route: ApiMockRouteRoot[]) {
       const host = route[0].host || '';
       const rootPath = route[0].path.split(':')[0];
       return `${host}/${rootPath}`;
@@ -155,9 +155,9 @@ export class HttpBackendService implements HttpBackend {
 
     const lastRestId: string = data.lastRestId;
     const primaryKey: string = data.primaryKey;
-    const clonedCache: MockData = JSON.parse(JSON.stringify(data.mockData));
+    const clonedCache: ApiMockData = JSON.parse(JSON.stringify(data.mockData));
     const routeIndex: number = data.routeIndex;
-    const parents: MockData[] = data.parents;
+    const parents: ApiMockData[] = data.parents;
     const callbackResponse = this.routeGroups[routeGroupIndex][routeIndex].callbackResponse;
     const body = callbackResponse(clonedCache, primaryKey, lastRestId, parents);
 
@@ -188,7 +188,7 @@ export class HttpBackendService implements HttpBackend {
   /**
    * @param url URL with host.
    */
-  protected findRouteGroupIndex(rootRoutes: MockRootRoutes, url: string): number {
+  protected findRouteGroupIndex(rootRoutes: PartialRoutes, url: string): number {
     for (const rootRoute of rootRoutes) {
       // We have `rootRoute.length + 1` to avoid such case:
       // (url) `posts-other/123` == (route) `posts/123`
@@ -209,7 +209,7 @@ export class HttpBackendService implements HttpBackend {
    * @param normalizedUrl If we have URL without host, removed slash from the start.
    * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
    */
-  protected getRouteDryMatch(normalizedUrl: string, routeGroup: MockRouteGroup): RouteDryMatch | void {
+  protected getRouteDryMatch(normalizedUrl: string, routeGroup: ApiMockRouteGroup): RouteDryMatch | void {
     /**
      * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
      */
@@ -247,7 +247,7 @@ export class HttpBackendService implements HttpBackend {
     splitedUrl: string[],
     splitedRoute: string[],
     hasLastRestId: boolean,
-    route: MockRoute | MockRouteRoot,
+    route: ApiMockRoute | ApiMockRouteRoot,
     routeIndex: number
   ): GetDataReturns {
     let restId = '';
@@ -267,7 +267,7 @@ export class HttpBackendService implements HttpBackend {
      */
     const partsOfUrl: string[] = [];
 
-    const parents: MockData[] = [];
+    const parents: ApiMockData[] = [];
 
     splitedRoute.forEach((part, j) => {
       if (part.charAt(0) == ':') {

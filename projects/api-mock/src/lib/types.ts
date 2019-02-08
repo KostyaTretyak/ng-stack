@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 export abstract class ApiMockService {
-  abstract getRouteGroups(): MockRouteGroup[];
+  abstract getRouteGroups(): ApiMockRouteGroup[];
 }
 
 /**
@@ -62,17 +62,20 @@ export class ApiMockConfig {
   }
 }
 
+/**
+ * It is just `{ [key: string]: any }` an object interface.
+ */
 export interface ObjectAny {
   [key: string]: any;
 }
 
-export class MockDataCache {
-  [routeKey: string]: MockData;
+export class CacheData {
+  [routeKey: string]: ApiMockData;
 }
 
-export type MockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => MockData;
+export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => ApiMockData;
 
-export class MockData {
+export class ApiMockData {
   /**
    * Array of full version of REST resource,
    * it is a single resource of true for given REST resource.
@@ -84,30 +87,30 @@ export class MockData {
   onlyreadData: any[];
 }
 
-export type MockCallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
-  mockData: MockData,
+export type CallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
+  mockData: ApiMockData,
   primaryKey?: string,
   restId?: string,
   parents?: P,
   queryParams?: ObjectAny
 ) => any;
 
-export interface MockRoute {
+export interface ApiMockRoute {
   path: string;
-  callbackData: MockCallbackData;
-  callbackResponse: MockCallbackResponse;
+  callbackData: ApiMockCallbackData;
+  callbackResponse: CallbackResponse;
 }
 
-export type MockRouteRoot = MockRoute & { host?: string };
+export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
 
-export type MockRouteGroup = [MockRouteRoot, ...MockRoute[]];
+export type ApiMockRouteGroup = [ApiMockRouteRoot, ...ApiMockRoute[]];
 
-export type MockRootRoutes = Array<{ path: string; length: number; index: number }>;
+export type PartialRoutes = Array<{ path: string; length: number; index: number }>;
 
 export interface GetDataReturns {
   routeIndex: number;
-  mockData: MockData;
-  parents: MockData[];
+  mockData: ApiMockData;
+  parents: ApiMockData[];
   primaryKey: string;
   lastRestId: string;
 }
@@ -116,6 +119,6 @@ export class RouteDryMatch {
   splitedUrl: string[];
   splitedRoute: string[];
   hasLastRestId: boolean;
-  route: MockRoute | MockRouteRoot;
+  route: ApiMockRoute | ApiMockRouteRoot;
   routeIndex: number;
 }

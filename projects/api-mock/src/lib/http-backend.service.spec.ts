@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { HttpBackendService } from './http-backend.service';
-import { MockRouteGroup, MockData, ApiMockService, MockRootRoutes, RouteDryMatch, MockRoute } from './types';
+import { ApiMockRouteGroup, ApiMockData, ApiMockService, PartialRoutes, RouteDryMatch, ApiMockRoute } from './types';
 import { ApiMockModule } from './api-mock.module';
 
 describe('HttpBackendService', () => {
@@ -12,19 +12,19 @@ describe('HttpBackendService', () => {
    */
   @Injectable()
   class HttpBackendService2 extends HttpBackendService {
-    getRootPaths(routeGroups: MockRouteGroup[]) {
+    getRootPaths(routeGroups: ApiMockRouteGroup[]) {
       return super.getRootPaths(routeGroups);
     }
 
-    checkRouteGroups(routes: MockRouteGroup[]) {
+    checkRouteGroups(routes: ApiMockRouteGroup[]) {
       return super.checkRouteGroups(routes);
     }
 
-    findRouteGroupIndex(rootRoutes: MockRootRoutes, url: string) {
+    findRouteGroupIndex(rootRoutes: PartialRoutes, url: string) {
       return super.findRouteGroupIndex(rootRoutes, url);
     }
 
-    getRouteDryMatch(normalizedUrl: string, routeGroup: MockRouteGroup) {
+    getRouteDryMatch(normalizedUrl: string, routeGroup: ApiMockRouteGroup) {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
   }
@@ -50,10 +50,10 @@ describe('HttpBackendService', () => {
     expect(httpBackendService instanceof HttpBackendService2).toBeTruthy();
   });
 
-  const route: MockRoute = {
+  const route: ApiMockRoute = {
     path: 'one/two/three/:primaryId',
     callbackData: () => {
-      return {} as MockData;
+      return {} as ApiMockData;
     },
     callbackResponse: () => {
       return;
@@ -62,48 +62,48 @@ describe('HttpBackendService', () => {
 
   describe('call checkRouteGroups()', () => {
     it('with ampty array without throw error', () => {
-      const routes: MockRouteGroup[] = [[{ ...route }]];
+      const routes: ApiMockRouteGroup[] = [[{ ...route }]];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
       const result = httpBackendService.checkRouteGroups(routes);
       expect(result).toEqual(routes);
     });
 
     it('with good host as argument should not fail', () => {
-      const routes: MockRouteGroup[] = [[{ ...route, host: 'https://example.com' }]];
+      const routes: ApiMockRouteGroup[] = [[{ ...route, host: 'https://example.com' }]];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
       const result = httpBackendService.checkRouteGroups(routes);
       expect(result).toEqual(routes);
     });
 
     it('with bad host as argument should fail', () => {
-      const routes: MockRouteGroup[] = [[{ ...route, host: 'fake host' }]];
+      const routes: ApiMockRouteGroup[] = [[{ ...route, host: 'fake host' }]];
       expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/detect wrong host "fake host"/);
     });
 
     it('with bad path as argument should fail', () => {
-      const routes: MockRouteGroup[] = [[{ ...route, path: 'some' }]];
+      const routes: ApiMockRouteGroup[] = [[{ ...route, path: 'some' }]];
       expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/detect wrong route with path "some"/);
     });
 
     it('with bad callbackData as argument should fail', () => {
-      const routes: MockRouteGroup[] = [[{ ...route, callbackData: {} as any }]];
+      const routes: ApiMockRouteGroup[] = [[{ ...route, callbackData: {} as any }]];
       const msg = `Route callbackData with path "one/two/three/:primaryId" is not a function`;
       expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(msg);
     });
 
     it('with bad callbackResponse as argument should fail', () => {
-      const routes: MockRouteGroup[] = [[{ ...route, callbackResponse: {} as any }]];
+      const routes: ApiMockRouteGroup[] = [[{ ...route, callbackResponse: {} as any }]];
       const msg = `Route callbackResponse with path "one/two/three/:primaryId" is not a function`;
       expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(msg);
     });
 
     it('with correct arguments without fail', () => {
-      const routes: MockRouteGroup[] = [[{ ...route }]];
+      const routes: ApiMockRouteGroup[] = [[{ ...route }]];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
     });
 
     it('with duplicate root path as arguments with fail', () => {
-      const routes: MockRouteGroup[] = [
+      const routes: ApiMockRouteGroup[] = [
         [{ ...route }],
         [{ ...route, path: 'four/five/six/:primaryId' }],
         [{ ...route }],
@@ -114,7 +114,7 @@ describe('HttpBackendService', () => {
   });
 
   describe('call getRootPaths() and findRouteGroupIndex()', () => {
-    const routesWithoutHost: MockRouteGroup[] = [
+    const routesWithoutHost: ApiMockRouteGroup[] = [
       [{ ...route, path: 'one/:primaryId' }],
       [{ ...route, path: 'one/two/:primaryId' }],
       [{ ...route, path: 'one/two/three/four/five/six/seven/:primaryId' }],
@@ -124,7 +124,7 @@ describe('HttpBackendService', () => {
       [{ ...route, path: 'one/two/three/four/five/:primaryId' }],
     ];
 
-    const routesWithMixHost: MockRouteGroup[] = [
+    const routesWithMixHost: ApiMockRouteGroup[] = [
       [{ ...route, host: 'https://example3.com', path: 'one/two/three/four/five/six/:primaryId' }],
       [{ ...route, host: 'https://example2.com', path: 'one/two/three/four/five/six/:primaryId' }],
       [{ ...route, host: 'https://example1.com', path: 'one/two/:primaryId' }],
@@ -210,7 +210,7 @@ describe('HttpBackendService', () => {
 
   describe('call getRouteDryMatch()', () => {
     let dryMatch: RouteDryMatch | void;
-    let routeGroup: MockRouteGroup;
+    let routeGroup: ApiMockRouteGroup;
     let url: string;
     let splitedUrl: string[];
     let splitedRoute: string[];
@@ -275,5 +275,9 @@ describe('HttpBackendService', () => {
       expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
       expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
     });
+  });
+
+  describe('call getData()', () => {
+    it('', () => {});
   });
 });
