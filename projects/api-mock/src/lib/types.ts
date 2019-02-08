@@ -107,18 +107,24 @@ export class CacheData {
 
 export type PartialRoutes = Array<{ path: string; length: number; index: number }>;
 
-export interface GetDataReturns {
-  routeIndex: number;
-  mockData: ApiMockData;
-  parents: ApiMockData[];
-  primaryKey: string;
-  lastRestId: string;
-}
-
 export class RouteDryMatch {
   splitedUrl: string[];
   splitedRoute: string[];
   hasLastRestId: boolean;
-  route: ApiMockRoute | ApiMockRouteRoot;
-  routeIndex: number;
+  routes: ApiMockRouteGroup;
 }
+
+export interface GetDataReturns {
+  mockData: ApiMockData;
+  parents: ApiMockData[];
+  primaryKey: string;
+  lastRestId: string;
+  callbackResponse: ApiMockCallbackResponse;
+}
+
+export type GetDataParams = Array<{
+  cacheKey: string;
+  primaryKey?: string;
+  restId?: string;
+  route: ApiMockRouteRoot | ApiMockRoute;
+}>;

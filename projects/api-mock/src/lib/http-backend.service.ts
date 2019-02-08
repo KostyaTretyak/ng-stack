@@ -27,6 +27,7 @@ import {
   PartialRoutes,
   ApiMockRoute,
   RouteDryMatch,
+  GetDataParams,
 } from './types';
 
 @Injectable()
@@ -142,8 +143,9 @@ export class HttpBackendService implements HttpBackend {
     if (routeGroupIndex != -1) {
       try {
         const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
-        const { splitedUrl, splitedRoute, hasLastRestId, route, routeIndex } = dryMatch || new RouteDryMatch();
-        data = this.getData(splitedUrl, splitedRoute, hasLastRestId, route, routeIndex);
+        // tslint:disable-next-line:no-shadowed-variable
+        const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch || new RouteDryMatch();
+        data = this.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
       } catch (err) {
         console.log(err);
       }
@@ -153,12 +155,19 @@ export class HttpBackendService implements HttpBackend {
       return this.createPassThruBackend(req);
     }
 
-    const { primaryKey, lastRestId, parents, routeIndex } = data;
-    const clonedCache: ApiMockData = JSON.parse(JSON.stringify(data.mockData));
-    const callbackResponse = this.routeGroups[routeGroupIndex][routeIndex].callbackResponse;
-    const body = callbackResponse(clonedCache, primaryKey, lastRestId, parents);
+    let body: any;
+    let hasLastRestId: boolean;
 
-    if (lastRestId && !body) {
+    try {
+      const { primaryKey, lastRestId, parents, callbackResponse } = data;
+      hasLastRestId = !!lastRestId;
+      const clonedCache: ApiMockData = JSON.parse(JSON.stringify(data.mockData));
+      body = callbackResponse(clonedCache, primaryKey, lastRestId, parents);
+    } catch (err) {
+      console.log(err);
+    }
+
+    if (hasLastRestId && !body) {
       if (this.apiMockConfig.showFakeApiLog) {
         console.log(`%c${req.method} ${req.url}:`, 'color: red;');
         console.log('Error 404: The page not found');
@@ -214,9 +223,10 @@ export class HttpBackendService implements HttpBackend {
     const countPartOfUrl = splitedUrl.length;
     let pathOfRoute = routeGroup[0].host || '';
     let hasLastRestId = true;
+    const routes: ApiMockRouteGroup = [] as any;
 
-    for (let i = 0; i < routeGroup.length; i++) {
-      const route = routeGroup[i];
+    for (const route of routeGroup) {
+      routes.push(route);
       pathOfRoute += pathOfRoute ? `/${route.path}` : route.path;
       const splitedRoute = pathOfRoute.split('/');
       /**
@@ -236,7 +246,7 @@ export class HttpBackendService implements HttpBackend {
       } else {
         // countPartOfUrl == countPartOfRoute
       }
-      return { splitedUrl, splitedRoute, hasLastRestId, route, routeIndex: i };
+      return { splitedUrl, splitedRoute, hasLastRestId, routes };
     }
   }
 
@@ -244,12 +254,11 @@ export class HttpBackendService implements HttpBackend {
     splitedUrl: string[],
     splitedRoute: string[],
     hasLastRestId: boolean,
-    route: ApiMockRoute | ApiMockRouteRoot,
-    routeIndex: number
+    routes: ApiMockRouteGroup
   ): GetDataReturns | void {
     let restId = '';
     let primaryKey = '';
-    const params: Array<{ cacheKey: string; primaryKey?: string; restId?: string }> = [];
+    const params: GetDataParams = [];
 
     /**
      * Have result of transformations like this:
@@ -275,29 +284,33 @@ export class HttpBackendService implements HttpBackend {
          * but not `posts/123` or `posts/123/comments/456`.
          */
         const cacheKey = splitedUrl.slice(0, i - 1).join('/');
-        params.push({ cacheKey, primaryKey, restId });
+        const route = routes[params.length];
+        params.push({ cacheKey, primaryKey, restId, route });
       } else {
         partsOfRoute.push(part);
         partsOfUrl.push(splitedUrl[i]);
       }
     });
 
+    const lastRoute = routes[routes.length - 1];
+
     if (!hasLastRestId) {
-      const cacheKey = splitedUrl.join('/');
-      params.push({ cacheKey });
+      params.push({ cacheKey: splitedUrl.join('/'), route: lastRoute });
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
       // Signature of a route path is matched an URL.
       params.forEach(param => {
         if (!this.cachedData[param.cacheKey]) {
-          this.cachedData[param.cacheKey] = route.callbackData(restId, parents);
+          this.cachedData[param.cacheKey] = param.route.callbackData(restId, parents);
         }
         parents.push(this.cachedData[param.cacheKey]);
       });
 
       const mockData = parents.pop() || null;
-      return { routeIndex, mockData, parents, primaryKey, lastRestId: restId };
+      const callbackResponse = lastRoute.callbackResponse;
+      const lastRestId = restId;
+      return { callbackResponse, mockData, parents, primaryKey, lastRestId };
     }
   }
 }
