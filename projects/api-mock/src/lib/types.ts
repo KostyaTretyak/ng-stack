@@ -112,7 +112,7 @@ export interface GetDataReturns {
   lastRestId: string;
 }
 
-export class RouteMatchMetadata {
+export class RouteDryMatch {
   splitedUrl: string[];
   splitedRoute: string[];
   hasLastRestId: boolean;

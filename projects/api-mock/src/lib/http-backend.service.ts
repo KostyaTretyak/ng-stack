@@ -26,7 +26,7 @@ import {
   MockRouteRoot,
   MockRootRoutes,
   MockRoute,
-  RouteMatchMetadata,
+  RouteDryMatch,
 } from './types';
 
 @Injectable()
@@ -141,8 +141,8 @@ export class HttpBackendService implements HttpBackend {
 
     if (routeGroupIndex != -1) {
       try {
-        const metatada = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
-        const { splitedUrl, splitedRoute, hasLastRestId, route, routeIndex } = metatada || new RouteMatchMetadata();
+        const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
+        const { splitedUrl, splitedRoute, hasLastRestId, route, routeIndex } = dryMatch || new RouteDryMatch();
         data = this.getData(splitedUrl, splitedRoute, hasLastRestId, route, routeIndex);
       } catch (err) {
         console.log(err);
@@ -209,7 +209,7 @@ export class HttpBackendService implements HttpBackend {
    * @param normalizedUrl If we have URL without host, removed slash from the start.
    * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
    */
-  protected getRouteDryMatch(normalizedUrl: string, routeGroup: MockRouteGroup): RouteMatchMetadata | void {
+  protected getRouteDryMatch(normalizedUrl: string, routeGroup: MockRouteGroup): RouteDryMatch | void {
     /**
      * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
      */
