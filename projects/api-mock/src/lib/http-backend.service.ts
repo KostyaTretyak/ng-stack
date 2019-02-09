@@ -250,6 +250,20 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
+  /**
+   * Taken result of dry matching an URL to a route,
+   * so length of `splitedUrl` is always must to be equal to length of `splitedRoute`.
+   *
+   * This function:
+   * - checks that concated `splitedUrl` is matched to concated `splitedRoute`;
+   * - calls `callbackData()` from apropriate route and returns result;
+   * - returns `callbackResponse()` from matched route and metadata for its calling.
+   *
+   * @param splitedUrl Result spliting of an URL by slash.
+   * @param splitedRoute Result spliting of concated a route paths by slash.
+   * @param hasLastRestId Whethe URL has last restId, e.g. `posts/123` or `posts/123/comments/456`.
+   * @param routes Part or full of routes group, that have path matched to an URL.
+   */
   protected getData(
     splitedUrl: string[],
     splitedRoute: string[],
@@ -257,20 +271,8 @@ export class HttpBackendService implements HttpBackend {
     routes: ApiMockRouteGroup
   ): GetDataReturns | void {
     const params: GetDataParams = [];
-
-    /**
-     * Have result of transformations like this:
-     * - `posts/:postId` -> `posts`
-     * - or `posts/:postId/comments/:commentId` -> `posts/comments`
-     */
     const partsOfRoute: string[] = [];
-    /**
-     * Have result of transformations like this:
-     * - `posts/123` -> `posts`
-     * - or `posts/123/comments/456` -> `posts/comments`
-     */
     const partsOfUrl: string[] = [];
-
     const parents: ApiMockData[] = [];
 
     splitedRoute.forEach((part, i) => {
@@ -285,8 +287,18 @@ export class HttpBackendService implements HttpBackend {
         const route = routes[params.length];
         params.push({ cacheKey, primaryKey, restId, route });
       } else {
-        partsOfRoute.push(part);
+        /**
+         * Have result of transformations like this:
+         * - `posts/123` -> `posts`
+         * - or `posts/123/comments/456` -> `posts/comments`.
+         */
         partsOfUrl.push(splitedUrl[i]);
+        /**
+         * Have result of transformations like this:
+         * - `posts/:postId` -> `posts`
+         * - or `posts/:postId/comments/:commentId` -> `posts/comments`.
+         */
+        partsOfRoute.push(part);
       }
     });
 
