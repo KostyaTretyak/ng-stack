@@ -1,11 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import {
-  ApiMockService,
-  ApiMockRouteGroup,
-  ApiMockCallbackData,
-  ApiMockCallbackResponse,
-} from '@ng-stack/api-mock/lib/types';
+import { ApiMockService, ApiMockRouteGroup, ApiMockCallbackData, ApiMockCallbackResponse } from '@ng-stack/api-mock';
 
 import { Customer } from './types';
 
@@ -41,7 +36,7 @@ export class CustomersOrdersService implements ApiMockService {
    * Called when URL is like `customers` or `customers/123`
    */
   private getCustomerResponse(): ApiMockCallbackResponse {
-    return (mockData, primaryKey, customerId, parents, queryParams) => {
+    return (mockData, parents, queryParams) => {
       return;
     };
   }
@@ -61,7 +56,7 @@ export class CustomersOrdersService implements ApiMockService {
    * Here `[Customer]` - it is generic type for `parents` - parameter for the callback.
    */
   private getOrdersResponse(): ApiMockCallbackResponse<[Customer]> {
-    return (mockData, primaryKey, orderId, parents, queryParams) => {
+    return (mockData, parents, queryParams) => {
       return;
     };
   }

@@ -3,15 +3,7 @@ import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { HttpBackendService } from './http-backend.service';
-import {
-  ApiMockRouteGroup,
-  ApiMockData,
-  ApiMockService,
-  PartialRoutes,
-  RouteDryMatch,
-  ApiMockRoute,
-  ApiMockRouteRoot,
-} from './types';
+import { ApiMockRouteGroup, ApiMockService, PartialRoutes, RouteDryMatch, ApiMockRoute } from './types';
 import { ApiMockModule } from './api-mock.module';
 
 describe('HttpBackendService', () => {
