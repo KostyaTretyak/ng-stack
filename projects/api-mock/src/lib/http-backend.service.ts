@@ -254,7 +254,7 @@ export class HttpBackendService implements HttpBackend {
     splitedRoute: string[],
     hasLastRestId: boolean,
     routes: ApiMockRouteGroup
-  ) {
+  ): any | void {
     const params: GetDataParams = [];
     const partsOfRoute: string[] = [];
     const partsOfUrl: string[] = [];
@@ -302,18 +302,22 @@ export class HttpBackendService implements HttpBackend {
         parents.push(this.cachedData[param.cacheKey]);
       });
 
-      let mockData = parents.pop() || null;
+      const mockData = parents.pop() || null;
       const lastParam = params[params.length - 1];
       const lastRestId = lastParam.restId || '';
       const primaryKey = lastParam.primaryKey || '';
+      let data: any;
+
       if (lastRestId) {
-        mockData = {
-          onlyreadData: mockData.onlyreadData.find(item => item[primaryKey] == lastRestId),
-          writeableData: mockData.writeableData.find(item => item[primaryKey] == lastRestId),
-        };
+        data = mockData.writeableData.find(item => item[primaryKey].toString() == lastRestId);
+        if (!data) {
+          return;
+        }
+      } else {
+        data = mockData.onlyreadData;
       }
-      const clonedMockData: ApiMockData = JSON.parse(JSON.stringify(mockData));
-      return lastRoute.callbackResponse(clonedMockData, primaryKey, lastRestId, parents);
+      const clonedData: any = JSON.parse(JSON.stringify(data));
+      return lastRoute.callbackResponse(clonedData, parents);
     }
   }
 }
