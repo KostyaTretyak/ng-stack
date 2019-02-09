@@ -196,10 +196,6 @@ export class HttpBackendService implements HttpBackend {
     return -1;
   }
 
-  protected searchItemById(primaryKey: string, lastRestId: string): any {
-    return;
-  }
-
   /**
    * @param normalizedUrl If we have URL without host, removed slash from the start.
    * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
@@ -306,10 +302,16 @@ export class HttpBackendService implements HttpBackend {
         parents.push(this.cachedData[param.cacheKey]);
       });
 
-      const mockData = parents.pop() || null;
+      let mockData = parents.pop() || null;
       const lastParam = params[params.length - 1];
       const lastRestId = lastParam.restId || '';
       const primaryKey = lastParam.primaryKey || '';
+      if (lastRestId) {
+        mockData = {
+          onlyreadData: mockData.onlyreadData.find(item => item[primaryKey] == lastRestId),
+          writeableData: mockData.writeableData.find(item => item[primaryKey] == lastRestId),
+        };
+      }
       const clonedMockData: ApiMockData = JSON.parse(JSON.stringify(mockData));
       return lastRoute.callbackResponse(clonedMockData, primaryKey, lastRestId, parents);
     }
