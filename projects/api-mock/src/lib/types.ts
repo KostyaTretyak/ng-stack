@@ -114,14 +114,6 @@ export class RouteDryMatch {
   routes: ApiMockRouteGroup;
 }
 
-export interface GetDataReturns {
-  mockData: ApiMockData;
-  parents: ApiMockData[];
-  primaryKey: string;
-  lastRestId: string;
-  callbackResponse: ApiMockCallbackResponse;
-}
-
 export type GetDataParams = Array<{
   cacheKey: string;
   primaryKey?: string;

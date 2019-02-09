@@ -19,7 +19,6 @@ import { delay } from 'rxjs/operators';
 import {
   ApiMockConfig,
   ApiMockService,
-  GetDataReturns,
   ApiMockData,
   CacheData,
   ApiMockRouteGroup,
@@ -59,7 +58,7 @@ export class HttpBackendService implements HttpBackend {
     return new HttpHeaders(headers);
   }
 
-  protected createPassThruBackend(req: HttpRequest<any>) {
+  protected passThruBackend(req: HttpRequest<any>) {
     try {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     } catch (ex) {
@@ -136,38 +135,28 @@ export class HttpBackendService implements HttpBackend {
   }
 
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
-    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
-    const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
-    let data: GetDataReturns | void;
-
-    if (routeGroupIndex != -1) {
-      try {
-        const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
-        // tslint:disable-next-line:no-shadowed-variable
-        const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch || new RouteDryMatch();
-        data = this.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
-      } catch (err) {
-        console.log(err);
-      }
+    if (req.method != 'GET') {
+      return this.passThruBackend(req);
     }
 
-    if (req.method != 'GET' || routeGroupIndex == -1 || !data) {
-      return this.createPassThruBackend(req);
+    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
+    const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
+
+    if (routeGroupIndex == -1) {
+      return this.passThruBackend(req);
     }
 
     let body: any;
-    let hasLastRestId: boolean;
-
     try {
-      const { primaryKey, lastRestId, parents, callbackResponse } = data;
-      hasLastRestId = !!lastRestId;
-      const clonedCache: ApiMockData = JSON.parse(JSON.stringify(data.mockData));
-      body = callbackResponse(clonedCache, primaryKey, lastRestId, parents);
+      const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
+      // tslint:disable-next-line:no-shadowed-variable
+      const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch || new RouteDryMatch();
+      body = this.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
     } catch (err) {
       console.log(err);
     }
 
-    if (hasLastRestId && !body) {
+    if (!body) {
       if (this.apiMockConfig.showFakeApiLog) {
         console.log(`%c${req.method} ${req.url}:`, 'color: red;');
         console.log('Error 404: The page not found');
@@ -256,20 +245,20 @@ export class HttpBackendService implements HttpBackend {
    *
    * This function:
    * - checks that concated `splitedUrl` is matched to concated `splitedRoute`;
-   * - calls `callbackData()` from apropriate route and returns result;
-   * - returns `callbackResponse()` from matched route and metadata for its calling.
+   * - calls `callbackData()` from apropriate route;
+   * - calls `callbackResponse()` from matched route and returns a result.
    *
    * @param splitedUrl Result spliting of an URL by slash.
    * @param splitedRoute Result spliting of concated a route paths by slash.
    * @param hasLastRestId Whethe URL has last restId, e.g. `posts/123` or `posts/123/comments/456`.
    * @param routes Part or full of routes group, that have path matched to an URL.
    */
-  protected getData(
+  protected getResponse(
     splitedUrl: string[],
     splitedRoute: string[],
     hasLastRestId: boolean,
     routes: ApiMockRouteGroup
-  ): GetDataReturns | void {
+  ) {
     const params: GetDataParams = [];
     const partsOfRoute: string[] = [];
     const partsOfUrl: string[] = [];
@@ -318,11 +307,11 @@ export class HttpBackendService implements HttpBackend {
       });
 
       const mockData = parents.pop() || null;
-      const callbackResponse = lastRoute.callbackResponse;
       const lastParam = params[params.length - 1];
       const lastRestId = lastParam.restId || '';
       const primaryKey = lastParam.primaryKey || '';
-      return { callbackResponse, mockData, parents, primaryKey, lastRestId };
+      const clonedMockData: ApiMockData = JSON.parse(JSON.stringify(mockData));
+      return lastRoute.callbackResponse(clonedMockData, primaryKey, lastRestId, parents);
     }
   }
 }

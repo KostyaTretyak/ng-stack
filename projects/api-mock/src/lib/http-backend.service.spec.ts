@@ -11,7 +11,6 @@ import {
   RouteDryMatch,
   ApiMockRoute,
   ApiMockRouteRoot,
-  GetDataReturns,
 } from './types';
 import { ApiMockModule } from './api-mock.module';
 
@@ -37,8 +36,8 @@ describe('HttpBackendService', () => {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
 
-    getData(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
-      return super.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
+    getResponse(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
+      return super.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
     }
   }
 
@@ -293,14 +292,14 @@ describe('HttpBackendService', () => {
     });
   });
 
-  describe('call getData()', () => {
+  describe('call getResponse()', () => {
     let normalizedUrl: string;
     let pathOfRoute: string;
     let splitedUrl: string[];
     let splitedRoute: string[];
     let hasLastRestId: boolean;
     let routes: ApiMockRouteGroup;
-    let data: GetDataReturns | void;
+    let data: any;
 
     describe('url without a host', () => {
       it('should match an url with restId to a route', () => {
@@ -310,10 +309,11 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes) as GetDataReturns;
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('postId');
         expect(data.lastRestId).toBe('123');
+        expect(data.parents.length).toBe(0);
       });
 
       it('should not match an url with restId to a route', () => {
@@ -323,7 +323,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
 
@@ -334,10 +334,11 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = false;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes) as GetDataReturns;
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('');
         expect(data.lastRestId).toBe('');
+        expect(data.parents.length).toBe(0);
       });
 
       it('should not match an url without restId to a route', () => {
@@ -347,7 +348,111 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = false;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getData(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeFalsy();
+      });
+    });
+
+    describe('url with multi nesting a route path', () => {
+      it('should match an url with restId to a route', () => {
+        normalizedUrl = 'posts/123/comments/456';
+        pathOfRoute = 'posts/:postId/comments/:commentId';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeTruthy();
+        expect(data.primaryKey).toBe('commentId');
+        expect(data.lastRestId).toBe('456');
+        expect(data.parents.length).toBe(1);
+      });
+
+      it('should not match an url with restId to a route', () => {
+        normalizedUrl = 'posts/123/comments-other/456';
+        pathOfRoute = 'posts/:postId/comments/:commentId';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeFalsy();
+      });
+
+      it('should match an url without restId to a route', () => {
+        normalizedUrl = 'posts/123/comments';
+        pathOfRoute = 'posts/:postId/comments';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = false;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeTruthy();
+        expect(data.primaryKey).toBe('');
+        expect(data.lastRestId).toBe('');
+        expect(data.parents.length).toBe(1);
+      });
+
+      it('should not match an url without restId to a route', () => {
+        normalizedUrl = 'posts/123/comments-other';
+        pathOfRoute = 'posts/:postId/comments';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeFalsy();
+      });
+    });
+
+    describe('url with host and multi nesting a route path', () => {
+      it('should match an url with restId to a route', () => {
+        normalizedUrl = 'posts/123/comments/456';
+        pathOfRoute = 'posts/:postId/comments/:commentId';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeTruthy();
+        expect(data.primaryKey).toBe('commentId');
+        expect(data.lastRestId).toBe('456');
+        expect(data.parents.length).toBe(1);
+      });
+
+      it('should not match an url with restId to a route', () => {
+        normalizedUrl = 'posts/123/comments-other/456';
+        pathOfRoute = 'posts/:postId/comments/:commentId';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeFalsy();
+      });
+
+      it('should match an url without restId to a route', () => {
+        normalizedUrl = 'posts/123/comments';
+        pathOfRoute = 'posts/:postId/comments';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = false;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        expect(!!data).toBeTruthy();
+        expect(data.primaryKey).toBe('');
+        expect(data.lastRestId).toBe('');
+        expect(data.parents.length).toBe(1);
+      });
+
+      it('should not match an url without restId to a route', () => {
+        normalizedUrl = 'posts/123/comments-other';
+        pathOfRoute = 'posts/:postId/comments';
+        splitedUrl = normalizedUrl.split('/');
+        splitedRoute = pathOfRoute.split('/');
+        hasLastRestId = true;
+        routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
+        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
     });
