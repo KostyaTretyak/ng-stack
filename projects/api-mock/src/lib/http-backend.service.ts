@@ -256,8 +256,6 @@ export class HttpBackendService implements HttpBackend {
     hasLastRestId: boolean,
     routes: ApiMockRouteGroup
   ): GetDataReturns | void {
-    let restId = '';
-    let primaryKey = '';
     const params: GetDataParams = [];
 
     /**
@@ -277,8 +275,8 @@ export class HttpBackendService implements HttpBackend {
 
     splitedRoute.forEach((part, i) => {
       if (part.charAt(0) == ':') {
-        restId = splitedUrl[i];
-        primaryKey = part.slice(1);
+        const restId = splitedUrl[i];
+        const primaryKey = part.slice(1);
         /**
          * cacheKey should be without a restId at the end of URL, e.g. `posts` or `posts/123/comments`,
          * but not `posts/123` or `posts/123/comments/456`.
@@ -299,17 +297,19 @@ export class HttpBackendService implements HttpBackend {
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
-      // Signature of a route path is matched an URL.
+      // Signature of a route path is matched to an URL.
       params.forEach(param => {
         if (!this.cachedData[param.cacheKey]) {
-          this.cachedData[param.cacheKey] = param.route.callbackData(restId, parents);
+          this.cachedData[param.cacheKey] = param.route.callbackData(param.restId, parents);
         }
         parents.push(this.cachedData[param.cacheKey]);
       });
 
       const mockData = parents.pop() || null;
       const callbackResponse = lastRoute.callbackResponse;
-      const lastRestId = restId;
+      const lastParam = params[params.length - 1];
+      const lastRestId = lastParam.restId || '';
+      const primaryKey = lastParam.primaryKey || '';
       return { callbackResponse, mockData, parents, primaryKey, lastRestId };
     }
   }
