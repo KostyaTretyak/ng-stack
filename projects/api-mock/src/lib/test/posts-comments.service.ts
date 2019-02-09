@@ -28,7 +28,7 @@ export class PostsCommentsService implements ApiMockService {
    * Called when URL is like `posts` or `posts/123`
    */
   private getPostsData(): ApiMockCallbackData {
-    return restId => {
+    return postId => {
       return { writeableData: [], onlyreadData: [] };
     };
   }
@@ -37,7 +37,7 @@ export class PostsCommentsService implements ApiMockService {
    * Called when URL is like `posts` or `posts/123`
    */
   private getPostsResponse(): ApiMockCallbackResponse {
-    return (mockData, primaryKey, restId, parents, queryParams) => {
+    return (mockData, primaryKey, postId, parents, queryParams) => {
       return;
     };
   }
@@ -47,7 +47,7 @@ export class PostsCommentsService implements ApiMockService {
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsData(): ApiMockCallbackData<[Post]> {
-    return (restId, parents) => {
+    return (commentId, parents) => {
       return { writeableData: [], onlyreadData: [] };
     };
   }
@@ -57,7 +57,7 @@ export class PostsCommentsService implements ApiMockService {
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsResponse(): ApiMockCallbackResponse<[Post]> {
-    return (mockData, primaryKey, restId, parents, queryParams) => {
+    return (mockData, primaryKey, commentId, parents, queryParams) => {
       return;
     };
   }

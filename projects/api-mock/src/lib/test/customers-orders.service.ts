@@ -32,7 +32,7 @@ export class CustomersOrdersService implements ApiMockService {
    * Called when URL is like `customers` or `customers/123`
    */
   private getCustomersData(): ApiMockCallbackData {
-    return restId => {
+    return customerId => {
       return { writeableData: [], onlyreadData: [] };
     };
   }
@@ -41,7 +41,7 @@ export class CustomersOrdersService implements ApiMockService {
    * Called when URL is like `customers` or `customers/123`
    */
   private getCustomerResponse(): ApiMockCallbackResponse {
-    return (mockData, primaryKey, restId, parents, queryParams) => {
+    return (mockData, primaryKey, customerId, parents, queryParams) => {
       return;
     };
   }
@@ -51,7 +51,7 @@ export class CustomersOrdersService implements ApiMockService {
    * Here `[Customer]` - it is generic type for `parents` - parameter for the callback.
    */
   private getOrdersData(): ApiMockCallbackData<[Customer]> {
-    return (restId, parents) => {
+    return (orderId, parents) => {
       return { writeableData: [], onlyreadData: [] };
     };
   }
@@ -61,7 +61,7 @@ export class CustomersOrdersService implements ApiMockService {
    * Here `[Customer]` - it is generic type for `parents` - parameter for the callback.
    */
   private getOrdersResponse(): ApiMockCallbackResponse<[Customer]> {
-    return (mockData, primaryKey, restId, parents, queryParams) => {
+    return (mockData, primaryKey, orderId, parents, queryParams) => {
       return;
     };
   }
