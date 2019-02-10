@@ -74,6 +74,10 @@ export class HttpBackendService implements HttpBackend {
     this.rootRoutes = this.getRootPaths(this.routeGroups);
   }
 
+  protected clone(data: any) {
+    return JSON.parse(JSON.stringify(data));
+  }
+
   protected getRootPaths(routeGroups: ApiMockRouteGroup[]): PartialRoutes {
     const rootRoutes = routeGroups.map((route, index) => {
       // Transformation: `https://example.com/part1/part2/part3/:paramName` -> `https://example.com/part1/part2/part3`
@@ -150,9 +154,10 @@ export class HttpBackendService implements HttpBackend {
     let body: any;
     try {
       const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
-      // tslint:disable-next-line:no-shadowed-variable
-      const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch || new RouteDryMatch();
-      body = this.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+      if (dryMatch) {
+        const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch;
+        body = this.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -346,7 +351,7 @@ export class HttpBackendService implements HttpBackend {
       } else {
         data = mockData.onlyreadData;
       }
-      const clonedData: any = JSON.parse(JSON.stringify(data));
+      const clonedData: any = this.clone(data);
       return lastRoute.callbackResponse(clonedData, parents);
     }
   }
