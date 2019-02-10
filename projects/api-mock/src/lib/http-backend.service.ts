@@ -47,6 +47,7 @@ export class HttpBackendService implements HttpBackend {
     private apiMockConfig: ApiMockConfig,
     private xhrFactory: XhrFactory
   ) {
+    this.apiMockConfig = new ApiMockConfig(apiMockConfig);
     try {
       this.init();
     } catch (e) {
