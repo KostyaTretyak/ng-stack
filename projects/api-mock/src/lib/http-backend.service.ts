@@ -16,15 +16,15 @@ import { Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
+import { pickAllPropertiesAsGetters } from './pick-properties';
 import {
   ApiMockConfig,
   ApiMockService,
-  ApiMockData,
+  MockData,
   CacheData,
   ApiMockRouteGroup,
   ApiMockRouteRoot,
   PartialRoutes,
-  ApiMockRoute,
   RouteDryMatch,
   GetDataParams,
 } from './types';
@@ -263,7 +263,7 @@ export class HttpBackendService implements HttpBackend {
     const params: GetDataParams = [];
     const partsOfRoute: string[] = [];
     const partsOfUrl: string[] = [];
-    const parents: ApiMockData[] = [];
+    const parents: MockData[] = [];
 
     splitedRoute.forEach((part, i) => {
       if (part.charAt(0) == ':') {
@@ -303,7 +303,9 @@ export class HttpBackendService implements HttpBackend {
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
         if (!this.cachedData[param.cacheKey]) {
-          this.cachedData[param.cacheKey] = param.route.callbackData(param.restId, parents);
+          const writeableData = param.route.callbackData(param.restId, parents);
+          this.cachedData[param.cacheKey].writeableData = writeableData;
+          this.cachedData[param.cacheKey].onlyreadData = pickAllPropertiesAsGetters(writeableData);
         }
         const parentsMockData = this.cachedData[param.cacheKey];
         if (i < params.length - 1) {
@@ -313,7 +315,7 @@ export class HttpBackendService implements HttpBackend {
           if (!parent) {
             if (this.apiMockConfig.showApiMockLog) {
               console.log(
-                `%cParent not found with Primary Key "%s" and ID "%s":`,
+                `%cParent not found with Primary Key "%s" and ID "%s", searched in:`,
                 'color: red',
                 param.primaryKey,
                 param.restId,
@@ -339,7 +341,7 @@ export class HttpBackendService implements HttpBackend {
         if (!data) {
           if (this.apiMockConfig.showApiMockLog) {
             console.log(
-              `%cData not found with Primary Key "%s" and ID "%s":`,
+              `%cData not found with Primary Key "%s" and ID "%s", searched in:`,
               'color: red',
               primaryKey,
               lastRestId,

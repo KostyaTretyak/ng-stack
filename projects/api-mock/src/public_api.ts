@@ -9,7 +9,6 @@ export * from './lib/pick-properties';
 export {
   ApiMockService,
   ApiMockConfig,
-  ApiMockData,
   ApiMockRoute,
   ApiMockRouteRoot,
   ApiMockRouteGroup,

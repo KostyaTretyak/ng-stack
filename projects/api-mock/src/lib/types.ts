@@ -69,25 +69,7 @@ export interface ObjectAny {
   [key: string]: any;
 }
 
-export class ApiMockData {
-  /**
-   * Array of full version of items from REST resource,
-   * it is a single resource of true for given REST resource.
-   *
-   * - If HTTP-request have `GET` method with restId, we returns item from this array.
-   * - If HTTP-request have `POST`, `PUT`, `PATCH` or `DELETE` method,
-   * this actions will be doing with item from this array.
-   */
-  writeableData: any[];
-  /**
-   * Array of composed objects with properties as getters (only read properties).
-   *
-   * - If HTTP-request have `GET` method without restId, we return this array.
-   */
-  onlyreadData: any[];
-}
-
-export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => ApiMockData;
+export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => ObjectAny[];
 
 export type ApiMockCallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
   clonedData: any,
@@ -106,7 +88,7 @@ export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
 export type ApiMockRouteGroup = [ApiMockRouteRoot, ...ApiMockRoute[]];
 
 export class CacheData {
-  [routeKey: string]: ApiMockData;
+  [routeKey: string]: MockData;
 }
 
 export type PartialRoutes = Array<{ path: string; length: number; index: number }>;
@@ -124,3 +106,21 @@ export type GetDataParams = Array<{
   restId?: string;
   route: ApiMockRouteRoot | ApiMockRoute;
 }>;
+
+export class MockData {
+  /**
+   * Array of full version of items from REST resource,
+   * it is a single resource of true for given REST resource.
+   *
+   * - If HTTP-request have `GET` method with restId, we returns item from this array.
+   * - If HTTP-request have `POST`, `PUT`, `PATCH` or `DELETE` method,
+   * this actions will be doing with item from this array.
+   */
+  writeableData: any[];
+  /**
+   * Array of composed objects with properties as getters (only read properties).
+   *
+   * - If HTTP-request have `GET` method without restId, we return this array.
+   */
+  onlyreadData: any[];
+}
