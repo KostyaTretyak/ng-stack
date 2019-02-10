@@ -7,14 +7,14 @@ export class SimpleService implements ApiMockService {
   getRouteGroups(): ApiMockRouteGroup[] {
     return [
       // This array called "routes group". There may be more than one object here.
-      [{ path: 'simple/:id', callbackData: this.getData(), callbackResponse: this.getResponse() }],
+      [{ path: 'simple/:id', callbackData: this.getCallbackData(), callbackResponse: this.getCallbackResponse() }],
     ];
   }
 
   /**
    * Called when URL is like `/simple` or `/simple/3`
    */
-  private getData() {
+  private getCallbackData() {
     return () => [
       { id: 1, body: 'content for id 1' },
       { id: 2, body: 'content for id 2' },
@@ -26,7 +26,7 @@ export class SimpleService implements ApiMockService {
   /**
    * Returns the data (list or one item) from `getData()` callback.
    */
-  private getResponse() {
+  private getCallbackResponse() {
     return data => data;
   }
 }
