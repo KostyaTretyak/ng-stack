@@ -16,13 +16,17 @@ import { makeResponse } from './make-response';
 @Injectable()
 export class PostsCommentsService implements ApiMockService {
   private get dateRange() {
-    return faker.date.between(new Date('2019.01.01'), new Date('2020.01.01')).getSeconds();
+    return faker.date.between(new Date('2019.01.01'), Date()).getTime();
   }
 
   getRouteGroups(): ApiMockRouteGroup[] {
     return [
       [
-        { path: 'posts/:postId', callbackData: this.getPostsData(), callbackResponse: this.getPostsResponse() },
+        {
+          path: 'posts/:postId',
+          callbackData: this.getPostsData(),
+          callbackResponse: this.getPostsResponse(),
+        },
         {
           path: 'comments/:commentId',
           callbackData: this.getCommentsData(),
@@ -33,7 +37,7 @@ export class PostsCommentsService implements ApiMockService {
   }
 
   /**
-   * Called when URL is like `posts` or `posts/123`
+   * Called when URL is like `/posts` or `/posts/123`
    */
   private getPostsData(): ApiMockCallbackData {
     return postId => {
@@ -54,14 +58,16 @@ export class PostsCommentsService implements ApiMockService {
         posts.push(post);
       }
 
-      const writeableData = posts;
-      const onlyreadData = posts.map(post => pickAllPropertiesAsGetters(new PostList(), post));
-      return { writeableData, onlyreadData };
+      return posts;
     };
   }
 
+  private transormPostsData(posts: Post[]) {
+    return posts.map(post => pickAllPropertiesAsGetters(new PostList(), post));
+  }
+
   /**
-   * Called when URL is like `posts` or `posts/123`
+   * Returns the data (list or one item) from `getPostsData()` callback.
    */
   private getPostsResponse(): ApiMockCallbackResponse {
     return (clonedData, parents?, queryParams?) => {
@@ -76,7 +82,7 @@ export class PostsCommentsService implements ApiMockService {
   }
 
   /**
-   * Called when URL is like `posts/123/comments` or `posts/123/comments/456`.
+   * Called when URL is like `/posts/123/comments` or `/posts/123/comments/456`.
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsData(): ApiMockCallbackData<[Post]> {
@@ -103,14 +109,12 @@ export class PostsCommentsService implements ApiMockService {
         postComments.push(extPostComment);
       }
 
-      const writeableData = postComments;
-      const onlyreadData = pickAllPropertiesAsGetters(writeableData);
-      return { writeableData, onlyreadData };
+      return postComments;
     };
   }
 
   /**
-   * Called when URL is like `posts/123/comments` or `posts/123/comments/456`.
+   * Returns the data (list or one item) from `getCommentsData()` callback.
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsResponse(): ApiMockCallbackResponse<[Post]> {

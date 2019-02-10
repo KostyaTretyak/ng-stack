@@ -5,11 +5,11 @@ import { ApiMockModule } from '@ng-stack/api-mock';
 
 import { ProxyApiMockService } from './proxy-api-mock.service';
 import { PostsCommentsService } from './posts-comments.service';
-import { CustomersOrdersService } from './customers-orders.service';
+import { SimpleService } from './simple.service';
 
 @NgModule({
   declarations: [],
   imports: [HttpClientModule, ApiMockModule.forRoot(ProxyApiMockService, { delay: 800 })],
-  providers: [PostsCommentsService, CustomersOrdersService],
+  providers: [SimpleService, PostsCommentsService],
 })
 export class TestModule {}
