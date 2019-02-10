@@ -9,7 +9,7 @@ export abstract class ApiMockService {
  */
 @Injectable()
 export class ApiMockConfig {
-  showFakeApiLog? = true;
+  showApiMockLog? = true;
   /**
    * false (default) if search match should be case insensitive
    */

@@ -21,7 +21,7 @@ export class ApiMockModule {
       ngModule: ApiMockModule,
       providers: [
         { provide: ApiMockService, useClass: apiMockService },
-        { provide: ApiMockConfig, useValue: apiMockConfig },
+        { provide: ApiMockConfig, useValue: new ApiMockConfig(apiMockConfig) },
 
         {
           provide: HttpBackend,

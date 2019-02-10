@@ -157,8 +157,8 @@ export class HttpBackendService implements HttpBackend {
     }
 
     if (!body) {
-      if (this.apiMockConfig.showFakeApiLog) {
-        console.log(`%c${req.method} ${req.url}:`, 'color: red;');
+      if (this.apiMockConfig.showApiMockLog) {
+        console.log(`%c${req.method} ${req.url}:`, 'color: brown;');
         console.log('Error 404: The page not found');
       }
       return throwError(
@@ -171,9 +171,8 @@ export class HttpBackendService implements HttpBackend {
       );
     }
 
-    if (this.apiMockConfig.showFakeApiLog) {
-      console.log(`%c${req.method} ${req.url}:`, 'color: red;');
-      console.log(body);
+    if (this.apiMockConfig.showApiMockLog) {
+      console.log(`%c${req.method} ${req.url}:`, 'color: green;', body);
     }
 
     const responseConfig = { status: 200, url: req.urlWithParams, body };
@@ -268,7 +267,7 @@ export class HttpBackendService implements HttpBackend {
          * cacheKey should be without a restId at the end of URL, e.g. `posts` or `posts/123/comments`,
          * but not `posts/123` or `posts/123/comments/456`.
          */
-        const cacheKey = splitedUrl.slice(0, i - 1).join('/');
+        const cacheKey = splitedUrl.slice(0, i).join('/');
         const route = routes[params.length];
         params.push({ cacheKey, primaryKey, restId, route });
       } else {
@@ -295,12 +294,33 @@ export class HttpBackendService implements HttpBackend {
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
       // Signature of a route path is matched to an URL.
-      params.forEach(param => {
+      for (let i = 0; i < params.length; i++) {
+        const param = params[i];
         if (!this.cachedData[param.cacheKey]) {
           this.cachedData[param.cacheKey] = param.route.callbackData(param.restId, parents);
         }
-        parents.push(this.cachedData[param.cacheKey]);
-      });
+        const parentsMockData = this.cachedData[param.cacheKey];
+        if (i < params.length - 1) {
+          const parent = parentsMockData.writeableData.find(item => {
+            return item[param.primaryKey] && item[param.primaryKey].toString() == param.restId;
+          });
+          if (!parent) {
+            if (this.apiMockConfig.showApiMockLog) {
+              console.log(
+                `%cParent not found with Primary Key "%s" and ID "%s":`,
+                'color: red',
+                param.primaryKey,
+                param.restId,
+                parentsMockData.writeableData
+              );
+            }
+            return;
+          }
+          parents.push(parent);
+        } else {
+          parents.push(parentsMockData);
+        }
+      }
 
       const mockData = parents.pop() || null;
       const lastParam = params[params.length - 1];
@@ -309,8 +329,17 @@ export class HttpBackendService implements HttpBackend {
       let data: any;
 
       if (lastRestId) {
-        data = mockData.writeableData.find(item => item[primaryKey].toString() == lastRestId);
+        data = mockData.writeableData.find(item => item[primaryKey] && item[primaryKey].toString() == lastRestId);
         if (!data) {
+          if (this.apiMockConfig.showApiMockLog) {
+            console.log(
+              `%cData not found with Primary Key "%s" and ID "%s":`,
+              'color: red',
+              primaryKey,
+              lastRestId,
+              mockData.writeableData
+            );
+          }
           return;
         }
       } else {
