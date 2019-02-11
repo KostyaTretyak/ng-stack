@@ -27,6 +27,8 @@ import {
   PartialRoutes,
   RouteDryMatch,
   GetDataParams,
+  HttpMethod,
+  ObjectAny,
 } from './types';
 
 @Injectable()
@@ -47,8 +49,8 @@ export class HttpBackendService implements HttpBackend {
     private apiMockConfig: ApiMockConfig,
     private xhrFactory: XhrFactory
   ) {
-    this.apiMockConfig = new ApiMockConfig(apiMockConfig);
     try {
+      this.apiMockConfig = new ApiMockConfig(apiMockConfig);
       this.init();
     } catch (e) {
       console.log(e);
@@ -140,41 +142,35 @@ export class HttpBackendService implements HttpBackend {
   }
 
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
-    if (req.method != 'GET') {
-      return this.passThruBackend(req);
-    }
-
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
     const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
 
-    if (routeGroupIndex == -1) {
+    if (routeGroupIndex == -1 && this.apiMockConfig.passThruUnknownUrl) {
       return this.passThruBackend(req);
+    } else if (routeGroupIndex == -1) {
+      return this.make404Error(req);
     }
 
     let body: any;
+    let params: GetDataParams;
     try {
       const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
       if (dryMatch) {
         const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch;
-        body = this.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        params = this.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
+        if (params) {
+          body = this.getResponse(req.method as HttpMethod, params);
+        }
+      }
+      if ((!dryMatch || !params) && this.apiMockConfig.passThruUnknownUrl) {
+        return this.passThruBackend(req);
       }
     } catch (err) {
       console.log(err);
     }
 
     if (!body) {
-      if (this.apiMockConfig.showApiMockLog) {
-        console.log(`%c${req.method} ${req.url}:`, 'color: brown;');
-        console.log('Error 404: The page not found');
-      }
-      return throwError(
-        new HttpErrorResponse({
-          status: 404,
-          url: req.urlWithParams,
-          statusText: 'page not found',
-          error: 'page not found',
-        })
-      );
+      return this.make404Error(req);
     }
 
     if (this.apiMockConfig.showApiMockLog) {
@@ -183,6 +179,21 @@ export class HttpBackendService implements HttpBackend {
 
     const responseConfig = { status: 200, url: req.urlWithParams, body };
     return of(new HttpResponse<any>(responseConfig)).pipe(delay(this.apiMockConfig.delay));
+  }
+
+  protected make404Error(req: HttpRequest<any>) {
+    if (this.apiMockConfig.showApiMockLog) {
+      console.log(`%c${req.method} ${req.url}:`, 'color: brown;');
+      console.log('Error 404: The page not found');
+    }
+    return throwError(
+      new HttpErrorResponse({
+        status: 404,
+        url: req.urlWithParams,
+        statusText: 'page not found',
+        error: 'page not found',
+      })
+    );
   }
 
   /**
@@ -254,16 +265,15 @@ export class HttpBackendService implements HttpBackend {
    * @param hasLastRestId Whethe URL has last restId, e.g. `posts/123` or `posts/123/comments/456`.
    * @param routes Part or full of routes group, that have path matched to an URL.
    */
-  protected getResponse(
+  protected getReponseParams(
     splitedUrl: string[],
     splitedRoute: string[],
     hasLastRestId: boolean,
     routes: ApiMockRouteGroup
-  ): any | void {
+  ): GetDataParams {
     const params: GetDataParams = [];
-    const partsOfRoute: string[] = [];
     const partsOfUrl: string[] = [];
-    const parents: MockData[] = [];
+    const partsOfRoute: string[] = [];
 
     splitedRoute.forEach((part, i) => {
       if (part.charAt(0) == ':') {
@@ -293,68 +303,86 @@ export class HttpBackendService implements HttpBackend {
     });
 
     const lastRoute = routes[routes.length - 1];
-
     if (!hasLastRestId) {
       params.push({ cacheKey: splitedUrl.join('/'), route: lastRoute });
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
-      // Signature of a route path is matched to an URL.
-      for (let i = 0; i < params.length; i++) {
-        const param = params[i];
-        if (!this.cachedData[param.cacheKey]) {
-          const writeableData = param.route.callbackData(param.restId, parents);
-          this.cachedData[param.cacheKey].writeableData = writeableData;
-          this.cachedData[param.cacheKey].onlyreadData = pickAllPropertiesAsGetters(writeableData);
-        }
-        const parentsMockData = this.cachedData[param.cacheKey];
-        if (i < params.length - 1) {
-          const parent = parentsMockData.writeableData.find(item => {
-            return item[param.primaryKey] && item[param.primaryKey].toString() == param.restId;
-          });
-          if (!parent) {
-            if (this.apiMockConfig.showApiMockLog) {
-              console.log(
-                `%cParent not found with Primary Key "%s" and ID "%s", searched in:`,
-                'color: red',
-                param.primaryKey,
-                param.restId,
-                parentsMockData.writeableData
-              );
-            }
-            return;
-          }
-          parents.push(parent);
+      return params;
+    }
+  }
+
+  protected getResponse(httpMethod: HttpMethod, params: GetDataParams) {
+    const items: ObjectAny[] = [];
+    let currentMockData: MockData;
+
+    // Signature of a route path is matched to an URL.
+    for (let i = 0; i < params.length; i++) {
+      const param = params[i];
+
+      if (!this.cachedData[param.cacheKey]) {
+        const writeableData = param.route.callbackData(httpMethod, items);
+        this.cachedData[param.cacheKey].writeableData = writeableData;
+        let onlyreadData: any[];
+        if (param.route.propertiesForList) {
+          onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(param.route.propertiesForList, d));
         } else {
-          parents.push(parentsMockData);
+          onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
         }
+        this.cachedData[param.cacheKey].onlyreadData = onlyreadData;
       }
 
-      const mockData = parents.pop() || null;
-      const lastParam = params[params.length - 1];
-      const lastRestId = lastParam.restId || '';
-      const primaryKey = lastParam.primaryKey || '';
-      let data: any;
+      const parentsMockData = this.cachedData[param.cacheKey];
+      if (i < params.length - 1) {
+        const parent = parentsMockData.writeableData.find(item => {
+          return item[param.primaryKey] && item[param.primaryKey].toString() == param.restId;
+        });
 
-      if (lastRestId) {
-        data = mockData.writeableData.find(item => item[primaryKey] && item[primaryKey].toString() == lastRestId);
-        if (!data) {
+        if (!parent) {
           if (this.apiMockConfig.showApiMockLog) {
             console.log(
-              `%cData not found with Primary Key "%s" and ID "%s", searched in:`,
+              `%cParent not found with Primary Key "%s" and ID "%s", searched in:`,
               'color: red',
-              primaryKey,
-              lastRestId,
-              mockData.writeableData
+              param.primaryKey,
+              param.restId,
+              parentsMockData.writeableData
             );
           }
           return;
         }
+
+        items.push(parent);
       } else {
-        data = mockData.onlyreadData;
+        currentMockData = parentsMockData;
       }
-      const clonedData: any = this.clone(data);
-      return lastRoute.callbackResponse(clonedData, parents);
     }
+
+    const lastParam = params[params.length - 1];
+    const lastRestId = lastParam.restId || '';
+    const primaryKey = lastParam.primaryKey || '';
+    let currentItem: any;
+
+    if (lastRestId) {
+      currentItem = currentMockData.writeableData.find(
+        item => item[primaryKey] && item[primaryKey].toString() == lastRestId
+      );
+      if (!currentItem) {
+        if (this.apiMockConfig.showApiMockLog) {
+          console.log(
+            `%cData not found with Primary Key "%s" and ID "%s", searched in:`,
+            'color: red',
+            primaryKey,
+            lastRestId,
+            currentMockData.writeableData
+          );
+        }
+        return;
+      }
+    } else {
+      currentItem = currentMockData.onlyreadData;
+    }
+    items.push(this.clone(currentItem));
+
+    return lastParam.route.callbackResponse(httpMethod, items);
   }
 }

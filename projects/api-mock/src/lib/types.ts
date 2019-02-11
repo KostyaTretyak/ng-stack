@@ -15,17 +15,10 @@ export class ApiMockConfig {
    */
   caseSensitiveSearch? = false;
   /**
-   * do NOT wrap content within an object with a `data` property
-   *
-   * false (default) put content directly inside the response body.
-   * true: encapsulate content in a `data` property inside the response body, `{ data: ... }`.
-   */
-  dataEncapsulation? = false;
-  /**
    * simulate latency by delaying response
    * delay (in ms) to simulate latency
    */
-  delay? = 800;
+  delay? = 500;
   /**
    * don't complain if can't find entity to delete
    * false (default) should 204 when object-to-delete not found; true: 404
@@ -69,17 +62,27 @@ export interface ObjectAny {
   [key: string]: any;
 }
 
-export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (restId?: string, parents?: P) => ObjectAny[];
+export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+
+export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (
+  httpMethod: HttpMethod,
+  items?: P,
+  queryParams?: ObjectAny
+) => ObjectAny[];
 
 export type ApiMockCallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
-  clonedData: any,
-  parents?: P,
+  httpMethod: HttpMethod,
+  items?: P,
   queryParams?: ObjectAny
 ) => any;
 
 export interface ApiMockRoute {
   path: string;
   callbackData: ApiMockCallbackData;
+  /**
+   * Properties for list items, that returns from `callbackData()`.
+   */
+  propertiesForList?: ObjectAny;
   callbackResponse: ApiMockCallbackResponse;
 }
 

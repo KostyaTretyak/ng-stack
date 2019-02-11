@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { HttpBackendService } from './http-backend.service';
-import { ApiMockRouteGroup, ApiMockService, PartialRoutes, RouteDryMatch, ApiMockRoute } from './types';
+import { ApiMockRouteGroup, ApiMockService, PartialRoutes, RouteDryMatch, ApiMockRoute, HttpMethod } from './types';
 import { ApiMockModule } from './api-mock.module';
 
 describe('HttpBackendService', () => {
@@ -28,8 +28,14 @@ describe('HttpBackendService', () => {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
 
-    getResponse(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
-      return super.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+    getReponseParams(
+      httpMethod: HttpMethod,
+      splitedUrl: string[],
+      splitedRoute: string[],
+      hasLastRestId: boolean,
+      routes: ApiMockRouteGroup
+    ) {
+      return super.getReponseParams(httpMethod, splitedUrl, splitedRoute, hasLastRestId, routes);
     }
   }
 
@@ -301,7 +307,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('postId');
         expect(data.lastRestId).toBe('123');
@@ -315,7 +321,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
 
@@ -326,7 +332,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = false;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('');
         expect(data.lastRestId).toBe('');
@@ -340,7 +346,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = false;
         routes = [{ ...route, path: pathOfRoute }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
     });
@@ -353,7 +359,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('commentId');
         expect(data.lastRestId).toBe('456');
@@ -367,7 +373,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
 
@@ -378,7 +384,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = false;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('');
         expect(data.lastRestId).toBe('');
@@ -392,7 +398,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
     });
@@ -405,7 +411,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('commentId');
         expect(data.lastRestId).toBe('456');
@@ -419,7 +425,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
 
@@ -430,7 +436,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = false;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeTruthy();
         expect(data.primaryKey).toBe('');
         expect(data.lastRestId).toBe('');
@@ -444,7 +450,7 @@ describe('HttpBackendService', () => {
         splitedRoute = pathOfRoute.split('/');
         hasLastRestId = true;
         routes = [{ ...route, path: 'posts/:postId' }, { ...route, path: 'comments/:commentId' }];
-        data = httpBackendService.getResponse(splitedUrl, splitedRoute, hasLastRestId, routes);
+        data = httpBackendService.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         expect(!!data).toBeFalsy();
       });
     });
