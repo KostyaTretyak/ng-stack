@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Params } from '@angular/router';
 
 export abstract class ApiMockService {
   abstract getRouteGroups(): ApiMockRouteGroup[];
@@ -65,15 +66,15 @@ export interface ObjectAny {
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (
-  httpMethod: HttpMethod,
   items?: P,
-  queryParams?: ObjectAny
+  httpMethod?: HttpMethod,
+  queryParams?: Params
 ) => ObjectAny[];
 
 export type ApiMockCallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
-  httpMethod: HttpMethod,
   items?: P,
-  queryParams?: ObjectAny
+  httpMethod?: HttpMethod,
+  queryParams?: Params
 ) => any;
 
 export interface ApiMockRoute {
@@ -119,11 +120,11 @@ export class MockData {
    * - If HTTP-request have `POST`, `PUT`, `PATCH` or `DELETE` method,
    * this actions will be doing with item from this array.
    */
-  writeableData: any[];
+  writeableData: ObjectAny[];
   /**
    * Array of composed objects with properties as getters (only read properties).
    *
    * - If HTTP-request have `GET` method without restId, we return this array.
    */
-  onlyreadData: any[];
+  onlyreadData: ObjectAny[];
 }

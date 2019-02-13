@@ -1,10 +1,19 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { Params } from '@angular/router';
 
 import { HttpBackendService } from './http-backend.service';
-import { ApiMockRouteGroup, ApiMockService, PartialRoutes, RouteDryMatch, ApiMockRoute, HttpMethod } from './types';
 import { ApiMockModule } from './api-mock.module';
+import {
+  ApiMockRouteGroup,
+  ApiMockService,
+  PartialRoutes,
+  RouteDryMatch,
+  ApiMockRoute,
+  HttpMethod,
+  GetDataParams,
+} from './types';
 
 describe('HttpBackendService', () => {
   /**
@@ -30,6 +39,10 @@ describe('HttpBackendService', () => {
 
     getReponseParams(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
       return super.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
+    }
+
+    getResponse(httpMethod: HttpMethod, params: GetDataParams, queryParams: Params) {
+      return super.getResponse(httpMethod, params, queryParams);
     }
   }
 
@@ -288,5 +301,9 @@ describe('HttpBackendService', () => {
     describe('many level of nesting', () => {});
   });
 
+  describe('getReponseParams()', () => {});
+
   describe('getResponse()', () => {});
+
+  describe('handle()', () => {});
 });

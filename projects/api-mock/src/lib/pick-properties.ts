@@ -13,7 +13,8 @@ export function pickProperties<T extends ObjectAny>(targetObject: T, ...sourceOb
 }
 
 /**
- * Picking all properties of `targetObject` from `sourceObjects` to `targetObject`.
+ * Pick all properties from a `targetObject` and replace
+ * them with getters that takes values from corresponding properties of `sourceObjects`.
  * This is symplified version of `pickPropertiesAsGetters()`.
  *
  * If one of `sourceObjects` is equal to `targetObject`,
@@ -31,6 +32,9 @@ export function pickAllPropertiesAsGetters<T extends ObjectAny>(targetObject: T,
 }
 
 /**
+ * Pick all properties from a `targetObject` and replace
+ * them with getters that takes values from corresponding properties of `sourceObjects`.
+ *
  * If one of `sourceObjects` is equal to `targetObject`,
  * from start the function will do this:
  *
