@@ -63,17 +63,23 @@ export interface ObjectAny {
   [key: string]: any;
 }
 
+export type CallbackAny = (...params: any[]) => any;
+
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
-export type ApiMockCallbackData<P extends ObjectAny[] = ObjectAny[]> = (
-  items?: P,
+export type ApiMockCallbackData<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+  items?: I,
+  itemId?: string,
   httpMethod?: HttpMethod,
+  parents?: P,
   queryParams?: Params
 ) => ObjectAny[];
 
-export type ApiMockCallbackResponse<P extends ObjectAny[] = ObjectAny[]> = (
-  items?: P,
+export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+  items?: I,
+  itemId?: string,
   httpMethod?: HttpMethod,
+  parents?: P,
   queryParams?: Params
 ) => any;
 

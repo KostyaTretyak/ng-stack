@@ -313,17 +313,22 @@ export class HttpBackendService implements HttpBackend {
   }
 
   protected getResponse(httpMethod: HttpMethod, params: GetDataParams, queryParams: Params) {
-    const items: ObjectAny[] = [];
+    const parents: ObjectAny[] = [];
     let currentMockData: MockData;
+    const lastParam = params[params.length - 1];
+    const lastRestId = lastParam.restId || '';
 
     // Signature of a route path is matched to an URL.
     for (let i = 0; i < params.length; i++) {
+      /** Last iteration the loop. */
+      const isLastIteration = i + 1 == params.length;
+
       const param = params[i];
       if (!this.cachedData[param.cacheKey]) {
-        const writeableData = param.route.callbackData(items, httpMethod, queryParams);
+        const writeableData = param.route.callbackData(parents, lastRestId, 'GET', [], queryParams);
         this.cachedData[param.cacheKey].writeableData = writeableData;
 
-        let onlyreadData: any[];
+        let onlyreadData: ObjectAny[];
         if (param.route.propertiesForList) {
           onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(param.route.propertiesForList, d));
         } else {
@@ -333,7 +338,21 @@ export class HttpBackendService implements HttpBackend {
       }
 
       const mockData = this.cachedData[param.cacheKey];
-      if (i < params.length - 1) {
+      if (httpMethod != 'GET') {
+        const prevWriteableData = mockData.writeableData;
+        const curWriteableData = param.route.callbackData(
+          prevWriteableData,
+          lastRestId,
+          httpMethod,
+          parents,
+          queryParams
+        );
+        mockData.writeableData = curWriteableData;
+      }
+
+      if (isLastIteration) {
+        currentMockData = mockData;
+      } else {
         const parent = mockData.writeableData.find(
           item => item[param.primaryKey] && item[param.primaryKey].toString() == param.restId
         );
@@ -351,24 +370,20 @@ export class HttpBackendService implements HttpBackend {
           return;
         }
 
-        items.push(parent);
-      } else {
-        currentMockData = mockData;
+        parents.push(parent);
       }
     }
 
-    const lastParam = params[params.length - 1];
-    const lastRestId = lastParam.restId || '';
+    let items: ObjectAny[];
     const primaryKey = lastParam.primaryKey || '';
-    let currentItem: ObjectAny[];
 
     if (lastRestId) {
       const obj = currentMockData.writeableData.find(
         item => item[primaryKey] && item[primaryKey].toString() == lastRestId
       );
 
-      currentItem = obj ? [obj] : [];
-      if (!currentItem.length) {
+      items = obj ? [obj] : [];
+      if (!items.length) {
         if (this.apiMockConfig.showApiMockLog) {
           console.log(
             `%cData not found with Primary Key "%s" and ID "%s", searched in:`,
@@ -381,11 +396,11 @@ export class HttpBackendService implements HttpBackend {
         return;
       }
     } else {
-      currentItem = currentMockData.onlyreadData;
+      items = currentMockData.onlyreadData;
     }
 
-    items.push(currentItem);
+    const clonedParents = this.clone(parents);
     const clonedItems = this.clone(items);
-    return lastParam.route.callbackResponse(clonedItems, httpMethod, queryParams);
+    return lastParam.route.callbackResponse(clonedItems, lastRestId, httpMethod, clonedParents, queryParams);
   }
 }

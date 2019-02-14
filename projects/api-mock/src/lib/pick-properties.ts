@@ -32,7 +32,7 @@ export function pickAllPropertiesAsGetters<T extends ObjectAny>(targetObject: T,
 }
 
 /**
- * Pick all properties from a `targetObject` and replace
+ * Pick given properties from a `targetObject` and replace
  * them with getters that takes values from corresponding properties of `sourceObjects`.
  *
  * If one of `sourceObjects` is equal to `targetObject`,
