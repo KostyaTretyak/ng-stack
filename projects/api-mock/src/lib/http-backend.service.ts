@@ -377,8 +377,9 @@ export class HttpBackendService implements HttpBackend {
    */
   protected setOnlyreadData(param: GetDataParam, writeableData: ObjectAny[]) {
     let onlyreadData: ObjectAny[];
-    if (param.route.propertiesForList) {
-      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(param.route.propertiesForList, d));
+    const pickObj = param.route.propertiesForList;
+    if (pickObj) {
+      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
     } else {
       onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
     }
