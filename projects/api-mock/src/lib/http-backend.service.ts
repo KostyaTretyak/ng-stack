@@ -20,7 +20,6 @@ import { pickAllPropertiesAsGetters } from './pick-properties';
 import {
   ApiMockConfig,
   ApiMockService,
-  MockData,
   CacheData,
   ApiMockRouteGroup,
   ApiMockRouteRoot,
@@ -71,7 +70,7 @@ export class HttpBackendService implements HttpBackend {
     }
 
     let body: any;
-    let params: GetDataParam[];
+    let params: GetDataParam[] | void;
     try {
       const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
       if (dryMatch) {
@@ -268,7 +267,7 @@ export class HttpBackendService implements HttpBackend {
     splitedRoute: string[],
     hasLastRestId: boolean,
     routes: ApiMockRouteGroup
-  ): GetDataParam[] {
+  ): GetDataParam[] | void {
     const params: GetDataParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
@@ -316,7 +315,7 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams: Params) {
+  protected getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams?: Params): any | void {
     const parents: ObjectAny[] = [];
 
     for (let i = 0; i < params.length; i++) {

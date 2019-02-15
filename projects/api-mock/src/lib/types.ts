@@ -112,9 +112,9 @@ export class RouteDryMatch {
 
 export interface GetDataParam {
   cacheKey: string;
+  route: ApiMockRouteRoot | ApiMockRoute;
   primaryKey?: string;
   restId?: string;
-  route: ApiMockRouteRoot | ApiMockRoute;
 }
 
 export class MockData {

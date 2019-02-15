@@ -6,7 +6,7 @@ import { ApiMockService, ApiMockRouteGroup } from '@ng-stack/api-mock';
 export class SimpleService implements ApiMockService {
   getRouteGroups(): ApiMockRouteGroup[] {
     return [
-      // This array called "routes group". There may be more than one object.
+      // This array called "routes group". There may be more than one an object.
       [{ path: 'simple/:id', callbackData: this.getCallbackData(), callbackResponse: this.getCallbackResponse() }],
     ];
   }
