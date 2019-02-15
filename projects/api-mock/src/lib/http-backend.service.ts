@@ -26,7 +26,7 @@ import {
   ApiMockRouteRoot,
   PartialRoutes,
   RouteDryMatch,
-  GetDataParams,
+  GetDataParam,
   HttpMethod,
   ObjectAny,
 } from './types';
@@ -71,7 +71,7 @@ export class HttpBackendService implements HttpBackend {
     }
 
     let body: any;
-    let params: GetDataParams;
+    let params: GetDataParam[];
     try {
       const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
       if (dryMatch) {
@@ -268,8 +268,8 @@ export class HttpBackendService implements HttpBackend {
     splitedRoute: string[],
     hasLastRestId: boolean,
     routes: ApiMockRouteGroup
-  ): GetDataParams {
-    const params: GetDataParams = [];
+  ): GetDataParam[] {
+    const params: GetDataParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
 
@@ -306,6 +306,7 @@ export class HttpBackendService implements HttpBackend {
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
+      // Signature of a route path is matched to an URL.
       return params;
     }
   }
@@ -315,95 +316,73 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected getResponse(httpMethod: HttpMethod, params: GetDataParams, queryParams: Params) {
+  protected getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams: Params) {
     const parents: ObjectAny[] = [];
-    let currentMockData: MockData;
-    const lastParam = params[params.length - 1];
-    const lastRestId = lastParam.restId || '';
 
-    // Signature of a route path is matched to an URL.
     for (let i = 0; i < params.length; i++) {
-      /** Last iteration the loop. */
       const isLastIteration = i + 1 == params.length;
-
       const param = params[i];
       if (!this.cachedData[param.cacheKey]) {
         const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams);
         this.cachedData[param.cacheKey] = { writeableData, onlyreadData: [] };
-
-        let onlyreadData: ObjectAny[];
-        if (param.route.propertiesForList) {
-          onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(param.route.propertiesForList, d));
-        } else {
-          onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
-        }
-        this.cachedData[param.cacheKey].onlyreadData = onlyreadData;
+        this.setOnlyreadData(param, writeableData);
       }
 
       const mockData = this.cachedData[param.cacheKey];
       if (httpMethod != 'GET') {
-        const prevWriteableData = mockData.writeableData;
-        const curWriteableData = param.route.callbackData(
-          prevWriteableData,
+        const writeableData = param.route.callbackData(
+          mockData.writeableData,
           param.restId,
           httpMethod,
           parents,
           queryParams
         );
-        mockData.writeableData = curWriteableData;
+
+        mockData.writeableData = writeableData;
+        this.setOnlyreadData(param, writeableData);
       }
 
-      if (isLastIteration) {
-        currentMockData = mockData;
-      } else {
-        const parent = mockData.writeableData.find(
-          item => item[param.primaryKey] && item[param.primaryKey].toString() == param.restId
-        );
+      // Only parents should have writeableData.
+      const data = isLastIteration ? mockData.onlyreadData : mockData.writeableData;
+      if (param.restId) {
+        const primaryKey = param.primaryKey;
+        const restId = param.restId;
+        const item = data.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
-        if (!parent) {
+        if (!item) {
           if (this.apiMockConfig.showApiMockLog) {
-            console.log(
-              `%cParent not found with Primary Key "%s" and ID "%s", searched in:`,
-              'color: red',
-              param.primaryKey,
-              param.restId,
-              mockData.writeableData
-            );
+            const message = `Item not found with primary key "${primaryKey}" and ID "${restId}", searched in:`;
+            console.log('%c' + message, 'color: brown', data);
           }
           return;
         }
 
-        parents.push(parent);
+        parents.push(isLastIteration ? [item] : item);
+      } else {
+        // No restId at the end of an URL.
+        parents.push(data);
       }
     }
 
-    let items: ObjectAny[];
-    const primaryKey = lastParam.primaryKey || '';
-
-    if (lastRestId) {
-      const obj = currentMockData.writeableData.find(
-        item => item[primaryKey] && item[primaryKey].toString() == lastRestId
-      );
-
-      items = obj ? [obj] : [];
-      if (!items.length) {
-        if (this.apiMockConfig.showApiMockLog) {
-          console.log(
-            `%cData not found with Primary Key "%s" and ID "%s", searched in:`,
-            'color: red',
-            primaryKey,
-            lastRestId,
-            currentMockData.writeableData
-          );
-        }
-        return;
-      }
-    } else {
-      items = currentMockData.onlyreadData;
-    }
+    const items = parents.pop() as ObjectAny[];
+    const lastParam = params[params.length - 1];
+    const lastRestId = lastParam.restId || '';
 
     const clonedParents = this.clone(parents);
     const clonedItems = this.clone(items);
     return lastParam.route.callbackResponse(clonedItems, lastRestId, httpMethod, clonedParents, queryParams);
+  }
+
+  /**
+   * Setting onlyread data to `this.cachedData[cacheKey].onlyreadData`
+   */
+  protected setOnlyreadData(param: GetDataParam, writeableData: ObjectAny[]) {
+    let onlyreadData: ObjectAny[];
+    if (param.route.propertiesForList) {
+      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(param.route.propertiesForList, d));
+    } else {
+      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
+    }
+    this.cachedData[param.cacheKey].onlyreadData = onlyreadData;
   }
 }

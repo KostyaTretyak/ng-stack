@@ -13,7 +13,7 @@ import {
   RouteDryMatch,
   ApiMockRoute,
   HttpMethod,
-  GetDataParams,
+  GetDataParam,
 } from './types';
 
 describe('HttpBackendService', () => {
@@ -42,7 +42,7 @@ describe('HttpBackendService', () => {
       return super.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
     }
 
-    getResponse(httpMethod: HttpMethod, params: GetDataParams, queryParams: Params) {
+    getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams: Params) {
       return super.getResponse(httpMethod, params, queryParams);
     }
   }

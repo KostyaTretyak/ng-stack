@@ -110,12 +110,12 @@ export class RouteDryMatch {
   routes: ApiMockRouteGroup;
 }
 
-export type GetDataParams = Array<{
+export interface GetDataParam {
   cacheKey: string;
   primaryKey?: string;
   restId?: string;
   route: ApiMockRouteRoot | ApiMockRoute;
-}>;
+}
 
 export class MockData {
   /**
