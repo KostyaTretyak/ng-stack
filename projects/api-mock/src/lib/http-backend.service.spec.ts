@@ -2,6 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Params } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { HttpBackendService } from './http-backend.service';
 import { ApiMockModule } from './api-mock.module';
@@ -56,7 +57,7 @@ describe('HttpBackendService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, ApiMockModule.forRoot(MyApiMockService)],
+      imports: [HttpClientTestingModule, ApiMockModule.forRoot(MyApiMockService), RouterTestingModule],
       providers: [HttpBackendService2],
     });
 

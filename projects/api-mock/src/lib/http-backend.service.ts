@@ -257,8 +257,6 @@ export class HttpBackendService implements HttpBackend {
    *
    * This function:
    * - checks that concated `splitedUrl` is matched to concated `splitedRoute`;
-   * - calls `callbackData()` from apropriate route;
-   * - calls `callbackResponse()` from matched route and returns a result.
    *
    * @param splitedUrl Result spliting of an URL by slash.
    * @param splitedRoute Result spliting of concated a route paths by slash.
@@ -312,6 +310,11 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
+  /**
+   * This function:
+   * - calls `callbackData()` from apropriate route;
+   * - calls `callbackResponse()` from matched route and returns a result.
+   */
   protected getResponse(httpMethod: HttpMethod, params: GetDataParams, queryParams: Params) {
     const parents: ObjectAny[] = [];
     let currentMockData: MockData;
@@ -325,8 +328,8 @@ export class HttpBackendService implements HttpBackend {
 
       const param = params[i];
       if (!this.cachedData[param.cacheKey]) {
-        const writeableData = param.route.callbackData(parents, lastRestId, 'GET', [], queryParams);
-        this.cachedData[param.cacheKey].writeableData = writeableData;
+        const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams);
+        this.cachedData[param.cacheKey] = { writeableData, onlyreadData: [] };
 
         let onlyreadData: ObjectAny[];
         if (param.route.propertiesForList) {
@@ -342,7 +345,7 @@ export class HttpBackendService implements HttpBackend {
         const prevWriteableData = mockData.writeableData;
         const curWriteableData = param.route.callbackData(
           prevWriteableData,
-          lastRestId,
+          param.restId,
           httpMethod,
           parents,
           queryParams
