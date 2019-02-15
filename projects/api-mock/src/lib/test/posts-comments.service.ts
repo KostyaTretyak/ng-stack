@@ -10,7 +10,7 @@ import {
   pickPropertiesAsGetters,
 } from '@ng-stack/api-mock';
 
-import { Post, PostList, PostComment, PostInfo } from './types';
+import { Post, PostList, PostComment, PostInfo, Commentator } from './types';
 import { makeResponse } from './make-response';
 
 @Injectable()
@@ -44,11 +44,9 @@ export class PostsCommentsService implements ApiMockService {
   /**
    * Called when URL is like `/posts` or `/posts/123`
    */
-  private changePostsData(): ApiMockCallbackData {
-    return (httpMethod, postId) => {
-      const posts: Post[] = [];
-
-      for (let i = 0; i < 50; i++, postId = null) {
+  private changePostsData(): ApiMockCallbackData<Post[]> {
+    return (posts, postId, httpMethod, parents, queryParams) => {
+      for (let i = 0; i < 20; i++, postId = null) {
         const post: Post = {
           postId: +postId || this.id,
           postTitle: faker.lorem.sentence(20),
@@ -70,13 +68,10 @@ export class PostsCommentsService implements ApiMockService {
   /**
    * Returns the data (list or one item) from `getPostsData()` callback.
    */
-  private getPostsResponse(): ApiMockCallbackResponse {
-    return (httpMethod, clonedData, parents?, queryParams?) => {
-      if (!clonedData) {
-        return;
-      }
-      if (!Array.isArray(clonedData)) {
-        return makeResponse([clonedData]);
+  private getPostsResponse(): ApiMockCallbackResponse<Post[]> {
+    return (clonedData, postId, httpMethod, parents, queryParams) => {
+      if (postId) {
+        return makeResponse(clonedData);
       }
       return makeResponse(clonedData, { queryParams });
     };
@@ -84,50 +79,58 @@ export class PostsCommentsService implements ApiMockService {
 
   /**
    * Called when URL is like `/posts/123/comments` or `/posts/123/comments/456`.
-   * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
+   * Here
+   *  - `[Post]` - it is generic type for `parents` - parameter for the callback.
+   *  - `PostComment[]` - it is generic type for `postComments` - parameter for the callback.
    */
-  private changeCommentsData(): ApiMockCallbackData<[Post]> {
+  private changeCommentsData(): ApiMockCallbackData<PostComment[], [Post]> {
     /**
      * @param commentId Only need to may include it in one of postComments.
      */
-    return (httpMethod, commentId?, parents?) => {
+    return (postComments, postCommentId, httpMethod, parents, queryParams) => {
       const post = parents[0];
-      const postComments: PostComment[] = [];
 
       switch (httpMethod) {
         case 'GET':
-          for (let i = 0; i < post.countComments; i++, commentId = null) {
-            postComments.push(makePostComment());
+          for (let i = 0; i < post.countComments; i++, postCommentId = null) {
+            const postComment: PostComment = {
+              commentId: +postCommentId || this.id,
+              commentBody: faker.lorem.sentence(200),
+              dateInsert: this.dateRange,
+              dateUpdate: this.dateRange,
+              pathAva: faker.internet.avatar(),
+              userId: this.id,
+              userName: faker.internet.userName(),
+              postId: null,
+              parentId: 0,
+            };
+            // This action need only because `postId` is a property shared from parent.
+            const comment = pickPropertiesAsGetters(postComment, { includeProperties: ['postId'] }, post);
+            postComments.push(comment);
           }
           break;
         case 'POST':
-          postComments.push(makePostComment());
+          ++post.countComments;
+          const lastComment = postComments[postComments.length - 1];
+          pickPropertiesAsGetters(lastComment, { includeProperties: ['postId'] }, post);
+          updateLastCommentators();
           break;
         case 'PATCH':
-          break;
         case 'PUT':
+          updateLastCommentators();
           break;
         case 'DELETE':
           --post.countComments;
+          updateLastCommentators();
           break;
       }
 
       return postComments;
 
-      function makePostComment(): PostComment {
-        const postComment: PostComment = {
-          commentId: +commentId || this.id,
-          commentBody: faker.lorem.sentence(200),
-          dateInsert: this.dateRange,
-          dateUpdate: this.dateRange,
-          pathAva: faker.internet.avatar(),
-          userId: this.id,
-          userName: faker.internet.userName(),
-          postId: null,
-          parentId: 0,
-        };
-        // This action need only because `postId` is a property shared from parent.
-        return pickPropertiesAsGetters(postComment, { includeProperties: ['postId'] }, post);
+      function updateLastCommentators() {
+        post.lastCommentators = postComments.slice(-5).map(postComment => {
+          return pickAllPropertiesAsGetters(new Commentator(), postComment);
+        });
       }
     };
   }
@@ -136,15 +139,13 @@ export class PostsCommentsService implements ApiMockService {
    * Returns the data (list or one item) from `getCommentsData()` callback.
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
-  private getCommentsResponse(): ApiMockCallbackResponse<[Post]> {
-    return (httpMethod, clonedData, parents?, queryParams?) => {
-      if (!clonedData) {
-        return;
-      }
-      if (!Array.isArray(clonedData)) {
-        return makeResponse([clonedData]);
+  private getCommentsResponse(): ApiMockCallbackResponse<PostComment[], [Post]> {
+    return (clonedData, postCommentId, httpMethod, parents, queryParams) => {
+      if (postCommentId) {
+        return makeResponse(clonedData);
       }
       const post = parents[0];
+      // Meta data.
       const postInfo = pickAllPropertiesAsGetters(new PostInfo(), post);
       return makeResponse(clonedData, { postInfo, queryParams });
     };

@@ -12,11 +12,18 @@ export class PostList {
   pathAva: string = null;
   countComments: number = null;
   datePosted: number = null;
+  lastCommentators?: Commentator[] = [];
 }
 
 export class Post extends PostList {
   userId: number = null;
   postBody: string = null;
+}
+
+export class Commentator {
+  userId: number = null;
+  userName: string = null;
+  pathAva: string = null;
 }
 
 export class PostComment {
