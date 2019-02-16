@@ -12,42 +12,60 @@ export abstract class ApiMockService {
 export class ApiMockConfig {
   showApiMockLog? = true;
   /**
-   * false (default) if search match should be case insensitive
+   * - `true` - Search match should be case insensitive.
+   * - `false` - (default).
    */
   caseSensitiveSearch? = false;
   /**
-   * simulate latency by delaying response
-   * delay (in ms) to simulate latency
+   * Simulate latency by delaying response (in milliseconds).
    */
   delay? = 500;
   /**
-   * don't complain if can't find entity to delete
-   * false (default) should 204 when object-to-delete not found; true: 404
+   * - `true` - 404 code.
+   * - `false` - (default) 204 code - when object-to-delete not found.
+   *
+   * Tip:
+   * > **204 No Content**
+   *
+   * > The server successfully processed the request and is not returning any content.
    */
   delete404? = false;
   /**
-   * 404 if can't process URL
-   * false (default) should pass unrecognized request URL through to original backend; true: 404
+   * - `true` - should pass unrecognized request URL through to original backend.
+   * - `false` - (default) return 404 code.
    */
   passThruUnknownUrl? = false;
   /**
-   * don't return the item after a POST
-   * true (default) should NOT return the item (204) after a POST. false: return the item (200).
+   * - `true` - 204 code (default) - should NOT return the item after a POST.
+   * - `false` - 200 code - return the item.
+   *
+   * Tip:
    */
   post204? = true;
   /**
-   * don't update existing item with that ID
-   * false (default) should NOT update existing item with POST. false: OK to update.
+   * - `true` - should NOT update existing item with POST.
+   * - `false` - (default) OK to update.
+   *
+   * Tip:
+   * > **409 Conflict**
+   *
+   * > Indicates that the request could not be processed because of conflict in the current
+   * > state of the resource, such as an edit conflict between multiple simultaneous updates.
    */
   post409? = false;
   /**
-   * don't return the item after a PUT
-   * true (default) should NOT return the item (204) after a POST. false: return the item (200).
+   * - `true` - 204 code (default) - should NOT return the item after a POST.
+   * - `false` - 200 code - return the item.
+   *
+   * Tip:
+   * > **204 No Content**
+   *
+   * > The server successfully processed the request and is not returning any content.
    */
   put204? = true;
   /**
-   * create new item if PUT item with that ID not found
-   * false (default) if item not found, create as new item; false: should 404.
+   * - `true` - create new item if PUT item with that ID not found.
+   * - `false` - (default) should return 404 code.
    */
   put404? = false;
 
