@@ -2,12 +2,8 @@ import {
   HttpBackend,
   HttpErrorResponse,
   HttpEvent,
-  HttpHandler,
-  HttpHeaders,
-  HttpParams,
   HttpRequest,
   HttpResponse,
-  HttpResponseBase,
   HttpXhrBackend,
   XhrFactory,
 } from '@angular/common/http';
