@@ -1,6 +1,6 @@
 # What is this library?
 
-This is micro Angular v6+ contenteditable directive for compatibility with Angular forms.
+This is micro Angular v4+ contenteditable directive for integration with Angular forms.
 It just implements [ControlValueAccessor](https://angular.io/api/forms/ControlValueAccessor) for this purpose.
 
 # Install
