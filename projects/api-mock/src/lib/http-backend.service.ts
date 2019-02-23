@@ -66,6 +66,8 @@ export class HttpBackendService implements HttpBackend {
     }
 
     let body: any;
+    const urlTree = this.router.parseUrl(req.urlWithParams);
+    const queryParams = urlTree.queryParams;
     let params: GetDataParam[] | void;
     try {
       const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
@@ -73,8 +75,7 @@ export class HttpBackendService implements HttpBackend {
         const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch;
         params = this.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
         if (params) {
-          const urlTree = this.router.parseUrl(req.urlWithParams);
-          body = this.getResponse(req.method as HttpMethod, params, urlTree.queryParams);
+          body = this.getResponse(req.method as HttpMethod, params, queryParams);
         }
       }
       if ((!dryMatch || !params) && this.apiMockConfig.passThruUnknownUrl) {
@@ -89,11 +90,27 @@ export class HttpBackendService implements HttpBackend {
     }
 
     if (this.apiMockConfig.showApiMockLog) {
-      console.log(`%c${req.method} ${req.url}:`, 'color: green;', body);
+      this.showApiMockLog(req, queryParams, body);
     }
 
     const responseConfig = { status: Status.OK, url: req.urlWithParams, body };
     return of(new HttpResponse<any>(responseConfig)).pipe(delay(this.apiMockConfig.delay));
+  }
+
+  protected showApiMockLog(req: HttpRequest<any>, queryParams: ObjectAny, body: any) {
+    const headers = req.headers.keys().map(header => {
+      let values: string | string[] = req.headers.getAll(header);
+      values = values.length == 1 ? values[0] : values;
+      return { [header]: values };
+    });
+
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+      body: req.body,
+      queryParams,
+      headers,
+    });
+
+    console.log(`%cres:`, 'color: green;', body);
   }
 
   protected passThruBackend(req: HttpRequest<any>) {
@@ -178,8 +195,7 @@ export class HttpBackendService implements HttpBackend {
 
   protected make404Error(req: HttpRequest<any>) {
     if (this.apiMockConfig.showApiMockLog) {
-      console.log(`%c${req.method} ${req.url}:`, 'color: brown;');
-      console.log('Error 404: The page not found');
+      console.log(`%c${req.method} ${req.url}: Error 404: The page not found`, 'color: brown;');
     }
     return throwError(
       new HttpErrorResponse({
