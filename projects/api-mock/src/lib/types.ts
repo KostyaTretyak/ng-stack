@@ -10,7 +10,13 @@ export abstract class ApiMockService {
  */
 @Injectable()
 export class ApiMockConfig {
-  showApiMockLog? = true;
+  /**
+   * - Do you need to delete previous console logs?
+   *
+   * Clears logs between previous route `NavigationStart` and current `NavigationStart` events.
+   */
+  clearPrevLog? = false;
+  showLog? = true;
   /**
    * - `true` - Search match should be case insensitive.
    * - `false` - (default).

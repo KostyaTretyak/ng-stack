@@ -26,7 +26,7 @@ import {
   ObjectAny,
 } from './types';
 import { Status } from './http-status-codes';
-import { Router, Params } from '@angular/router';
+import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
 
 @Injectable()
 export class HttpBackendService implements HttpBackend {
@@ -89,7 +89,7 @@ export class HttpBackendService implements HttpBackend {
       return this.make404Error(req);
     }
 
-    if (this.apiMockConfig.showApiMockLog) {
+    if (this.apiMockConfig.showLog) {
       this.showApiMockLog(req, queryParams, body);
     }
 
@@ -110,7 +110,7 @@ export class HttpBackendService implements HttpBackend {
       headers,
     });
 
-    console.log(`%cres:`, 'color: green;', body);
+    console.log(`%cres:`, 'color: blue;', body);
   }
 
   protected passThruBackend(req: HttpRequest<any>) {
@@ -126,6 +126,17 @@ export class HttpBackendService implements HttpBackend {
     const routeGroups = this.apiMockService.getRouteGroups();
     this.routeGroups = this.checkRouteGroups(routeGroups);
     this.rootRoutes = this.getRootPaths(this.routeGroups);
+
+    let loadedApp = false;
+    if (this.apiMockConfig.showLog && this.apiMockConfig.clearPrevLog) {
+      this.router.events.subscribe(event => {
+        if (loadedApp && event instanceof NavigationStart) {
+          console.clear();
+        } else if (event instanceof NavigationEnd) {
+          loadedApp = true;
+        }
+      });
+    }
   }
 
   protected clone(data: any) {
@@ -194,7 +205,7 @@ export class HttpBackendService implements HttpBackend {
   }
 
   protected make404Error(req: HttpRequest<any>) {
-    if (this.apiMockConfig.showApiMockLog) {
+    if (this.apiMockConfig.showLog) {
       console.log(`%c${req.method} ${req.url}: Error 404: The page not found`, 'color: brown;');
     }
     return throwError(
@@ -359,7 +370,7 @@ export class HttpBackendService implements HttpBackend {
         const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
-          if (this.apiMockConfig.showApiMockLog) {
+          if (this.apiMockConfig.showLog) {
             const message = `Item not found with primary key "${primaryKey}" and ID "${restId}", searched in:`;
             console.log('%c' + message, 'color: brown', mockData.writeableData);
           }
