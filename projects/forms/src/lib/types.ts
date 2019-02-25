@@ -9,6 +9,7 @@ import {
   FormGroup,
   ValidatorFn,
 } from '@angular/forms';
+import { Observable } from 'rxjs';
 
 export interface ObjectAny {
   [key: string]: any;
@@ -22,6 +23,7 @@ export type ControlType<T, K extends Extract<keyof T, string>> = T[K] extends an
 
 export abstract class AbstractControlTyped<T = any> extends AbstractControl {
   readonly value: T;
+  readonly valueChanges: Observable<T>;
 
   get<K extends Extract<keyof T, string>>(path: K | Array<K | number>) {
     return super.get(path) as ControlType<T, K> | null;
@@ -34,6 +36,7 @@ export abstract class AbstractControlTyped<T = any> extends AbstractControl {
 
 export class FormGroupTyped<T = any> extends FormGroup {
   readonly value: T;
+  readonly valueChanges: Observable<T>;
 
   getRawValue() {
     return super.getRawValue();
@@ -64,6 +67,7 @@ export class FormArrayTyped<T = any> extends FormArray {
 
 export class FormControlTyped<T = any> extends FormControl {
   readonly value: T;
+  readonly valueChanges: Observable<T>;
 
   get<K extends Extract<keyof T, string>>(path: K | Array<K | number>) {
     return super.get(path) as ControlType<T, K> | null;
