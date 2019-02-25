@@ -18,6 +18,7 @@
     "url": "https://github.com/KostyaTretyak/ng-stack/issues"
   },
   "peerDependencies": {
-    "@angular/core": ">=6.0.0"
+    "@angular/core": ">=6.0.0",
+    "@angular/forms": ">=6.0.0"
   }
 }

@@ -1,6 +1,6 @@
 import { Validators } from '@angular/forms';
 
-import { FormBuilderTyped, ControlsConfig } from './types';
+import { FormBuilderTyped } from '@ng-stack/forms';
 
 class C1 {
   one: string;
@@ -27,7 +27,7 @@ const control3 = fb.control<C1, 'five'>(12); // OK, returns FormControlTyped<num
 fb.control<C1, 'notExistingProperty'>(12); // OK, but it's wrong...
 
 // Passing class C1 to the generic of ControlsConfig.
-const obj1: ControlsConfig<C1> = {
+fb.group<C1>({
   one: null, // OK
   two: [null, Validators.required, Validators.composeAsync('fd' as any)], // OK
   three: [null, 1, '2', 3], // Error, but it's not exactly needed error
@@ -35,10 +35,10 @@ const obj1: ControlsConfig<C1> = {
   five: '2', // Type 'string' is not assignable to type 'number...
   six: [null, Validators.required, Validators.required], // Error, but it's not exactly needed error
   notExistingProperty: 'value', // OK, but it's wrong...
-};
+});
 
-// Passing any to the generic of ControlsConfig.
-const obj2: ControlsConfig<any> = {
+// Passing any (default) to the generic of ControlsConfig.
+fb.group<any>({
   one: null, // OK
   two: [null, Validators.required, Validators.composeAsync('fd' as any)], // OK
   twotwo: [null, Validators.required, Validators.required], // OK, but it's wrong...
@@ -46,4 +46,4 @@ const obj2: ControlsConfig<any> = {
   four: false, // OK
   five: '2', // OK, but it's wrong...
   notExistingProperty: 'value', // OK, but it's wrong...
-};
+});
