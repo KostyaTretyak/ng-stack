@@ -24,6 +24,9 @@
       ],
       "@ng-stack/api-mock": [
         "dist/api-mock"
+      ],
+      "@ng-stack/forms": [
+        "dist/forms"
       ]
     }
   }

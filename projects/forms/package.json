@@ -1,0 +1,23 @@
+{
+  "name": "@ng-stack/forms",
+  "version": "0.0.0-alpha.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KostyaTretyak/ng-stack/tree/master/projects/forms"
+  },
+  "author": {
+    "name": "Костя Третяк",
+    "email": "ktretiak.in.ua@gmail.com"
+  },
+  "keywords": [
+    "angular",
+    "forms"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KostyaTretyak/ng-stack/issues"
+  },
+  "peerDependencies": {
+    "@angular/core": ">=6.0.0"
+  }
+}
