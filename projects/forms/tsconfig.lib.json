@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true,
     "outDir": "../../out-tsc/lib",
     "target": "es2015",
     "module": "es2015",
