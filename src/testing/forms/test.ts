@@ -1,6 +1,17 @@
 import { Validators } from '@angular/forms';
 
-import { FormBuilderTyped } from '@ng-stack/forms';
+import { FormBuilderTyped, FormArrayTyped, FormControlTyped, FormGroupTyped } from '@ng-stack/forms';
+
+const a = new FormArrayTyped([
+  new FormGroupTyped({ c2: new FormControlTyped('v2'), c3: new FormControlTyped('v3') }),
+  new FormControlTyped(2),
+  new FormArrayTyped([new FormControlTyped('v4'), new FormControlTyped('v5')]),
+]);
+
+const v = a.value;
+const v1 = v[0];
+const v2 = v[1];
+const v3 = v[2];
 
 class C1 {
   one: string;
@@ -9,7 +20,12 @@ class C1 {
   four: boolean;
   five: number;
   six: string;
+  other: [];
 }
+
+const control4 = new FormControlTyped();
+const control5 = new FormControlTyped<number>(12);
+const control6 = new FormControlTyped(12);
 
 declare const fb: FormBuilderTyped;
 
