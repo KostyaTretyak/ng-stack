@@ -12,7 +12,7 @@ yarn add @ng-stack/forms
 
 ## Usage
 
-For more info, see [tests](./src/lib/types.spec.ts)
+For more info, see [tests](https://github.com/KostyaTretyak/ng-stack/blob/master/src/testing/forms/test.ts)
 
 ## The project status
 
