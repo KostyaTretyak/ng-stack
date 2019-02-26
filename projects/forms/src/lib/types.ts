@@ -16,7 +16,7 @@ export type ControlType<T, K extends OnlyStringKeyOf<T>> = T[K] extends FormArra
   ? FormGroupTyped<T[K]>
   : FormControlTyped<T[K]>;
 
-export type ControlFormState<T> = T extends object ? { value: T; disable: boolean } : T;
+export type ControlFormState<T> = T | { value: T; disable: boolean };
 
 // Form builder control state
 export type FbControlFormState<T, K> = K extends OnlyStringKeyOf<T> ? T[K] | { value: T[K]; disabled: boolean } : any;
@@ -35,3 +35,19 @@ export interface UpdateValueOptions {
   onlySelf?: boolean;
   emitEvent?: boolean;
 }
+
+// Assertions type only.
+
+export type Diff<T, X> = T extends X ? never : T;
+export type Filter<T, X> = T extends X ? T : never;
+
+export type hasType<T, U> = Diff<T, Filter<T, never>> & U;
+export type Fn = (...args: any[]) => any;
+export type NonFn<T> = Diff<T, Fn>;
+
+export declare function isString<T>(value: hasType<T, string>): boolean;
+export declare function isNumber<T>(value: hasType<T, number>): boolean;
+export declare function isBoolean<T>(value: hasType<T, boolean>): boolean;
+export declare function isSymbol<T>(value: hasType<T, symbol>): boolean;
+export declare function isFunction<T>(value: hasType<T, Fn>): boolean;
+export declare function isObject<T>(value: hasType<NonFn<T>, object>): boolean;
