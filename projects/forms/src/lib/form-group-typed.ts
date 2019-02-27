@@ -2,25 +2,28 @@ import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormGroup } from
 
 import { Observable } from 'rxjs';
 
-import { OnlyStringKeyOf, ControlType, ObjectAny } from './types';
+import { OnlyStringKeyOf, ControlOfFormGroup } from './types';
 
-export class FormGroupTyped<T = ObjectAny> extends FormGroup {
+export class FormGroupTyped<T extends object = any> extends FormGroup {
   readonly value: T;
   readonly valueChanges: Observable<T>;
 
+  /**
+   * @todo Chechout how to respect optional and require properties modifyers for the controls.
+   */
   constructor(
-    public controls: { [K in OnlyStringKeyOf<T>]: ControlType<T, Extract<K, string>> },
+    public controls: { [K in OnlyStringKeyOf<T>]?: ControlOfFormGroup<T, K> },
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     super(controls, validatorOrOpts, asyncValidator);
   }
 
-  registerControl<K extends OnlyStringKeyOf<T>>(name: K, control: ControlType<T, K>) {
-    return super.registerControl(name, control) as ControlType<T, K>;
+  registerControl<K extends OnlyStringKeyOf<T>>(name: K, control: ControlOfFormGroup<T, K>) {
+    return super.registerControl(name, control) as ControlOfFormGroup<T, K>;
   }
 
-  addControl<K extends OnlyStringKeyOf<T>>(name: K, control: ControlType<T, K>) {
+  addControl<K extends OnlyStringKeyOf<T>>(name: K, control: ControlOfFormGroup<T, K>) {
     return super.addControl(name, control);
   }
 
@@ -28,19 +31,19 @@ export class FormGroupTyped<T = ObjectAny> extends FormGroup {
     return super.removeControl(name);
   }
 
-  setControl<K extends OnlyStringKeyOf<T>>(name: K, control: ControlType<T, K>) {
+  setControl<K extends OnlyStringKeyOf<T>>(name: K, control: ControlOfFormGroup<T, K>) {
     return super.setControl(name, control);
   }
 
-  setValue(value: T, options?: ObjectAny) {
+  setValue(value: T, options?: object) {
     return super.setValue(value, options);
   }
 
-  patchValue(value: Partial<T>, options?: ObjectAny) {
+  patchValue(value: Partial<T>, options?: object) {
     return super.patchValue(value, options);
   }
 
-  reset(value?: T, options?: ObjectAny) {
+  reset(value?: T, options?: object) {
     return super.reset(value, options);
   }
 
@@ -49,6 +52,6 @@ export class FormGroupTyped<T = ObjectAny> extends FormGroup {
   }
 
   get<K extends OnlyStringKeyOf<T>>(path: K | Array<K | number>) {
-    return super.get(path) as ControlType<T, K> | null;
+    return super.get(path) as ControlOfFormGroup<T, K> | null;
   }
 }

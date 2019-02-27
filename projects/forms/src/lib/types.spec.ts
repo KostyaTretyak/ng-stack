@@ -1,6 +1,6 @@
 import { Fn, isString, isNumber, isBoolean, isSymbol, isFunction, isObject } from './types';
 
-export declare let value: any;
+declare let value: any;
 
 isString(value as string);
 isString(value as any);

@@ -9,12 +9,19 @@ export interface ObjectAny {
 }
 
 export type OnlyStringKeyOf<T> = Extract<keyof T, string>;
+export type OnlyIndexOf<T> = Extract<keyof T, number>;
 
-export type ControlType<T, K extends OnlyStringKeyOf<T>> = T[K] extends FormArrayTyped
-  ? FormArrayTyped
-  : T[K] extends FormGroupTyped
+export type ControlOfFormGroup<T, K extends OnlyStringKeyOf<T>> = T[K] extends object[]
+  ? FormArrayTyped<T[K][0]>
+  : T[K] extends object
   ? FormGroupTyped<T[K]>
   : FormControlTyped<T[K]>;
+
+export type ControlOfFormArray<T, K extends OnlyIndexOf<T>> = T extends object[]
+  ? FormArrayTyped<T[K]>
+  : T extends object
+  ? FormGroupTyped<T>
+  : FormControlTyped<T>;
 
 export type ControlFormState<T> = T | { value: T; disable: boolean };
 
@@ -45,9 +52,9 @@ export type hasType<T, U> = Diff<T, Filter<T, never>> & U;
 export type Fn = (...args: any[]) => any;
 export type NonFn<T> = Diff<T, Fn>;
 
-export declare function isString<T>(value: hasType<T, string>): boolean;
-export declare function isNumber<T>(value: hasType<T, number>): boolean;
+export declare function isString<T>(value: hasType<T, string>): string;
+export declare function isNumber<T>(value: hasType<T, number>): number;
 export declare function isBoolean<T>(value: hasType<T, boolean>): boolean;
-export declare function isSymbol<T>(value: hasType<T, symbol>): boolean;
-export declare function isFunction<T>(value: hasType<T, Fn>): boolean;
-export declare function isObject<T>(value: hasType<NonFn<T>, object>): boolean;
+export declare function isSymbol<T>(value: hasType<T, symbol>): symbol;
+export declare function isFunction<T>(value: hasType<T, Fn>): Fn;
+export declare function isObject<T>(value: hasType<NonFn<T>, object>): object;

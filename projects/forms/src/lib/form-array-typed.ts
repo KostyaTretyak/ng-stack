@@ -1,21 +1,33 @@
-import { FormArray } from '@angular/forms';
+import { FormArray, ValidatorFn, AbstractControlOptions, AsyncValidatorFn } from '@angular/forms';
 
-import { OnlyStringKeyOf, ControlType } from './types';
+import { ControlOfFormArray, OnlyIndexOf } from './types';
+import { Observable } from 'rxjs';
 
-export class FormArrayTyped extends FormArray {
-  at<T, K extends OnlyStringKeyOf<T>>(index: number) {
-    return super.at(index) as ControlType<T, K>;
+export class FormArrayTyped<T extends object = any> extends FormArray {
+  value: T[];
+  valueChanges: Observable<T[]>;
+
+  constructor(
+    public controls: ControlOfFormArray<T, OnlyIndexOf<T>>[],
+    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
+  ) {
+    super(controls, validatorOrOpts, asyncValidator);
   }
 
-  push<T, K extends OnlyStringKeyOf<T>>(control: ControlType<T, K>) {
+  at(index: number) {
+    return super.at(index) as ControlOfFormArray<T, OnlyIndexOf<T>>;
+  }
+
+  push(control: ControlOfFormArray<T, OnlyIndexOf<T>>) {
     return super.push(control);
   }
 
-  insert<T, K extends OnlyStringKeyOf<T>>(index: number, control: ControlType<T, K>) {
+  insert(index: number, control: ControlOfFormArray<T, OnlyIndexOf<T>>) {
     return super.insert(index, control);
   }
 
-  setControl<T, K extends OnlyStringKeyOf<T>>(index: number, control: ControlType<T, K>) {
+  setControl(index: number, control: ControlOfFormArray<T, OnlyIndexOf<T>>) {
     return super.setControl(index, control);
   }
 }
