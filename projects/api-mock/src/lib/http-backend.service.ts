@@ -23,7 +23,6 @@ import {
   RouteDryMatch,
   GetDataParam,
   HttpMethod,
-  ObjectAny,
 } from './types';
 import { Status } from './http-status-codes';
 import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
@@ -97,7 +96,7 @@ export class HttpBackendService implements HttpBackend {
     return of(new HttpResponse<any>(responseConfig)).pipe(delay(this.apiMockConfig.delay));
   }
 
-  protected showApiMockLog(req: HttpRequest<any>, queryParams: ObjectAny, body: any) {
+  protected showApiMockLog(req: HttpRequest<any>, queryParams: object, body: any) {
     const headers = req.headers.keys().map(header => {
       let values: string | string[] = req.headers.getAll(header);
       values = values.length == 1 ? values[0] : values;
@@ -339,7 +338,7 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackResponse()` from matched route and returns a result.
    */
   protected getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams?: Params): any | void {
-    const parents: ObjectAny[] = [];
+    const parents: object[] = [];
 
     for (let i = 0; i < params.length; i++) {
       const isLastIteration = i + 1 == params.length;
@@ -384,7 +383,7 @@ export class HttpBackendService implements HttpBackend {
       }
     }
 
-    const items = parents.pop() as ObjectAny[];
+    const items = parents.pop() as object[];
     const lastParam = params[params.length - 1];
     const lastRestId = lastParam.restId || '';
 
@@ -396,8 +395,8 @@ export class HttpBackendService implements HttpBackend {
   /**
    * Setting onlyread data to `this.cachedData[cacheKey].onlyreadData`
    */
-  protected setOnlyreadData(param: GetDataParam, writeableData: ObjectAny[]) {
-    let onlyreadData: ObjectAny[];
+  protected setOnlyreadData(param: GetDataParam, writeableData: object[]) {
+    let onlyreadData: object[];
     const pickObj = param.route.propertiesForList;
     if (pickObj) {
       onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
