@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
-import { FormsRoutingModule } from './page/forms-routing.module';
+import { FormsRoutingModule } from './forms-routing.module';
 import { FormsComponent } from './page/forms.component';
 
 @NgModule({
