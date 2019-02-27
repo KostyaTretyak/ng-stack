@@ -2,7 +2,7 @@ import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormControl } fr
 
 import { Observable } from 'rxjs';
 
-import { OnlyStringKeyOf, ControlFormState, ControlType, ObjectAny } from './types';
+import { ControlFormState } from './types';
 
 export class FormControlTyped<T = any> extends FormControl {
   readonly value: T;
@@ -16,19 +16,37 @@ export class FormControlTyped<T = any> extends FormControl {
     super(formState, validatorOrOpts, asyncValidator);
   }
 
-  get<K extends OnlyStringKeyOf<T>>(path: K | Array<K | number>) {
-    return super.get(path) as ControlType<T, K> | null;
-  }
-
-  setValue(value: T, options?: ObjectAny) {
+  setValue(
+    value: T,
+    options: {
+      onlySelf?: boolean;
+      emitEvent?: boolean;
+      emitModelToViewChange?: boolean;
+      emitViewToModelChange?: boolean;
+    } = {}
+  ) {
     return super.setValue(value, options);
   }
 
-  patchValue(value: Partial<T>, options?: ObjectAny) {
+  patchValue(
+    value: T,
+    options: {
+      onlySelf?: boolean;
+      emitEvent?: boolean;
+      emitModelToViewChange?: boolean;
+      emitViewToModelChange?: boolean;
+    } = {}
+  ) {
     return super.patchValue(value, options);
   }
 
-  reset(value?: T, options?: ObjectAny) {
-    return super.reset(value, options);
+  reset(
+    formState: ControlFormState<T> = null,
+    options: {
+      onlySelf?: boolean;
+      emitEvent?: boolean;
+    } = {}
+  ) {
+    return super.reset(formState, options);
   }
 }
