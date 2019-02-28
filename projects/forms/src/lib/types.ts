@@ -22,8 +22,6 @@ export type ControlOfFormArray<T> = T extends (infer Item)[]
   ? FormGroupTyped<T>
   : FormControlTyped<T>;
 
-export type ControlFormState<T> = T | { value: T; disable: boolean };
-
 // Form builder control state
 export type FbControlFormState<T, K> = K extends StringKeys<T> ? T[K] | { value: T[K]; disabled: boolean } : any;
 
