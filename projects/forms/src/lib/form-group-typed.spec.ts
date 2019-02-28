@@ -38,27 +38,10 @@ const formGroup1 = new FormGroupTyped<UserForm>({
     school3: new FormControlTyped('This is about school3'),
   }),
   addresses: new FormArrayTyped([
-    new FormGroupTyped({
-      city: new FormControlTyped('Kyiv'),
-      region: new FormControlTyped('Kyiv'),
-      district: new FormControlTyped('wat?'),
-      rooms: new FormArrayTyped([
-        new FormControlTyped(123),
-        new FormGroupTyped({
-          whoseBed: new FormControlTyped('my'),
-          one: new FormArrayTyped([]),
-          notExistingPropery: new FormControlTyped(1561),
-        }),
-      ]),
-    }),
+    // new FormControlTyped(123),
     new FormGroupTyped({
       city: new FormControlTyped('Mykolaiv'),
       region: new FormControlTyped('Mykolaiv'),
-      district: new FormControlTyped('wat?'),
-    }),
-    new FormGroupTyped({
-      city: new FormControlTyped('Kharkiv'),
-      region: new FormControlTyped('Kharkiv'),
       district: new FormControlTyped('wat?'),
     }),
   ]),
