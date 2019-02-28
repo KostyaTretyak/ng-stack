@@ -19,6 +19,7 @@
   },
   "peerDependencies": {
     "@angular/core": ">=6.0.0",
-    "@angular/forms": ">=6.0.0"
+    "@angular/forms": ">=6.0.0",
+    "typescript": ">=2.8"
   }
 }
