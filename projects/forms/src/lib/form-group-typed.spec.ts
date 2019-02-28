@@ -68,6 +68,7 @@ isString(userNameControl2.value);
 userNameControl2.valueChanges.subscribe(v => isString(v));
 
 formGroup1.registerControl('addresses', new FormArrayTyped([]));
+
 formGroup1.registerControl(
   'education',
   new FormGroupTyped({
