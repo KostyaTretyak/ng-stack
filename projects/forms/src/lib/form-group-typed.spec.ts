@@ -47,6 +47,8 @@ const formGroup1 = new FormGroupTyped<UserForm>({
   ]),
 });
 
+const addr = formGroup1.get('education').get('school1');
+
 isObject(formGroup1.value);
 isString(formGroup1.value.userName);
 isString(formGroup1.value.userEmail);

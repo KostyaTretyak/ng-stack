@@ -233,7 +233,17 @@ console.log(this.form.get('first').status);  // 'DISABLED'
     return super.getRawValue() as T;
   }
 
-  get<K extends StringKeys<T>>(path: K | Array<K | number>) {
-    return super.get(path) as ControlOfFormGroup<T, K> | null;
+  /**
+   * Retrieves a child control given the control's name.
+   *
+   * ### Retrieve a nested control
+   *
+   * For example, to get a `name` control nested within a `person` sub-group:
+```ts
+this.form.get('person').get('name');
+```
+   */
+  get<K extends StringKeys<T>>(controlName: K) {
+    return super.get(controlName) as ControlOfFormGroup<T, K> | null;
   }
 }
