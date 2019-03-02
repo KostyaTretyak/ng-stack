@@ -1,7 +1,8 @@
 import { FormArray, ValidatorFn, AbstractControlOptions, AsyncValidatorFn } from '@angular/forms';
 
-import { ControlOfFormArray } from './types';
 import { Observable } from 'rxjs';
+
+import { ControlType } from './types';
 
 export class FormArrayTyped<Item = any> extends FormArray {
   value: Item[];
@@ -21,7 +22,7 @@ export class FormArrayTyped<Item = any> extends FormArray {
    *
    */
   constructor(
-    public controls: ControlOfFormArray<Item>[],
+    public controls: ControlType<Item>[],
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
@@ -34,7 +35,7 @@ export class FormArrayTyped<Item = any> extends FormArray {
    * @param index Index in the array to retrieve the control
    */
   at(index: number) {
-    return super.at(index) as ControlOfFormArray<Item>;
+    return super.at(index) as ControlType<Item>;
   }
 
   /**
@@ -42,7 +43,7 @@ export class FormArrayTyped<Item = any> extends FormArray {
    *
    * @param control Form control to be inserted
    */
-  push(control: ControlOfFormArray<Item>) {
+  push(control: ControlType<Item>) {
     return super.push(control);
   }
 
@@ -52,7 +53,7 @@ export class FormArrayTyped<Item = any> extends FormArray {
    * @param index Index in the array to insert the control
    * @param control Form control to be inserted
    */
-  insert(index: number, control: ControlOfFormArray<Item>) {
+  insert(index: number, control: ControlType<Item>) {
     return super.insert(index, control);
   }
 
@@ -62,7 +63,7 @@ export class FormArrayTyped<Item = any> extends FormArray {
    * @param index Index in the array to replace the control
    * @param control The Control control to replace the existing control
    */
-  setControl(index: number, control: ControlOfFormArray<Item>) {
+  setControl(index: number, control: ControlType<Item>) {
     return super.setControl(index, control);
   }
 

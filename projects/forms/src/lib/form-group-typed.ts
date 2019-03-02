@@ -2,7 +2,7 @@ import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormGroup } from
 
 import { Observable } from 'rxjs';
 
-import { StringKeys, ControlOfFormGroup } from './types';
+import { StringKeys, ControlType } from './types';
 
 export class FormGroupTyped<T extends object = any> extends FormGroup {
   readonly value: T;
@@ -23,7 +23,7 @@ export class FormGroupTyped<T extends object = any> extends FormGroup {
    * @todo Chechout how to respect optional and require properties modifyers for the controls.
    */
   constructor(
-    public controls: { [K in StringKeys<T>]?: ControlOfFormGroup<T, K> },
+    public controls: { [P in keyof T]?: ControlType<T[P]> },
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
@@ -39,8 +39,8 @@ export class FormGroupTyped<T extends object = any> extends FormGroup {
    * @param name The control name to register in the collection
    * @param control Provides the control for the given name
    */
-  registerControl<K extends StringKeys<T>>(name: K, control: ControlOfFormGroup<T, K>) {
-    return super.registerControl(name, control) as ControlOfFormGroup<T, K>;
+  registerControl<K extends StringKeys<T>>(name: K, control: ControlType<T[K]>) {
+    return super.registerControl(name, control) as ControlType<T[K]>;
   }
 
   /**
@@ -51,7 +51,7 @@ export class FormGroupTyped<T extends object = any> extends FormGroup {
    * @param name The control name to add to the collection
    * @param control Provides the control for the given name
    */
-  addControl<K extends StringKeys<T>>(name: K, control: ControlOfFormGroup<T, K>) {
+  addControl<K extends StringKeys<T>>(name: K, control: ControlType<T[K]>) {
     return super.addControl(name, control);
   }
 
@@ -70,7 +70,7 @@ export class FormGroupTyped<T extends object = any> extends FormGroup {
    * @param name The control name to replace in the collection
    * @param control Provides the control for the given name
    */
-  setControl<K extends StringKeys<T>>(name: K, control: ControlOfFormGroup<T, K>) {
+  setControl<K extends StringKeys<T>>(name: K, control: ControlType<T[K]>) {
     return super.setControl(name, control);
   }
 
@@ -244,6 +244,6 @@ this.form.get('person').get('name');
 ```
    */
   get<K extends StringKeys<T>>(controlName: K) {
-    return super.get(controlName) as ControlOfFormGroup<T, K> | null;
+    return super.get(controlName) as ControlType<T[K]> | null;
   }
 }

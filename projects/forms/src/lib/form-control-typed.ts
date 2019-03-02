@@ -1,6 +1,7 @@
 import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs';
+import { StringKeys, ControlType } from './types';
 
 export class FormControlTyped<T = any> extends FormControl {
   readonly value: T;
@@ -109,5 +110,19 @@ export class FormControlTyped<T = any> extends FormControl {
     } = {}
   ) {
     return super.reset(formState, options);
+  }
+
+  /**
+   * Retrieves a child control given the control's name.
+   *
+   * ### Retrieve a nested control
+   *
+   * For example, to get a `name` control nested within a `person` sub-group:
+```ts
+this.form.get('person').get('name');
+```
+   */
+  get<K extends StringKeys<T>>(path: T extends object ? K : never) {
+    return super.get(path) as (T extends object ? ControlType<T[K]> : null);
   }
 }

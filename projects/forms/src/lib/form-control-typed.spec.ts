@@ -56,7 +56,7 @@ describe('FormControlTyped', () => {
     });
   });
 
-  xdescribe('checking type only', () => {
+  xdescribe('checking types only', () => {
     it('inferring type from constructor params', () => {
       isString(new FormControlTyped('').value);
       isString(new FormControlTyped<string>().value);
