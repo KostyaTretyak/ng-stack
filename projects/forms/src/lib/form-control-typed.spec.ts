@@ -1,5 +1,5 @@
 import { FormControlTyped } from './form-control-typed';
-import { isString, isNumber, isArray } from './assert';
+import { isString, isNumber, isArray, isNever } from './assert';
 
 describe('FormControlTyped', () => {
   describe(`checking that we knows how native FormControl works`, () => {
@@ -36,6 +36,7 @@ describe('FormControlTyped', () => {
 
       // Mapping between param and expected
       const map = new Map<any, any>([
+        [{ prop1: 1, prop2: str }, { prop1: 1, prop2: str }],
         [{ value: str, disabled: false }, str],
         [{ value: 2, disabled: false }, 2],
         [{ value: null, disabled: false }, null],
@@ -47,11 +48,11 @@ describe('FormControlTyped', () => {
         expect(() => new FormControlTyped(param)).not.toThrow();
 
         const value = new FormControlTyped(param).value;
-        expect(value).toBe(expected);
+        expect(value).toEqual(expected);
 
         control = new FormControlTyped();
         control.reset(param);
-        expect(control.value).toBe(expected);
+        expect(control.value).toEqual(expected);
       });
     });
   });
@@ -124,6 +125,12 @@ describe('FormControlTyped', () => {
       control4.reset(2);
       // control4.reset('');
       // control4.reset([]);
+    });
+
+    it('should get() return properly types', () => {
+      const control1 = new FormControlTyped({ prop1: 1, prop2: 'some value' });
+      isNumber(control1.get('prop1').value);
+      isString(control1.get('prop2').value);
     });
   });
 });

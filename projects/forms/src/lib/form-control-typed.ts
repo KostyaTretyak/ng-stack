@@ -122,7 +122,7 @@ export class FormControlTyped<T = any> extends FormControl {
 this.form.get('person').get('name');
 ```
    */
-  get<K extends StringKeys<T>>(path: T extends object ? K : never) {
-    return super.get(path) as (T extends object ? ControlType<T[K]> : null);
+  get<K extends StringKeys<T>>(controlName: T extends object ? K : never) {
+    return super.get(controlName) as (T extends object ? ControlType<T[K]> : null);
   }
 }
