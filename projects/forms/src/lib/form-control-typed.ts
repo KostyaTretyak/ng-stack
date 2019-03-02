@@ -20,7 +20,7 @@ export class FormControlTyped<T = any> extends FormControl {
    *
    */
   constructor(
-    formState: T | { value: T; disable: boolean } = null,
+    formState: T | { value: T; disabled: boolean } = null,
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
@@ -102,7 +102,7 @@ export class FormControlTyped<T = any> extends FormControl {
    *
    */
   reset(
-    formState: T | { value: T; disable: boolean } = null,
+    formState: T | { value: T; disabled: boolean } = null,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
