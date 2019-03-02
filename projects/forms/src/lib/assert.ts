@@ -22,12 +22,6 @@ export function isBoolean<T>(value: hasType<T, boolean>) {
   assert.bool(value);
 }
 
-export function isSymbol<T>(value: hasType<T, symbol>) {
-  if (typeof value != 'symbol') {
-    throw new TypeError(`${typeof value} (symbol) is required`);
-  }
-}
-
 export function isFunction<T>(value: hasType<T, Fn>) {
   assert.func(value);
 }
@@ -38,4 +32,16 @@ export function isArray<T>(value: hasType<T, any[]>) {
 
 export function isObject<T>(value: hasType<NonFn<T> & NonArray<T>, object>) {
   assert.object(value);
+}
+
+export function isSymbol<T>(value: hasType<T, symbol>) {
+  if (typeof value != 'symbol') {
+    throw new TypeError(`${typeof value} (symbol) is required`);
+  }
+}
+
+export function isNever(value: never) {
+  if (value !== undefined) {
+    throw new TypeError(`${typeof value} (undefined) is required`);
+  }
 }
