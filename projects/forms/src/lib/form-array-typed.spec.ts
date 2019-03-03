@@ -1,8 +1,8 @@
-import { FormArrayTyped } from './form-array-typed';
-import { FormControlTyped } from './form-control-typed';
-import { FormGroupTyped } from './form-group-typed';
+import { FormArrayTyped as FormArray } from './form-array-typed';
+import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormGroupTyped as FormGroup } from './form-group-typed';
 
-describe('FormArrayTyped', () => {
+describe('FormArray', () => {
   class Profile {
     firstName: string;
     lastName: string;
@@ -23,21 +23,18 @@ describe('FormArrayTyped', () => {
       let param: any;
       let expected: any;
 
-      param = [new FormControlTyped('one'), new FormControlTyped('two')];
+      param = [new FormControl('one'), new FormControl('two')];
       expected = ['one', 'two'];
       map.set(param, expected);
 
-      param = [
-        new FormGroupTyped({ city: new FormControlTyped('Kyiv') }),
-        new FormGroupTyped({ city: new FormControlTyped('Mykolaiv') }),
-      ];
+      param = [new FormGroup({ city: new FormControl('Kyiv') }), new FormGroup({ city: new FormControl('Mykolaiv') })];
       expected = [{ city: 'Kyiv' }, { city: 'Mykolaiv' }];
       map.set(param, expected);
 
       map.forEach((exp, par) => {
-        expect(() => new FormArrayTyped(par)).not.toThrow();
+        expect(() => new FormArray(par)).not.toThrow();
 
-        const value = new FormArrayTyped(par).value;
+        const value = new FormArray(par).value;
         expect(value).toEqual(exp);
       });
     });

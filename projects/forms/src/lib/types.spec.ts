@@ -1,7 +1,7 @@
-import { FormArrayTyped } from './form-array-typed';
-import { FormGroupTyped } from './form-group-typed';
-import { FormControlTyped } from './form-control-typed';
-import { ControlType, FormControlObject } from './types';
+import { FormArrayTyped as FormArray } from './form-array-typed';
+import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormControlTyped as FormControl } from './form-control-typed';
+import { ControlType, Control } from './types';
 
 xdescribe('checking types only', () => {
   // tslint:disable: prefer-const
@@ -14,24 +14,24 @@ xdescribe('checking types only', () => {
   }
 
   describe('ControlOfFormGroup', () => {
-    it('should return FormArrayTyped<Model> type', () => {
+    it('should return FormArray<Model> type', () => {
       let valueWithType: ControlType<Model[]>;
-      const formArray: FormArrayTyped<Model> = valueWithType;
+      const formArray: FormArray<Model> = valueWithType;
     });
 
-    it('should return FormGroupTyped<Model>', () => {
+    it('should return FormGroup<Model>', () => {
       let valueWithType: ControlType<Model>;
-      const formGroup: FormGroupTyped<Model> = valueWithType;
+      const formGroup: FormGroup<Model> = valueWithType;
     });
 
-    it('should return FormControlTyped<Model>', () => {
-      let valueWithType: ControlType<FormControlObject<Model>>;
-      const formControl: FormControlTyped<Model> = valueWithType;
+    it('should return FormControl<Model>', () => {
+      let valueWithType: ControlType<Control<Model>>;
+      const formControl: FormControl<Model> = valueWithType;
     });
 
-    it('should return FormControlTyped<string>', () => {
+    it('should return FormControl<string>', () => {
       let valueWithType: ControlType<string>;
-      const formControl: FormControlTyped<string> = valueWithType;
+      const formControl: FormControl<string> = valueWithType;
     });
   });
 });

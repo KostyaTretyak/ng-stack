@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { FormBuilder, AbstractControlOptions, ValidatorFn, AsyncValidatorFn } from '@angular/forms';
 
 import { FbControlsConfig, FbControlFormState, FbControlReturns, LegacyControlOptions } from './types';
-import { FormGroupTyped } from './form-group-typed';
-import { FormControlTyped } from './form-control-typed';
-import { FormArrayTyped } from './form-array-typed';
+import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormArrayTyped as FormArray } from './form-array-typed';
 
 @Injectable({ providedIn: 'root' })
 export class FormBuilderTyped extends FormBuilder {
@@ -32,7 +32,7 @@ export class FormBuilderTyped extends FormBuilder {
     controlsConfig: { [P in keyof T]?: FbControlsConfig<T[P]> },
     options: AbstractControlOptions | LegacyControlOptions | null = null
   ) {
-    return super.group(controlsConfig, options) as FormGroupTyped<T>;
+    return super.group(controlsConfig, options) as FormGroup<T>;
   }
 
   /**
@@ -76,7 +76,7 @@ export class DisabledFormControlComponent {
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
-    return super.control(formState, validatorOrOpts, asyncValidator) as FormControlTyped<FbControlReturns<T, K>>;
+    return super.control(formState, validatorOrOpts, asyncValidator) as FormControl<FbControlReturns<T, K>>;
   }
 
   /**
@@ -98,6 +98,6 @@ export class DisabledFormControlComponent {
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
-    return super.array(controlsConfig, validatorOrOpts, asyncValidator) as FormArrayTyped<Item>;
+    return super.array(controlsConfig, validatorOrOpts, asyncValidator) as FormArray<Item>;
   }
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { FormGroupTyped, FormControlTyped, FormArrayTyped } from '@ng-stack/forms';
+import { FormGroup, FormControl, FormArray } from '@ng-stack/forms';
 
 import { UserForm } from '../models/user-form';
 
@@ -10,7 +10,7 @@ import { UserForm } from '../models/user-form';
   styleUrls: ['./forms.component.scss'],
 })
 export class FormsComponent implements OnInit {
-  formGroup: FormGroupTyped<UserForm>;
+  formGroup: FormGroup<UserForm>;
 
   get userName() {
     return this.formGroup.get('userName');
@@ -29,25 +29,25 @@ export class FormsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.formGroup = new FormGroupTyped({
-      userName: new FormControlTyped('Some One'),
-      userEmail: new FormControlTyped('some-one@gmail.com'),
-      password: new FormControlTyped('123456'),
-      addresses: new FormArrayTyped([
-        new FormGroupTyped({
-          city: new FormControlTyped('Kyiv'),
-          region: new FormControlTyped('Kyiv'),
-          district: new FormControlTyped('wat?'),
+    this.formGroup = new FormGroup<UserForm>({
+      userName: new FormControl('Some One'),
+      userEmail: new FormControl('some-one@gmail.com'),
+      password: new FormControl('123456'),
+      addresses: new FormArray([
+        new FormGroup({
+          city: new FormControl('Kyiv'),
+          region: new FormControl('Kyiv'),
+          district: new FormControl('wat?'),
         }),
-        new FormGroupTyped({
-          city: new FormControlTyped('Mykolaiv'),
-          region: new FormControlTyped('Mykolaiv'),
-          district: new FormControlTyped('wat?'),
+        new FormGroup({
+          city: new FormControl('Mykolaiv'),
+          region: new FormControl('Mykolaiv'),
+          district: new FormControl('wat?'),
         }),
-        new FormGroupTyped({
-          city: new FormControlTyped('Kharkiv'),
-          region: new FormControlTyped('Kharkiv'),
-          district: new FormControlTyped('wat?'),
+        new FormGroup({
+          city: new FormControl('Kharkiv'),
+          region: new FormControl('Kharkiv'),
+          district: new FormControl('wat?'),
         }),
       ]),
     });

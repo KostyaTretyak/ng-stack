@@ -1,8 +1,8 @@
 import { AbstractControlOptions, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 
-import { FormArrayTyped } from './form-array-typed';
-import { FormGroupTyped } from './form-group-typed';
-import { FormControlTyped } from './form-control-typed';
+import { FormArrayTyped as FormArray } from './form-array-typed';
+import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormControlTyped as FormControl } from './form-control-typed';
 
 export interface ObjectAny {
   [key: string]: any;
@@ -11,25 +11,25 @@ export interface ObjectAny {
 export type StringKeys<T> = Extract<keyof T, string>;
 
 export type ControlType<T> = T extends (infer Item)[]
-  ? FormArrayTyped<Item>
+  ? FormArray<Item>
   : T extends object
-  ? T extends FormControlObject<T>
-    ? FormControlTyped<T>
-    : FormGroupTyped<T>
-  : FormControlTyped<T>;
+  ? T extends Control<T>
+    ? FormControl<T>
+    : FormGroup<T>
+  : FormControl<T>;
 
 export type FormBuilderControl<T> =
   | T
   | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
-  | FormControlTyped<T>;
+  | FormControl<T>;
 
 /**
  * Form builder control config.
  */
 export type FbControlsConfig<T> = T extends (infer Item)[]
-  ? FormArrayTyped<Item>
+  ? FormArray<Item>
   : T extends object
-  ? FormGroupTyped<T>
+  ? FormGroup<T>
   : FormBuilderControl<T>;
 
 /**
@@ -59,7 +59,7 @@ export interface LegacyControlOptions {
  * ### Example:
  * 
 ```ts
-import { FormControlObject } from '@ng-stack/forms';
+import { Control, FormGroup } from '@ng-stack/forms';
 
 class Address {
   city: string;
@@ -73,18 +73,18 @@ class Other {
 class Profile {
   firstName: string;
   lastName: string;
-  address: FormControlObject<Address>;
+  address: Control<Address>;
   other: Other;
 }
 
-let formGroup: FormGroupTyped<Profile>;
+let formGroup: FormGroup<Profile>;
 formGroup.get('firstName'); // FormControl
 formGroup.get('address'); // FormControl
 formGroup.get('other'); // FormGroup
 ```
  */
-export type FormControlObject<T> = T & UniqToken;
+export type Control<T> = T & UniqToken;
 
 export class UniqToken {
-  private readonly FormControlObjectDef: never;
+  private readonly ControlDef: never;
 }
