@@ -6,14 +6,7 @@ import { ControlType, Control } from './types';
 xdescribe('checking types only', () => {
   // tslint:disable: prefer-const
 
-  class Model1 {
-    street: string;
-    city: string;
-    state: string;
-    zip: string;
-  }
-
-  class Model2 extends Control {
+  class Model {
     street: string;
     city: string;
     state: string;
@@ -22,18 +15,18 @@ xdescribe('checking types only', () => {
 
   describe('ControlOfFormGroup', () => {
     it('should return FormArray<Model> type', () => {
-      let valueWithType: ControlType<Model1[]>;
-      const formArray: FormArray<Model1> = valueWithType;
+      let valueWithType: ControlType<Model[]>;
+      const formArray: FormArray<Model> = valueWithType;
     });
 
     it('should return FormGroup<Model>', () => {
-      let valueWithType: ControlType<Model1>;
-      const formGroup: FormGroup<Model1> = valueWithType;
+      let valueWithType: ControlType<Model>;
+      const formGroup: FormGroup<Model> = valueWithType;
     });
 
     it('should return FormControl<Model>', () => {
-      let valueWithType: ControlType<Model2>;
-      const formControl: FormControl<Model2> = valueWithType;
+      let valueWithType: ControlType<Control<Model>>;
+      const formControl: FormControl<Model> = valueWithType;
     });
 
     it('should return FormControl<string>', () => {

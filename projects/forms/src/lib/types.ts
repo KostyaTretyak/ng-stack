@@ -11,11 +11,11 @@ export interface ObjectAny {
 export type StringKeys<T> = Extract<keyof T, string>;
 
 export type ControlType<T> = T extends (infer Item)[]
-  ? FormArray<Item>
+  ? T extends [infer ControlModel, UniqToken]
+    ? FormControl<ControlModel>
+    : FormArray<Item>
   : T extends object
-  ? T extends Control
-    ? FormControl<T>
-    : FormGroup<T>
+  ? FormGroup<T>
   : FormControl<T>;
 
 export type FormBuilderControl<T> =
@@ -61,7 +61,7 @@ export interface LegacyControlOptions {
 ```ts
 import { Control, FormGroup, FormControl } from '@ng-stack/forms';
 
-class Address extends Control {
+class Address {
   city: string;
   street: string;
 }
@@ -72,7 +72,7 @@ class Other {
 
 class Profile {
   firstName: string;
-  address: Address;
+  address: Control<Address>;
   other: Other;
 }
 
@@ -90,11 +90,15 @@ const formGroup = new FormGroup<Profile>({
  * 
  * Here property:
  * - `firstName` have value with FormControl, because it have a primitive type in form model `Profile`
- * - `address` have value with FormControl, because its form model `Address` extends `Control`
+ * - `address` have value with FormControl, because its form model marked as `Control<Address>`
  * - `other` have value with FormGroup, because it have type that extends `object` in form model `Profile`
  */
-export class Control {
-  private readonly controlDef?: never;
+export type Control<T extends object> = [T, UniqToken];
+
+const sym = Symbol();
+
+interface UniqToken {
+  [sym]: never;
 }
 
 /**
