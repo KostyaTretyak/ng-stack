@@ -6,6 +6,7 @@ import { StringKeys, ControlType, Status } from './types';
 export class FormControlTyped<T = any> extends FormControl {
   readonly value: T;
   readonly valueChanges: Observable<T>;
+  readonly status: Status;
   readonly statusChanges: Observable<Status>;
 
   /**
@@ -114,78 +115,34 @@ export class FormControlTyped<T = any> extends FormControl {
   }
 
   /**
-   * Retrieves a child control given the control's name.
-   *
-   * ### Retrieve a nested control
-   *
-   * For example, to get a `name` control nested within a `person` sub-group:
-```ts
-this.form.get('person').get('name');
-```
+   * In `FormControl`, this method always returns `null`.
    */
-  get<K extends StringKeys<T>>(controlName: T extends object ? K : never) {
-    return super.get(controlName) as (T extends object ? ControlType<T[K]> : null);
+  get(): null {
+    return null;
   }
 
   /**
-   * Reports error data for the control with the given path.
+   * Reports error data for the current control.
    *
-   * @param errorCode The code of the error to check
-   * @param controlName A list of control names that designates how to move from the current control
-   * to the control that should be queried for errors.
+   * @param errorCode The code of the error to check.
    *
-   * For example, for the following `FormGroup`:
-   *
-```ts
-form = new FormGroup({
-  address: new FormGroup({ street: new FormControl() })
-});
-```
-   *
-   * The path to the 'street' control from the root form would be 'address' -> 'street'.
-   *
-   * It can be provided to this method in combination with `get()` method:
-   * 
-```ts
-form.get('address').getError('someErrorCode', 'street');
-```
-   *
-   * @returns error data for that particular error. If the control or error is not present,
+   * @returns error data for that particular error. If an error is not present,
    * null is returned.
    */
-  getError<K extends StringKeys<T>>(errorCode: string, controlName?: T extends object ? K : never) {
-    return super.getError(errorCode, controlName);
+  getError(errorCode: string) {
+    return super.getError(errorCode);
   }
 
   /**
-   * Reports whether the control with the given path has the error specified.
+   * Reports whether the current control has the error specified.
    *
-   * @param errorCode The code of the error to check
-   * @param path A list of control names that designates how to move from the current control
-   * to the control that should be queried for errors.
+   * @param errorCode The code of the error to check.
    *
-   * For example, for the following `FormGroup`:
+   * @returns whether the given error is present in the control at the given path.
    *
-```ts
-form = new FormGroup({
-  address: new FormGroup({ street: new FormControl() })
-});
-```
-   *
-   * The path to the 'street' control from the root form would be 'address' -> 'street'.
-   *
-   * It can be provided to this method in combination with `get()` method:
-```ts
-form.get('address').getError('someErrorCode', 'street');
-```
-   *
-   * If no controlName is given, this method checks for the error on the current control.
-   *
-   * @returns whether the given error is present in the control at the given controlName.
-   *
-   * If the control is not present, false is returned.
+   * If an error is not present, false is returned.
    */
-  hasError<K extends StringKeys<T>>(errorCode: string, controlName?: T extends object ? K : never) {
-    return super.hasError(errorCode, controlName);
+  hasError(errorCode: string) {
+    return super.hasError(errorCode);
   }
 }

@@ -1,58 +1,79 @@
 import { FormControlTyped as FormControl } from './form-control-typed';
 import { isString, isNumber, isArray } from './assert';
+import { FormGroupTyped as FormGroup } from './form-group-typed';
 
-describe('FormControl', () => {
-  describe(`checking that we knows how native FormControl works`, () => {
-    it('passing to constructor primitive types as params', () => {
-      const str = 'some string';
+fdescribe('FormControl', () => {
+  describe(`checking runtime work`, () => {
+    describe(`constructor()`, () => {
+      it('passing primitive types as params', () => {
+        const str = 'some string';
 
-      // Mapping between param and expected
-      const map = new Map<any, any>([[str, str], [2, 2], [null, null]]);
+        // Mapping between param and expected
+        const map = new Map<any, any>([[str, str], [2, 2], [null, null]]);
 
-      map.forEach((expected, param) => {
-        let control: FormControl;
+        map.forEach((expected, param) => {
+          let control: FormControl;
 
-        expect(() => new FormControl(param)).not.toThrow();
+          expect(() => new FormControl(param)).not.toThrow();
 
-        const value = new FormControl(param).value;
-        expect(value).toBe(expected);
+          const value = new FormControl(param).value;
+          expect(value).toBe(expected);
 
-        control = new FormControl();
-        control.setValue(param);
-        expect(control.value).toBe(expected);
+          control = new FormControl();
+          control.setValue(param);
+          expect(control.value).toBe(expected);
 
-        control = new FormControl();
-        control.patchValue(param);
-        expect(control.value).toBe(expected);
+          control = new FormControl();
+          control.patchValue(param);
+          expect(control.value).toBe(expected);
 
-        control = new FormControl();
-        control.reset(param);
-        expect(control.value).toBe(expected);
+          control = new FormControl();
+          control.reset(param);
+          expect(control.value).toBe(expected);
+        });
+      });
+
+      it('passing object as params', () => {
+        const str = 'some string';
+
+        // Mapping between param and expected
+        const map = new Map<any, any>([
+          [{ prop1: 1, prop2: str }, { prop1: 1, prop2: str }],
+          [{ value: str, disabled: false }, str],
+          [{ value: 2, disabled: false }, 2],
+          [{ value: null, disabled: false }, null],
+        ]);
+
+        map.forEach((expected, param) => {
+          let control: FormControl;
+
+          expect(() => new FormControl(param)).not.toThrow();
+
+          const value = new FormControl(param).value;
+          expect(value).toEqual(expected);
+
+          control = new FormControl();
+          control.reset(param);
+          expect(control.value).toEqual(expected);
+        });
       });
     });
 
-    it('passing to constructor object as params', () => {
-      const str = 'some string';
+    describe(`other methods`, () => {
+      it('get() after passing primitive type to constructor()', () => {
+        const control = new FormControl('some value');
+        expect(control.status).toBe('VALID');
+        expect((control as any).get()).toBe(null);
+        expect((control as any).get('some value')).toBe(null);
+      });
 
-      // Mapping between param and expected
-      const map = new Map<any, any>([
-        [{ prop1: 1, prop2: str }, { prop1: 1, prop2: str }],
-        [{ value: str, disabled: false }, str],
-        [{ value: 2, disabled: false }, 2],
-        [{ value: null, disabled: false }, null],
-      ]);
-
-      map.forEach((expected, param) => {
-        let control: FormControl;
-
-        expect(() => new FormControl(param)).not.toThrow();
-
-        const value = new FormControl(param).value;
-        expect(value).toEqual(expected);
-
-        control = new FormControl();
-        control.reset(param);
-        expect(control.value).toEqual(expected);
+      it('get() after passing an object to constructor()', () => {
+        const formGroup = new FormGroup({ one: new FormControl(1), two: new FormControl(2) });
+        expect(formGroup.status).toBe('VALID');
+        const control = new FormControl(formGroup);
+        expect(control.status).toBe('VALID');
+        expect((control as any).get()).toBe(null);
+        expect((control as any).get('one')).toBe(null);
       });
     });
   });
@@ -125,12 +146,6 @@ describe('FormControl', () => {
       control4.reset(2);
       // control4.reset('');
       // control4.reset([]);
-    });
-
-    it('get() should return properly types', () => {
-      const control1 = new FormControl({ prop1: 1, prop2: 'some value' });
-      isNumber(control1.get('prop1').value);
-      isString(control1.get('prop2').value);
     });
   });
 });

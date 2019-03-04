@@ -7,6 +7,7 @@ import { ControlType, Status } from './types';
 export class FormArrayTyped<Item = any> extends FormArray {
   value: Item[];
   valueChanges: Observable<Item[]>;
+  readonly status: Status;
   readonly statusChanges: Observable<Status>;
 
   /**

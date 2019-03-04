@@ -7,6 +7,7 @@ import { StringKeys, ControlType, Status } from './types';
 export class FormGroupTyped<T extends object = any> extends FormGroup {
   readonly value: T;
   readonly valueChanges: Observable<T>;
+  readonly status: Status;
   readonly statusChanges: Observable<Status>;
 
   /**
@@ -249,7 +250,7 @@ this.form.get('person').get('name');
   }
 
   /**
-   * Reports error data for the control with the given path.
+   * Reports error data for the control with the given controlName.
    *
    * @param errorCode The code of the error to check
    * @param controlName A list of control names that designates how to move from the current control
@@ -263,7 +264,7 @@ form = new FormGroup({
 });
 ```
    *
-   * The path to the 'street' control from the root form would be 'address' -> 'street'.
+   * The controlName to the 'street' control from the root form would be 'address' -> 'street'.
    *
    * It can be provided to this method in combination with `get()` method:
    * 
@@ -279,10 +280,10 @@ form.get('address').getError('someErrorCode', 'street');
   }
 
   /**
-   * Reports whether the control with the given path has the error specified.
+   * Reports whether the control with the given controlName has the error specified.
    *
    * @param errorCode The code of the error to check
-   * @param path A list of control names that designates how to move from the current control
+   * @param controlName A list of control names that designates how to move from the current control
    * to the control that should be queried for errors.
    *
    * For example, for the following `FormGroup`:
@@ -293,7 +294,7 @@ form = new FormGroup({
 });
 ```
    *
-   * The path to the 'street' control from the root form would be 'address' -> 'street'.
+   * The controlName to the 'street' control from the root form would be 'address' -> 'street'.
    *
    * It can be provided to this method in combination with `get()` method:
 ```ts
