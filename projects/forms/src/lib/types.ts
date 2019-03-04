@@ -13,7 +13,7 @@ export type StringKeys<T> = Extract<keyof T, string>;
 export type ControlType<T> = T extends (infer Item)[]
   ? FormArray<Item>
   : T extends object
-  ? T extends Control<T>
+  ? T extends Control
     ? FormControl<T>
     : FormGroup<T>
   : FormControl<T>;
@@ -53,15 +53,15 @@ export interface LegacyControlOptions {
 }
 
 /**
- * This type is needed to distinguish `FormControl` and `FormGroup`
- * if both of them are presented as an object in a form model.
+ * This type is intended to automatically detecting a property of a form model
+ * if it have type that extends `object` and where needed to set `FormControl`.
  * 
  * ### Example:
  * 
 ```ts
-import { Control, FormGroup } from '@ng-stack/forms';
+import { Control, FormGroup, FormControl } from '@ng-stack/forms';
 
-class Address {
+class Address extends Control {
   city: string;
   street: string;
 }
@@ -72,19 +72,41 @@ class Other {
 
 class Profile {
   firstName: string;
-  lastName: string;
-  address: Control<Address>;
+  address: Address;
   other: Other;
 }
 
-let formGroup: FormGroup<Profile>;
-formGroup.get('firstName'); // FormControl
-formGroup.get('address'); // FormControl
-formGroup.get('other'); // FormGroup
+const formGroup = new FormGroup<Profile>({
+  firstName: new FormControl('Kostia'),
+  address: new FormControl({
+    city: 'Kyiv',
+    street: 'Khreshchatyk',
+  }),
+  other: new FormGroup({
+    children: new FormControl(5),
+  }),
+});
 ```
+ * 
+ * Here property:
+ * - `firstName` have value with FormControl, because it have a primitive type in form model `Profile`
+ * - `address` have value with FormControl, because its form model `Address` extends `Control`
+ * - `other` have value with FormGroup, because it have type that extends `object` in form model `Profile`
  */
-export type Control<T> = T & UniqToken;
-
-export class UniqToken {
-  private readonly ControlDef: never;
+export class Control {
+  private readonly controlDef?: never;
 }
+
+/**
+ * The validation status of the control. There are four possible
+ * validation status values:
+ *
+ * * **VALID**: This control has passed all validation checks.
+ * * **INVALID**: This control has failed at least one validation check.
+ * * **PENDING**: This control is in the midst of conducting a validation check.
+ * * **DISABLED**: This control is exempt from validation checks.
+ *
+ * These status values are mutually exclusive, so a control cannot be
+ * both valid AND invalid or invalid AND disabled.
+ */
+export type Status = 'VALID' | 'INVALID' | 'PENDING' | 'DISABLED';

@@ -2,11 +2,12 @@ import { FormArray, ValidatorFn, AbstractControlOptions, AsyncValidatorFn } from
 
 import { Observable } from 'rxjs';
 
-import { ControlType } from './types';
+import { ControlType, Status } from './types';
 
 export class FormArrayTyped<Item = any> extends FormArray {
   value: Item[];
   valueChanges: Observable<Item[]>;
+  readonly statusChanges: Observable<Status>;
 
   /**
    * Creates a new `FormArray` instance.
