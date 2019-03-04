@@ -79,7 +79,7 @@ describe('FormControl', () => {
       isArray(control3.value);
     });
 
-    it('should methods accept allowed parameters only', () => {
+    it('should accept allowed parameters only', () => {
       const control1 = new FormControl('');
       control1.setValue('');
       // control1.setValue(2);
@@ -127,7 +127,7 @@ describe('FormControl', () => {
       // control4.reset([]);
     });
 
-    it('should get() return properly types', () => {
+    it('get() should return properly types', () => {
       const control1 = new FormControl({ prop1: 1, prop2: 'some value' });
       isNumber(control1.get('prop1').value);
       isString(control1.get('prop2').value);
