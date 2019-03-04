@@ -1,7 +1,7 @@
 import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs';
-import { StringKeys, ControlType, Status } from './types';
+import { Status } from './types';
 
 export class FormControlTyped<T = any> extends FormControl {
   readonly value: T;
@@ -138,7 +138,7 @@ export class FormControlTyped<T = any> extends FormControl {
    *
    * @param errorCode The code of the error to check.
    *
-   * @returns whether the given error is present in the control at the given path.
+   * @returns whether the given error is present in the current control.
    *
    * If an error is not present, false is returned.
    */
