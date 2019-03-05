@@ -12,17 +12,20 @@ yarn add @ng-stack/forms
 
 ## Usage
 
-Import into your module Angular native `ReactiveFormsModule`
+Import into your module Angular `ReactiveFormsModule` and `NgStackFormsModule`.
 
 ```ts
 import { ReactiveFormsModule } from '@angular/forms';
+
+import { NgStackFormsModule } from '@ng-stack/forms';
 
 // ...
 
 @NgModule({
   // ...
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgStackFormsModule
   ]
 
 // ...
@@ -201,7 +204,7 @@ get addresses() {
 ### get()
 
 - For `FormGroup` supporting only signature `get(controlName: string)`, not supporting `get(path: Array<number | string>)`.
-- For `FormControl` `get()` method always returns null. Because this is, supporting signature only `get()` (without arguments).
+- Angular native `FormControl` `get()` method always returns null. Because this is, supporting signature only `get()` (without arguments).
 See also issue on github [feat(forms): hide get() method of FormControl from public API](https://github.com/angular/angular/issues/29091).
 
 ### getError() and hasError()
