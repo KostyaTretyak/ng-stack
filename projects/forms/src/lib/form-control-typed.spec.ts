@@ -2,7 +2,7 @@ import { FormControlTyped as FormControl } from './form-control-typed';
 import { isString, isNumber, isArray } from './assert';
 import { FormGroupTyped as FormGroup } from './form-group-typed';
 
-fdescribe('FormControl', () => {
+describe('FormControl', () => {
   describe(`checking runtime work`, () => {
     describe(`constructor()`, () => {
       it('passing primitive types as params', () => {

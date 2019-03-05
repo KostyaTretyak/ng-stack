@@ -124,7 +124,7 @@ console.log(form.value);   // {first: 'Nancy', last: 'Drew'}
    * observables emit events with the latest status and value when the control value is updated.
    * When false, no events are emitted.
    */
-  setValue(value: T, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  setValue(value: Required<T>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.setValue(value, options);
   }
 
@@ -220,7 +220,7 @@ console.log(this.form.value);  // {first: 'name', last: 'last name'}
 console.log(this.form.get('first').status);  // 'DISABLED'
 ```
    */
-  reset(value?: T, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  reset(value: Required<T> = {} as any, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.reset(value, options);
   }
 
@@ -253,7 +253,7 @@ this.form.get('person').get('name');
    * Reports error data for the control with the given controlName.
    *
    * @param errorCode The code of the error to check
-   * @param controlName A list of control names that designates how to move from the current control
+   * @param controlName A control name that designates how to move from the current control
    * to the control that should be queried for errors.
    *
    * For example, for the following `FormGroup`:
@@ -275,7 +275,7 @@ form.get('address').getError('someErrorCode', 'street');
    * @returns error data for that particular error. If the control or error is not present,
    * null is returned.
    */
-  getError<K extends StringKeys<T>>(errorCode: string, controlName?: T extends object ? K : never) {
+  getError<K extends StringKeys<T>>(errorCode: string, controlName?: K) {
     return super.getError(errorCode, controlName);
   }
 
@@ -283,7 +283,7 @@ form.get('address').getError('someErrorCode', 'street');
    * Reports whether the control with the given controlName has the error specified.
    *
    * @param errorCode The code of the error to check
-   * @param controlName A list of control names that designates how to move from the current control
+   * @param controlName A control name that designates how to move from the current control
    * to the control that should be queried for errors.
    *
    * For example, for the following `FormGroup`:
@@ -298,7 +298,7 @@ form = new FormGroup({
    *
    * It can be provided to this method in combination with `get()` method:
 ```ts
-form.get('address').getError('someErrorCode', 'street');
+form.get('address').hasError('someErrorCode', 'street');
 ```
    *
    * If no controlName is given, this method checks for the error on the current control.
@@ -307,7 +307,7 @@ form.get('address').getError('someErrorCode', 'street');
    *
    * If the control is not present, false is returned.
    */
-  hasError<K extends StringKeys<T>>(errorCode: string, controlName?: T extends object ? K : never) {
+  hasError<K extends StringKeys<T>>(errorCode: string, controlName?: K) {
     return super.hasError(errorCode, controlName);
   }
 }
