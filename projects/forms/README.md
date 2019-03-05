@@ -36,19 +36,22 @@ Then you should be able just import and using classes from `@ng-stack/forms`.
 ```ts
 import { Control, FormGroup, FormControl, FormArray } from '@ng-stack/forms';
 
+// Form model
 class Address {
   city: string;
   street: string;
   numFlat?: number;
 }
 
+// Form model
 class SomeGroup {
   children: number;
 }
 
+// Form model
 class Profile {
   firstName: string;
-  address: Control<Address>; // Note here Control<T>, for more info see 
+  address: Control<Address>; // Note here Control<T>, this is described below.
   someGroup: SomeGroup;
   someArray: number[];
 }
@@ -77,6 +80,7 @@ import { Validators } from '@angular/forms';
 
 import { FormBuilder, FormControl } from '@ng-stack/forms';
 
+// Form model
 class Address {
   street?: string;
   city?: string;
@@ -84,11 +88,13 @@ class Address {
   zip?: string;
 }
 
+// Form model
 class SomeArray {
   item1?: string;
   item2?: number;
 }
 
+// Form model
 class UserForm {
   userName: string;
   userEmail: string;
