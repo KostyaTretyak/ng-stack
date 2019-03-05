@@ -54,7 +54,7 @@ export class FormControlTyped<T = any> extends FormControl {
    *
    */
   setValue(
-    value: T,
+    value: Required<T>,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
@@ -75,7 +75,7 @@ export class FormControlTyped<T = any> extends FormControl {
    * See also: `setValue` for options
    */
   patchValue(
-    value: T,
+    value: Partial<T>,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
@@ -105,7 +105,7 @@ export class FormControlTyped<T = any> extends FormControl {
    *
    */
   reset(
-    formState: T | { value: T; disabled: boolean } = null,
+    formState: Required<T> | { value: Required<T>; disabled: boolean } = null,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
