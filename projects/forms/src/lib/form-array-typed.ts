@@ -5,8 +5,8 @@ import { Observable } from 'rxjs';
 import { ControlType, Status } from './types';
 
 export class FormArrayTyped<Item = any> extends FormArray {
-  value: Item[];
-  valueChanges: Observable<Item[]>;
+  readonly value: Item[];
+  readonly valueChanges: Observable<Item[]>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
 
@@ -103,7 +103,7 @@ console.log(arr.value);   // ['Nancy', 'Drew']
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  setValue(value: Item[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  setValue(value: Required<Item>[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.setValue(value, options);
   }
 
@@ -140,7 +140,7 @@ console.log(arr.value);   // ['Nancy', null]
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  patchValue(value: Item[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  patchValue(value: Partial<Item>[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.patchValue(value, options);
   }
 
@@ -190,7 +190,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
   reset(
-    value: (Item | { value: Item; disabled: boolean })[] = [],
+    value: (Required<Item> | { value: Required<Item>; disabled: boolean })[] = [],
     options: { onlySelf?: boolean; emitEvent?: boolean } = {}
   ) {
     return super.reset(value, options);
