@@ -12,9 +12,30 @@ yarn add @ng-stack/forms
 
 ## Usage
 
+Import into your module Angular native `ReactiveFormsModule`
+
+```ts
+import { ReactiveFormsModule } from '@angular/forms';
+
+// ...
+
+@NgModule({
+  // ...
+  imports: [
+    ReactiveFormsModule
+  ]
+
+// ...
+
+});
+```
+Then you should be able just import and using classes from `@ng-stack/forms`.
+
 ### FormControl, FormGroup, FormArray
 
 ```ts
+import { Control, FormGroup, FormControl, FormArray } from '@ng-stack/forms';
+
 class Address {
   city: string;
   street: string;
@@ -27,12 +48,12 @@ class SomeGroup {
 
 class Profile {
   firstName: string;
-  address: Control<Address>;
+  address: Control<Address>; // Note here Control<T>, for more info see 
   someGroup: SomeGroup;
   someArray: number[];
 }
 
-formGroup = new FormGroup<Profile>({
+const formGroup = new FormGroup<Profile>({
   firstName: new FormControl('SomeOne'),
   address: new FormControl({
     value: { other: 'some value', city: 'Kyiv', street: 'Khreshchatyk' },
@@ -52,6 +73,10 @@ formGroup = new FormGroup<Profile>({
 ### FormBuilder
 
 ```ts
+import { Validators } from '@angular/forms';
+
+import { FormBuilder, FormControl } from '@ng-stack/forms';
+
 class Address {
   street?: string;
   city?: string;
@@ -89,6 +114,80 @@ const formGroup1 = fb.group<UserForm>({
 });
 
 formGroup1.get('otherArray').setValue(['string value', 2, 'three']);
+```
+
+### Automatically detect appropriate types for form controls
+
+`FormGroup()`, `FormArray()`, `formBuilder.group()` and `formBuilder.array()` attempt to automatically detect
+appropriate types for form controls by their form models.
+
+For example:
+
+```ts
+import { Control, FormGroup, FormControl } from '@ng-stack/forms';
+
+// Form model
+class Address {
+  city: string;
+  street: string;
+}
+
+// Form model
+class Other {
+  children: number;
+}
+
+// Form model
+class Profile {
+  firstName: string;
+  address: Control<Address>;
+  other: Other;
+}
+
+const formGroup = new FormGroup<Profile>({
+  firstName: new FormControl('SomeOne'),
+  address: new FormControl({
+    city: 'Kyiv',
+    street: 'Khreshchatyk',
+  }),
+  other: new FormGroup({
+    children: new FormControl(5),
+  }),
+});
+```
+
+the above classes will assume that:
+- `firstName` have value with FormControl, because it have a primitive type in form model `Profile`
+- `address` have value with FormControl, because its form model marked as `Control<Address>`
+- `other` have value with FormGroup, because it have type that extends `object` in form model `Profile`
+
+Here `Control<T>` generic intended if you want pass to `FormControl()` constructor object (not a primitive type).
+
+So, no need to do this in your components:
+
+```ts
+get userName() {
+  return this.formGroup.get('userName') as FormControl;
+}
+
+get addresses() {
+  return this.formGroup.get('addresses') as FormGroup;
+}
+```
+
+Now do this:
+
+```ts
+// Note here form model UserForm
+formGroup: FormGroup<UserForm>;
+
+get userName() {
+  return this.formGroup.get('userName');
+}
+
+get addresses() {
+  return this.formGroup.get('addresses');
+}
 ```
 
 ## Changes API
