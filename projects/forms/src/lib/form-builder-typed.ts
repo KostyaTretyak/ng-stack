@@ -1,15 +1,14 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder, AbstractControlOptions, ValidatorFn, AsyncValidatorFn } from '@angular/forms';
 
-import { FbControlsConfig, FbControlFormState, FbControlReturns, LegacyControlOptions } from './types';
+import { FbControlsConfig, LegacyControlOptions } from './types';
 import { FormGroupTyped as FormGroup } from './form-group-typed';
 import { FormControlTyped as FormControl } from './form-control-typed';
 import { FormArrayTyped as FormArray } from './form-array-typed';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class FormBuilderTyped extends FormBuilder {
   /**
-   * @description
    * Construct a new `FormGroup` instance.
    *
    * @param controlsConfig A collection of child controls. The key for each child is the name
@@ -28,7 +27,7 @@ export class FormBuilderTyped extends FormBuilder {
    * - `validator`: A synchronous validator function, or an array of validator functions
    * - `asyncValidator`: A single async validator or array of async validator functions
    */
-  group<T extends object>(
+  group<T extends object = any>(
     controlsConfig: { [P in keyof T]?: FbControlsConfig<T[P]> },
     options: AbstractControlOptions | LegacyControlOptions | null = null
   ) {
@@ -71,12 +70,12 @@ export class DisabledFormControlComponent {
 }
 ```
    */
-  control<T, K>(
-    formState: FbControlFormState<T, K>,
+  control<T = any>(
+    formState: T | { value: T; disabled: boolean } = null,
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
-    return super.control(formState, validatorOrOpts, asyncValidator) as FormControl<FbControlReturns<T, K>>;
+    return super.control(formState, validatorOrOpts, asyncValidator) as FormControl<T>;
   }
 
   /**
@@ -93,7 +92,7 @@ export class DisabledFormControlComponent {
    * @param asyncValidator A single async validator or array of async validator
    * functions.
    */
-  array<Item>(
+  array<Item = any>(
     controlsConfig: FbControlsConfig<Item>[],
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null

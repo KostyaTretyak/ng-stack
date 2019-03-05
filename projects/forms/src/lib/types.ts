@@ -27,25 +27,12 @@ export type FormBuilderControl<T> =
  * Form builder control config.
  */
 export type FbControlsConfig<T> = T extends (infer Item)[]
-  ? FormArray<Item>
+  ? T extends [infer ControlModel, UniqToken]
+    ? FormBuilderControl<ControlModel>
+    : FormArray<Item>
   : T extends object
   ? FormGroup<T>
   : FormBuilderControl<T>;
-
-/**
- * Form builder control state.
- */
-export type FbControlFormState<T, K> = K extends StringKeys<T> ? T[K] | { value: T[K]; disabled: boolean } : any;
-
-/**
- * Form builder control returns.
- */
-export type FbControlReturns<T, K> = K extends StringKeys<T> ? T[K] : any;
-
-export interface UpdateValueOptions {
-  onlySelf?: boolean;
-  emitEvent?: boolean;
-}
 
 export interface LegacyControlOptions {
   validator: ValidatorFn | ValidatorFn[] | null;
