@@ -48,15 +48,18 @@ export interface LegacyControlOptions {
 ```ts
 import { Control, FormGroup, FormControl } from '@ng-stack/forms';
 
+// Form model
 class Address {
   city: string;
   street: string;
 }
 
+// Form model
 class Other {
   children: number;
 }
 
+// Form model
 class Profile {
   firstName: string;
   address: Control<Address>;
@@ -64,7 +67,7 @@ class Profile {
 }
 
 const formGroup = new FormGroup<Profile>({
-  firstName: new FormControl('Kostia'),
+  firstName: new FormControl('SomeOne'),
   address: new FormControl({
     city: 'Kyiv',
     street: 'Khreshchatyk',
