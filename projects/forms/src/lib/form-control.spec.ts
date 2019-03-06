@@ -1,4 +1,4 @@
-import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormControl } from './form-control';
 import { isString, isNumber, isArray } from './assert';
 import { FormGroupTyped as FormGroup } from './form-group-typed';
 

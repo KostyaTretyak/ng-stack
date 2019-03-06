@@ -3,7 +3,7 @@ import { FormBuilder as AliasFormBuilder, AbstractControlOptions, ValidatorFn, A
 
 import { FbControlsConfig, LegacyControlOptions } from './types';
 import { FormGroupTyped as FormGroup } from './form-group-typed';
-import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormControl } from './form-control';
 import { FormArray } from './form-array';
 
 @Injectable()

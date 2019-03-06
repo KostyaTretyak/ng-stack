@@ -1,7 +1,7 @@
 import { Validators } from '@angular/forms';
 
 import { FormBuilder } from './form-builder';
-import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormControl } from './form-control';
 
 describe('FormBuilder', () => {
   xdescribe('checking types only', () => {

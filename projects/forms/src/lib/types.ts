@@ -2,7 +2,7 @@ import { AbstractControlOptions, AsyncValidatorFn, ValidatorFn } from '@angular/
 
 import { FormArray } from './form-array';
 import { FormGroupTyped as FormGroup } from './form-group-typed';
-import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormControl } from './form-control';
 
 export interface ObjectAny {
   [key: string]: any;
