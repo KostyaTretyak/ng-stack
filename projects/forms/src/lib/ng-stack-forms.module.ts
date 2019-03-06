@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
-import { FormBuilderTyped as FormBuilder } from './form-builder-typed';
+import { FormBuilder } from './form-builder';
 
 @NgModule({
   imports: [ReactiveFormsModule],
