@@ -12,11 +12,10 @@ yarn add @ng-stack/forms
 
 ## Usage
 
-Import into your module Angular `ReactiveFormsModule` and `NgStackFormsModule`.
+Import into your module Angular `NgStackFormsModule`, and no need import `ReactiveFormsModule` because it's already
+reexported by `NgStackFormsModule`.
 
 ```ts
-import { ReactiveFormsModule } from '@angular/forms';
-
 import { NgStackFormsModule } from '@ng-stack/forms';
 
 // ...
@@ -24,7 +23,6 @@ import { NgStackFormsModule } from '@ng-stack/forms';
 @NgModule({
   // ...
   imports: [
-    ReactiveFormsModule,
     NgStackFormsModule
   ]
 
@@ -34,145 +32,107 @@ import { NgStackFormsModule } from '@ng-stack/forms';
 ```
 Then you should be able just import and using classes from `@ng-stack/forms`.
 
-### FormControl, FormGroup, FormArray
+### Using form model
 
 ```ts
-import { Control, FormGroup, FormControl, FormArray } from '@ng-stack/forms';
+import { FormGroup, FormControl, FormArray } from '@ng-stack/forms';
+
+const formClontrol = new FormControl('some string');
+const value = formClontrol.value; // some string
+
+formClontrol.setValue(123); // Error: Argument of type '123' is not assignable to parameter of type 'string'
 
 // Form model
 class Address {
   city: string;
   street: string;
-  numFlat?: number;
-}
-
-// Form model
-class SomeGroup {
-  children: number;
-}
-
-// Form model
-class Profile {
-  firstName: string;
-  address: Control<Address>; // Note here Control<T>, this is described below.
-  someGroup: SomeGroup;
-  someArray: number[];
-}
-
-const formGroup = new FormGroup<Profile>({
-  firstName: new FormControl('SomeOne'),
-  address: new FormControl({
-    value: { other: 'some value', city: 'Kyiv', street: 'Khreshchatyk' },
-    disabled: false,
-  }),
-  someGroup: new FormGroup({ children: new FormControl(2) }),
-  someArray: new FormArray<number>([
-    new FormControl(1),
-    new FormControl(2),
-    new FormControl(3),
-    new FormControl(4),
-    new FormControl(5),
-  ]),
-});
-```
-
-### FormBuilder
-
-```ts
-import { Validators } from '@angular/forms';
-
-import { FormBuilder, FormControl } from '@ng-stack/forms';
-
-// Form model
-class Address {
-  street?: string;
-  city?: string;
-  state?: string;
   zip?: string;
+  other: string;
 }
 
-// Form model
-class SomeArray {
-  item1?: string;
-  item2?: number;
-}
-
-// Form model
-class UserForm {
-  userName: string;
-  userEmail: string;
-  password: string;
-  addresses: Address;
-  someArray: SomeArray[];
-  otherArray: (string | number)[];
-}
-
-const fb = new FormBuilder();
-
-const formGroup1 = fb.group<UserForm>({
-  userName: 'SomeOne',
-  userEmail: new FormControl('some-one@gmail.com'),
-  addresses: fb.group({ city: 'Kyiv' }),
-  someArray: fb.array([
-    fb.group({ item1: 'value1' }),
-    fb.group({ item1: 'value2' }),
-    fb.group({ item1: 'value3' }),
-    fb.group({ item1: 'value4' }),
-  ]),
-  otherArray: fb.array([new FormControl('one'), ['two', Validators.required], 'three']),
+const formGroup = new FormGroup<Address>({
+  city: new FormControl('Kyiv'),
+  street: new FormControl('Khreshchatyk'),
+  zip: new FormControl('01001'),
+  // other: new FormControl(123), // Error: Type 'number' is not assignable to type 'string'
 });
 
-formGroup1.get('otherArray').setValue(['string value', 2, 'three']);
+// Note: form model hints for generic without []
+const formArray = new FormArray<Address>([
+  formGroup,
+  formGroup,
+  formGroup,
+
+  new FormGroup({ someProp: new FormControl('') }),
+  // Error: Type '{ someProp: string; }' is missing
+  // the following properties from type 'Address': city, street, other
+]);
 ```
 
 ### Automatically detect appropriate types for form controls
 
-`FormGroup()`, `FormArray()`, `formBuilder.group()` and `formBuilder.array()` attempt to automatically detect
+`FormGroup()`, `formBuilder.group()`, `FormArray()` and `formBuilder.array()` attempt to automatically detect
 appropriate types for form controls by their form models.
 
-For example:
+Simple example:
 
 ```ts
-import { Control, FormGroup, FormControl } from '@ng-stack/forms';
+import { FormControl } from '@ng-stack/forms';
 
 // Form model
 class Address {
   city: string;
   street: string;
+  zip?: string;
+  other: string;
+}
+
+const formGroup = new FormGroup<Address>({
+  city: new FormControl('Mykolaiv'), // OK
+
+  street: new FormGroup({}),
+  // Error: Type 'FormGroup<any>' is missing the following properties
+  // from type 'FormControl<string>'
+});
+```
+
+As we can see, constructor of `FormGroup` takes form model `Address` for its generic and knows that
+property `street` have primitive type and should to have a value only with instance of `FormControl`.
+
+If some property of a form model have type that extends `object`, then it should to have a value with
+instance of `FormGroup`. So for an array - instance of `FormArray`.
+
+But maybe you want for `FormControl` to accept an object in its constructor, instead of a primitive value.
+What to do in this case? For this purpose a special type `Control<T>` was intended.
+
+For example:
+
+```ts
+import { FormControl, Control, FormGroup } from '@ng-stack/forms';
+
+// Form model
+class Address {
+  city: string;
+  street: string;
+  zip?: string;
+  other: Control<Other>; // Here should be FormControl, instead of a FormGroup
 }
 
 // Form model
 class Other {
-  children: number;
+  prop1: string;
+  prop2: number;
 }
 
-// Form model
-class Profile {
-  firstName: string;
-  address: Control<Address>;
-  other: Other;
-}
-
-const formGroup = new FormGroup<Profile>({
-  firstName: new FormControl('SomeOne'),
-  address: new FormControl({
-    city: 'Kyiv',
-    street: 'Khreshchatyk',
-  }),
-  other: new FormGroup({
-    children: new FormControl(5),
-  }),
+const formGroup = new FormGroup<Address>({
+  other: new FormControl({ prop1: 'value for prop1', prop2: 123 }), // OK
 });
 ```
 
-the above classes will assume that:
-- `firstName` have value with FormControl, because it have a primitive type in form model `Profile`
-- `address` have value with FormControl, because its form model marked as `Control<Address>`
-- `other` have value with FormGroup, because it have type that extends `object` in form model `Profile`
+So, if your `FormGroup` knows about types of properties a form model, it inferring appropriate types of form controls
+for their values.
 
-Here `Control<T>` generic intended if you want pass to `FormControl()` constructor object (not a primitive type).
-
-So, no need to do this in your components:
+And no need to do this in your components:
 
 ```ts
 get userName() {
@@ -199,23 +159,41 @@ get addresses() {
 }
 ```
 
+## How does it work
+
+In almost all cases, this module absolutely does not change the runtime behavior of native Angular methods.
+
+Classes are rewritten as follows:
+
+```ts
+import { FormGroup as NativeFormGroup } from '@angular/forms';
+
+export class FormGroup extends NativeFormGroup {
+  get(path) {
+    return super.get(path);
+  }
+}
+```
+
+The following section describes the changes that have occurred. All of the following restrictions apply only because of the need to more clearly control the data entered by the user.
+
 ## Changes API
 
 ### get()
 
-- For `FormGroup` supporting only signature `get(controlName: string)`, not supporting `get(path: Array<number | string>)`.
-- Angular native `FormControl` `get()` method always returns null. Because this is, supporting signature only `get()` (without arguments).
+- `formGroup.get()` supporting only signature `get(controlName: string)`, and not supporting `get(path: Array<number | string>)`.
+- Angular native `formControl.get()` method always returns `null`. Because of this, supporting signature only `get()` (without arguments).
 See also issue on github [feat(forms): hide get() method of FormControl from public API](https://github.com/angular/angular/issues/29091).
 
 ### getError() and hasError()
 
-- For `FormGroup` call `getError()` and `hasError()` this way:
+- `formGroup.getError()` and `formGroup.hasError()` supporting only this signature:
 
 ```ts
 form.get('address').getError('someErrorCode', 'street');
 ```
 
-Not supporting this signature:
+And not supporting this signature:
 
 ```ts
 form.getError('someErrorCode', 'address.street');
@@ -223,7 +201,7 @@ form.getError('someErrorCode', 'address.street');
 form.getError('someErrorCode', ['address', 'street']);
 ```
 
-- For `FormControl` call `getError()` and `hasError()` this way (without second argument):
+- `formControl.getError()` and `formControl.hasError()` supporting only this signature (without second argument):
 
 ```ts
 control.getError('someErrorCode');

@@ -1,6 +1,6 @@
-import { FormArrayTyped as FormArray } from './form-array-typed';
-import { FormGroupTyped as FormGroup } from './form-group-typed';
-import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormArray } from './form-array';
+import { FormGroup } from './form-group';
+import { FormControl } from './form-control';
 import { ControlType, Control } from './types';
 
 xdescribe('checking types only', () => {

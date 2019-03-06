@@ -1,6 +1,4 @@
-import { FormArrayTyped as FormArray } from './form-array-typed';
-import { FormControlTyped as FormControl } from './form-control-typed';
-import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormArray } from './form-array';
 
 // tslint:disable: no-unused-expression
 

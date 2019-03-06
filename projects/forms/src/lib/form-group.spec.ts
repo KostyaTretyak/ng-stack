@@ -1,6 +1,6 @@
-import { FormGroupTyped as FormGroup } from './form-group-typed';
-import { FormArrayTyped as FormArray } from './form-array-typed';
-import { FormControlTyped as FormControl } from './form-control-typed';
+import { FormGroup } from './form-group';
+import { FormArray } from './form-array';
+import { FormControl } from './form-control';
 import { Control } from './types';
 import { tick, fakeAsync } from '@angular/core/testing';
 import { isString, isNumber, isObject, isArray } from './assert';

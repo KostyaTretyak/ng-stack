@@ -1,9 +1,10 @@
-import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormControl } from '@angular/forms';
+import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormControl as AliasFormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs';
+
 import { Status } from './types';
 
-export class FormControlTyped<T = any> extends FormControl {
+export class FormControl<T = any> extends AliasFormControl {
   readonly value: T;
   readonly valueChanges: Observable<T>;
   readonly status: Status;
