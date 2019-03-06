@@ -4,7 +4,7 @@ import { FormBuilder, AbstractControlOptions, ValidatorFn, AsyncValidatorFn } fr
 import { FbControlsConfig, LegacyControlOptions } from './types';
 import { FormGroupTyped as FormGroup } from './form-group-typed';
 import { FormControlTyped as FormControl } from './form-control-typed';
-import { FormArrayTyped as FormArray } from './form-array-typed';
+import { FormArray } from './form-array';
 
 @Injectable()
 export class FormBuilderTyped extends FormBuilder {

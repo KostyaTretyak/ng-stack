@@ -1,6 +1,6 @@
 import { AbstractControlOptions, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
 
-import { FormArrayTyped as FormArray } from './form-array-typed';
+import { FormArray } from './form-array';
 import { FormGroupTyped as FormGroup } from './form-group-typed';
 import { FormControlTyped as FormControl } from './form-control-typed';
 

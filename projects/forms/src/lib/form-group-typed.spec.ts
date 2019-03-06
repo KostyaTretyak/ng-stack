@@ -1,5 +1,5 @@
 import { FormGroupTyped as FormGroup } from './form-group-typed';
-import { FormArrayTyped as FormArray } from './form-array-typed';
+import { FormArray } from './form-array';
 import { FormControlTyped as FormControl } from './form-control-typed';
 import { Control } from './types';
 import { tick, fakeAsync } from '@angular/core/testing';
