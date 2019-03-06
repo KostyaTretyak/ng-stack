@@ -1,22 +1,22 @@
 import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
-import { TestContenteditableComponent } from './test-contenteditable.component';
-import { TestModule } from '../test.module';
+import { ContenteditableComponent } from './contenteditable.component';
+import { ContenteditableModule } from '../../contenteditable.module';
 
-describe('TestContenteditableComponent', () => {
-  let component: TestContenteditableComponent;
-  let fixture: ComponentFixture<TestContenteditableComponent>;
+describe('ContenteditableComponent', () => {
+  let component: ContenteditableComponent;
+  let fixture: ComponentFixture<ContenteditableComponent>;
   const defaultText1 = 'This is contenteditable text for template-driven form';
   const defaultText2 = 'This is contenteditable text for reactive form';
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [TestModule],
+      imports: [ContenteditableModule],
     }).compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(TestContenteditableComponent);
+    fixture = TestBed.createComponent(ContenteditableComponent);
     component = fixture.componentInstance;
   });
 
