@@ -1,4 +1,4 @@
-import { ApiResponse } from './types';
+import { ApiResponse } from '../api-base.service';
 
 export function makeResponse<D, M = any>(data: D[], meta?: M, error?: any): ApiResponse<D, M> {
   const res: any = {};
