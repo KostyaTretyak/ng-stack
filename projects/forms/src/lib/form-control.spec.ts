@@ -1,6 +1,6 @@
 import { FormControl } from './form-control';
 import { isString, isNumber, isArray } from './assert';
-import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormGroup } from './form-group';
 
 describe('FormControl', () => {
   xdescribe('checking types only', () => {

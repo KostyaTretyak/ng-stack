@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { FormBuilder as AliasFormBuilder, AbstractControlOptions, ValidatorFn, AsyncValidatorFn } from '@angular/forms';
 
 import { FbControlsConfig, LegacyControlOptions } from './types';
-import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
 import { FormArray } from './form-array';
 

@@ -1,5 +1,5 @@
 import { FormArray } from './form-array';
-import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
 import { ControlType, Control } from './types';
 

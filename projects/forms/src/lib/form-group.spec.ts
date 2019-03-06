@@ -1,4 +1,4 @@
-import { FormGroupTyped as FormGroup } from './form-group-typed';
+import { FormGroup } from './form-group';
 import { FormArray } from './form-array';
 import { FormControl } from './form-control';
 import { Control } from './types';
