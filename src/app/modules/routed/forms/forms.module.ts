@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 
 import { NgStackFormsModule } from '@ng-stack/forms';
 
@@ -9,6 +8,6 @@ import { FormsComponent } from './page/forms.component';
 
 @NgModule({
   declarations: [FormsComponent],
-  imports: [CommonModule, FormsRoutingModule, ReactiveFormsModule, NgStackFormsModule],
+  imports: [CommonModule, FormsRoutingModule, NgStackFormsModule],
 })
 export class FormsModule {}
