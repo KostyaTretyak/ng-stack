@@ -1,10 +1,9 @@
 /*
  * Public API Surface of forms
  */
-
-export * from './lib/abstract-control-typed';
-export * from './lib/form-array-typed';
-export * from './lib/form-builder-typed';
-export * from './lib/form-control-typed';
-export * from './lib/form-group-typed';
-export { ObjectAny, UpdateValueOptions } from './lib/types';
+export { NgStackFormsModule } from './lib/ng-stack-forms.module';
+export { FormArray } from './lib/form-array';
+export { FormBuilder } from './lib/form-builder';
+export { FormControl } from './lib/form-control';
+export { FormGroup } from './lib/form-group';
+export { Control, Status } from './lib/types';
