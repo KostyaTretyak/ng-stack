@@ -22,7 +22,7 @@ Compatible with Angular >= v4.3.6
 
 ## Usage
 
-See example of usage in [simple service](https://github.com/KostyaTretyak/ng-stack/tree/master/projects/api-mock/src/lib/test/simple.service.ts)
+See example of usage in [simple service](https://github.com/KostyaTretyak/ng-stack/blob/master/src/app/services/api/api-mock/simple.service.ts)
 
 ## The project status
 
