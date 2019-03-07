@@ -1,19 +1,23 @@
-import {
-  ValidatorFn,
-  AbstractControlOptions,
-  AsyncValidatorFn,
-  FormControl as NativeFormControl,
-} from '@angular/forms';
+import { FormControl as NativeFormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
-import { Status } from './types';
+import {
+  Status,
+  ValidationErrors,
+  StringKeys,
+  ValidatorFn,
+  AsyncValidatorFn,
+  AbstractControlOptions,
+  ValidatorsReturns,
+} from './types';
 
-export class FormControl<T = any> extends NativeFormControl {
+export class FormControl<T = any, E extends object = ValidatorsReturns> extends NativeFormControl {
   readonly value: T;
   readonly valueChanges: Observable<T>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
+  readonly errors: ValidationErrors<E> | null;
 
   /**
    * Creates a new `FormControl` instance.
@@ -30,8 +34,8 @@ export class FormControl<T = any> extends NativeFormControl {
    */
   constructor(
     formState: T | { value: T; disabled: boolean } = null,
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
-    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
+    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
+    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
   ) {
     super(formState, validatorOrOpts, asyncValidator);
   }
@@ -128,6 +132,47 @@ export class FormControl<T = any> extends NativeFormControl {
   }
 
   /**
+   * Sets the synchronous validators that are active on this control. Calling
+   * this overwrites any existing sync validators.
+   */
+  setValidators(newValidator: ValidatorFn<E> | ValidatorFn<E>[] | null) {
+    return super.setValidators(newValidator);
+  }
+
+  /**
+   * Sets the async validators that are active on this control. Calling this
+   * overwrites any existing async validators.
+   */
+  setAsyncValidators(newValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null) {
+    return super.setAsyncValidators(newValidator);
+  }
+
+  /**
+   * Sets errors on a form control when running validations manually, rather than automatically.
+   *
+   * Calling `setErrors` also updates the validity of the parent control.
+   *
+   * ### Manually set the errors for a control
+   *
+   * ```ts
+   * const login = new FormControl('someLogin');
+   * login.setErrors({
+   *   notUnique: true
+   * });
+   *
+   * expect(login.valid).toEqual(false);
+   * expect(login.errors).toEqual({ notUnique: true });
+   *
+   * login.setValue('someOtherLogin');
+   *
+   * expect(login.valid).toEqual(true);
+   * ```
+   */
+  setErrors(errors: ValidationErrors<E> | null, opts: { emitEvent?: boolean } = {}) {
+    return super.setErrors(errors, opts);
+  }
+
+  /**
    * Reports error data for the current control.
    *
    * @param errorCode The code of the error to check.
@@ -135,8 +180,8 @@ export class FormControl<T = any> extends NativeFormControl {
    * @returns error data for that particular error. If an error is not present,
    * null is returned.
    */
-  getError(errorCode: string) {
-    return super.getError(errorCode);
+  getError<K extends StringKeys<E> = any>(errorCode: K) {
+    return super.getError(errorCode) as E[K] | null;
   }
 
   /**
@@ -148,7 +193,7 @@ export class FormControl<T = any> extends NativeFormControl {
    *
    * If an error is not present, false is returned.
    */
-  hasError(errorCode: string) {
+  hasError<K extends StringKeys<E> = any>(errorCode: K) {
     return super.hasError(errorCode);
   }
 }
