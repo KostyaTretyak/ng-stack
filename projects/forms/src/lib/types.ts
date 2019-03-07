@@ -4,10 +4,6 @@ import { FormArray } from './form-array';
 import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
 
-export interface ObjectAny {
-  [key: string]: any;
-}
-
 export type StringKeys<T> = Extract<keyof T, string>;
 
 export type ControlType<T> = T extends (infer Item)[]
