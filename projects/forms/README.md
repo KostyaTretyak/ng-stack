@@ -181,7 +181,20 @@ The following section describes the changes that have occurred. All of the follo
 
 ### get()
 
-- `formGroup.get()` supporting only signature `get(controlName: string)`, and not supporting `get(path: Array<number | string>)`.
+- `formGroup.get()` supporting only signature:
+
+  ```ts
+  form.get('address').get('street');
+  ```
+
+  and not supporting:
+
+  ```ts
+  form.get('address.street');
+  // OR
+  form.get(['address', 'street']);
+  ```
+
 - Angular native `formControl.get()` method always returns `null`. Because of this, supporting signature only `get()` (without arguments).
 See also issue on github [feat(forms): hide get() method of FormControl from public API](https://github.com/angular/angular/issues/29091).
 
@@ -189,20 +202,20 @@ See also issue on github [feat(forms): hide get() method of FormControl from pub
 
 - `formGroup.getError()` and `formGroup.hasError()` supporting only this signature:
 
-```ts
-form.get('address').getError('someErrorCode', 'street');
-```
+  ```ts
+  form.get('address').getError('someErrorCode', 'street');
+  ```
 
-And not supporting this signature:
+  And not supporting this signature:
 
-```ts
-form.getError('someErrorCode', 'address.street');
-// OR
-form.getError('someErrorCode', ['address', 'street']);
-```
+  ```ts
+  form.getError('someErrorCode', 'address.street');
+  // OR
+  form.getError('someErrorCode', ['address', 'street']);
+  ```
 
 - `formControl.getError()` and `formControl.hasError()` supporting only this signature (without second argument):
 
-```ts
-control.getError('someErrorCode');
-```
+  ```ts
+  control.getError('someErrorCode');
+  ```
