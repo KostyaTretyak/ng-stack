@@ -14,5 +14,6 @@ export {
   ApiMockRouteGroup,
   ApiMockCallbackData,
   ApiMockCallbackResponse,
+  ObjectAny,
   CallbackAny,
 } from './lib/types';

@@ -1,4 +1,6 @@
-export function pickProperties<T extends object>(targetObject: T, ...sourceObjects: object[]) {
+import { ObjectAny } from './types';
+
+export function pickProperties<T extends ObjectAny>(targetObject: T, ...sourceObjects: ObjectAny[]) {
   sourceObjects.forEach(sourceObj => {
     Object.keys(targetObject).forEach(prop => {
       if (sourceObj.hasOwnProperty(prop)) {
@@ -22,7 +24,7 @@ export function pickProperties<T extends object>(targetObject: T, ...sourceObjec
 targetObject = JSON.parse(JSON.stringify(targetObject));
 ```
  */
-export function pickAllPropertiesAsGetters<T extends object>(targetObject: T, ...sourceObjects: object[]) {
+export function pickAllPropertiesAsGetters<T extends ObjectAny>(targetObject: T, ...sourceObjects: ObjectAny[]) {
   if (sourceObjects.length) {
     return pickPropertiesAsGetters(targetObject, null, ...sourceObjects);
   }
@@ -40,10 +42,10 @@ export function pickAllPropertiesAsGetters<T extends object>(targetObject: T, ..
 targetObject = JSON.parse(JSON.stringify(targetObject));
 ```
  */
-export function pickPropertiesAsGetters<T extends object, K extends keyof T>(
+export function pickPropertiesAsGetters<T extends ObjectAny, K extends keyof T>(
   targetObject: T,
   properties: { includeProperties?: K[]; excludeProperties?: K[] },
-  ...sourceObjects: object[]
+  ...sourceObjects: ObjectAny[]
 ) {
   properties = properties || {};
   const incl: Array<K | string> = properties.includeProperties;

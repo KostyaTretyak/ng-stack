@@ -80,19 +80,26 @@ export class ApiMockConfig {
   }
 }
 
+/**
+ * It is just `{ [key: string]: any }` an object interface.
+ */
+export interface ObjectAny {
+  [key: string]: any;
+}
+
 export type CallbackAny = (...params: any[]) => any;
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
-export type ApiMockCallbackData<I extends object[] = object[], P extends object[] = object[]> = (
+export type ApiMockCallbackData<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
   items?: I,
   itemId?: string,
   httpMethod?: HttpMethod,
   parents?: P,
   queryParams?: Params
-) => object[];
+) => ObjectAny[];
 
-export type ApiMockCallbackResponse<I extends object[] = object[], P extends object[] = object[]> = (
+export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
   items?: I,
   itemId?: string,
   httpMethod?: HttpMethod,
@@ -106,7 +113,7 @@ export interface ApiMockRoute {
   /**
    * Properties for list items, that returns from `callbackData()`.
    */
-  propertiesForList?: object;
+  propertiesForList?: ObjectAny;
   callbackResponse: ApiMockCallbackResponse;
 }
 
@@ -143,11 +150,11 @@ export class MockData {
    * - If HTTP-request have `POST`, `PUT`, `PATCH` or `DELETE` method,
    * this actions will be doing with item from this array.
    */
-  writeableData: object[];
+  writeableData: ObjectAny[];
   /**
    * Array of composed objects with properties as getters (only read properties).
    *
    * - If HTTP-request have `GET` method without restId, we return this array.
    */
-  onlyreadData: object[];
+  onlyreadData: ObjectAny[];
 }
