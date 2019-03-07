@@ -1,8 +1,11 @@
-import { AbstractControlOptions, AsyncValidatorFn, ValidatorFn } from '@angular/forms';
+import { AbstractControlOptions, AbstractControl } from '@angular/forms';
+
+import { Observable } from 'rxjs';
 
 import { FormArray } from './form-array';
 import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
+import { Validators } from './validators';
 
 export type StringKeys<T> = Extract<keyof T, string>;
 
@@ -56,3 +59,55 @@ interface UniqToken {
  * both valid AND invalid or invalid AND disabled.
  */
 export type Status = 'VALID' | 'INVALID' | 'PENDING' | 'DISABLED';
+
+/**
+ * A function that receives a control and synchronously returns a map of
+ * validation errors if present, otherwise null.
+ */
+export type ValidatorFn<T extends object = any> = (control: AbstractControl) => ValidationErrors<T> | null;
+
+/**
+ * A function that receives a control and returns a Promise or observable
+ * that emits validation errors if present, otherwise null.
+ */
+export type AsyncValidatorFn<T extends object = any> = (
+  control: AbstractControl
+) => Promise<ValidationErrors<T> | null> | Observable<ValidationErrors<T> | null>;
+
+/**
+ * Defines the map of errors returned from failed validation checks.
+ */
+export type ValidationErrors<T extends object = any> = T;
+
+/**
+ * Interface for options provided to an `AbstractControl`.
+ */
+export interface AbstractControlOptions<T extends object = any> {
+  /**
+   * The list of validators applied to a control.
+   */
+  validators?: ValidatorFn<T> | ValidatorFn<T>[] | null;
+  /**
+   * The list of async validators applied to control.
+   */
+  asyncValidators?: AsyncValidatorFn<T> | AsyncValidatorFn<T>[] | null;
+  /**
+   * The event name for control to update upon.
+   */
+  updateOn?: 'change' | 'blur' | 'submit';
+}
+
+export type MethodsReturns<T extends object, O = 'prototype'> = {
+  [P in Exclude<keyof T, O>]: T[P] extends (...args: any[]) => infer Err
+    ? Err extends (...args: any[]) => infer Sync
+      ? Sync extends (Promise<infer Async> | Observable<infer Async>)
+        ? Async
+        : Sync
+      : Err
+    : null
+};
+
+export type ValidatorsReturns = MethodsReturns<
+  typeof Validators,
+  'prototype' | 'compose' | 'composeAsync' | 'nullValidator'
+>;

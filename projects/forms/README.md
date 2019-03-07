@@ -219,3 +219,7 @@ See also issue on github [feat(forms): hide get() method of FormControl from pub
   ```ts
   control.getError('someErrorCode');
   ```
+
+### ValidationErrors
+
+Native `ValidatorFn` and `AsyncValidatorFn` are interfaces, in `@ng-stack/forms` this are types.
