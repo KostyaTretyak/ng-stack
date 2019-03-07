@@ -1,10 +1,10 @@
-import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormGroup as AliasFormGroup } from '@angular/forms';
+import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormGroup as NativeFormGroup } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
 import { StringKeys, ControlType, Status } from './types';
 
-export class FormGroup<T extends object = any> extends AliasFormGroup {
+export class FormGroup<T extends object = any> extends NativeFormGroup {
   readonly value: T;
   readonly valueChanges: Observable<T>;
   readonly status: Status;

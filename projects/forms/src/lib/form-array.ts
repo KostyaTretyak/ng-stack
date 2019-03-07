@@ -1,10 +1,10 @@
-import { FormArray as AliasFormArray, ValidatorFn, AbstractControlOptions, AsyncValidatorFn } from '@angular/forms';
+import { FormArray as NativeFormArray, ValidatorFn, AbstractControlOptions, AsyncValidatorFn } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
 import { ControlType, Status } from './types';
 
-export class FormArray<Item = any> extends AliasFormArray {
+export class FormArray<Item = any> extends NativeFormArray {
   readonly value: Item[];
   readonly valueChanges: Observable<Item[]>;
   readonly status: Status;

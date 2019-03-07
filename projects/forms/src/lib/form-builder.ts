@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder as AliasFormBuilder, AbstractControlOptions, ValidatorFn, AsyncValidatorFn } from '@angular/forms';
+import {
+  FormBuilder as NativeFormBuilder,
+  AbstractControlOptions,
+  ValidatorFn,
+  AsyncValidatorFn,
+} from '@angular/forms';
 
 import { FbControlsConfig, LegacyControlOptions } from './types';
 import { FormGroup } from './form-group';
@@ -7,7 +12,7 @@ import { FormControl } from './form-control';
 import { FormArray } from './form-array';
 
 @Injectable()
-export class FormBuilder extends AliasFormBuilder {
+export class FormBuilder extends NativeFormBuilder {
   /**
    * Construct a new `FormGroup` instance.
    *
