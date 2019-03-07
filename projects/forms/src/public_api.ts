@@ -14,5 +14,5 @@ export {
   AsyncValidatorFn,
   ValidationErrors,
   AbstractControlOptions,
-  ValidatorsReturns,
+  ValidatorsModel,
 } from './lib/types';

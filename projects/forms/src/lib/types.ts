@@ -97,8 +97,22 @@ export interface AbstractControlOptions<T extends object = any> {
   updateOn?: 'change' | 'blur' | 'submit';
 }
 
-export type MethodsReturns<T extends object, O = 'prototype'> = {
-  [P in Exclude<keyof T, O>]: T[P] extends (...args: any[]) => infer Err
+/**
+ * Default validators model includes almost all properties of `typeof Validators`,
+ * excludes: `prototype`, `compose`, `composeAsync` and `nullValidator`.
+ * 
+ * ### Usage
+ * 
+```ts
+const formControl = new FormControl<string, ValidatorsModel>('some value');
+// OR
+const formGroup = new FormGroup<any, ValidatorsModel>({});
+// OR
+const formArray = new FormArray<any, ValidatorsModel>([]);
+```
+ */
+export type ValidatorsModel = {
+  [P in Exclude<keyof typeof Validators, ExcludedProps>]: typeof Validators[P] extends (...args: any[]) => infer Err
     ? Err extends (...args: any[]) => infer Sync
       ? Sync extends (Promise<infer Async> | Observable<infer Async>)
         ? Async
@@ -107,7 +121,4 @@ export type MethodsReturns<T extends object, O = 'prototype'> = {
     : null
 };
 
-export type ValidatorsReturns = MethodsReturns<
-  typeof Validators,
-  'prototype' | 'compose' | 'composeAsync' | 'nullValidator'
->;
+type ExcludedProps = 'prototype' | 'compose' | 'composeAsync' | 'nullValidator';

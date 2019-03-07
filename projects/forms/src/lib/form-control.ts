@@ -9,10 +9,10 @@ import {
   ValidatorFn,
   AsyncValidatorFn,
   AbstractControlOptions,
-  ValidatorsReturns,
+  ValidatorsModel,
 } from './types';
 
-export class FormControl<T = any, E extends object = ValidatorsReturns> extends NativeFormControl {
+export class FormControl<T = any, E extends object = ValidatorsModel> extends NativeFormControl {
   readonly value: T;
   readonly valueChanges: Observable<T>;
   readonly status: Status;

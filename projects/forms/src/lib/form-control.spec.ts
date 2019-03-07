@@ -27,7 +27,6 @@ describe('FormControl', () => {
 
     it('setValue(), patchValue(), reset()', () => {
       const control1 = new FormControl('');
-      control1.getError('maxLength');
       control1.setValue('');
       // control1.setValue(2);
       // control1.setValue([]);
@@ -134,6 +133,9 @@ describe('FormControl', () => {
     describe(`other methods`, () => {
       it('get() after passing primitive type to constructor()', () => {
         const control = new FormControl('some value');
+        control.getError('email');
+        // control.getError('notExistingErrorCode');
+        const some = control.errors.email;
         expect(control.status).toBe('VALID');
         expect((control as any).get()).toBe(null);
         expect((control as any).get('some value')).toBe(null);
