@@ -27,7 +27,7 @@ export class Validators extends NativeValidators {
    *
    */
   static min(min: number) {
-    return super.min(min) as ValidatorFn<{ min: { min: number; actual: number } }>;
+    return NativeValidators.min(min) as ValidatorFn<{ min: { min: number; actual: number } }>;
   }
 
   /**
@@ -47,7 +47,7 @@ export class Validators extends NativeValidators {
    *
    */
   static max(max: number) {
-    return super.max(max) as ValidatorFn<{ max: { max: number; actual: number } }>;
+    return NativeValidators.max(max) as ValidatorFn<{ max: { max: number; actual: number } }>;
   }
 
   /**
@@ -66,7 +66,7 @@ export class Validators extends NativeValidators {
    *
    */
   static required(control: AbstractControl) {
-    return super.required(control) as ValidationErrors<{ required: true }> | null;
+    return NativeValidators.required(control) as ValidationErrors<{ required: true }> | null;
   }
 
   /**
@@ -85,7 +85,7 @@ export class Validators extends NativeValidators {
    * set to `true` if the validation check fails, otherwise `null`.
    */
   static requiredTrue(control: AbstractControl) {
-    return super.requiredTrue(control) as ValidationErrors<{ required: true }> | null;
+    return NativeValidators.requiredTrue(control) as ValidationErrors<{ required: true }> | null;
   }
 
   /**
@@ -104,7 +104,7 @@ export class Validators extends NativeValidators {
    *
    */
   static email(control: AbstractControl) {
-    return super.email(control) as ValidationErrors<{ email: true }> | null;
+    return NativeValidators.email(control) as ValidationErrors<{ email: true }> | null;
   }
 
   /**
@@ -128,7 +128,9 @@ export class Validators extends NativeValidators {
    * `minlength` if the validation check fails, otherwise `null`.
    */
   static minLength(minLength: number) {
-    return super.minLength(minLength) as ValidatorFn<{ minlength: { requiredLength: number; actualLength: number } }>;
+    return NativeValidators.minLength(minLength) as ValidatorFn<{
+      minlength: { requiredLength: number; actualLength: number };
+    }>;
   }
 
   /**
@@ -152,7 +154,9 @@ export class Validators extends NativeValidators {
    * `maxlength` property if the validation check fails, otherwise `null`.
    */
   static maxLength(maxLength: number) {
-    return super.maxLength(maxLength) as ValidatorFn<{ maxlength: { requiredLength: number; actualLength: number } }>;
+    return NativeValidators.maxLength(maxLength) as ValidatorFn<{
+      maxlength: { requiredLength: number; actualLength: number };
+    }>;
   }
 
   /**
@@ -180,7 +184,9 @@ export class Validators extends NativeValidators {
    * `pattern` property if the validation check fails, otherwise `null`.
    */
   static pattern(pattern: string | RegExp) {
-    return super.pattern(pattern) as ValidatorFn<{ pattern: { requiredPattern: string; actualValue: string } }>;
+    return NativeValidators.pattern(pattern) as ValidatorFn<{
+      pattern: { requiredPattern: string; actualValue: string };
+    }>;
   }
 
   /**
@@ -200,7 +206,7 @@ export class Validators extends NativeValidators {
   static compose(validators: null): null;
   static compose<T extends object = any>(validators: (ValidatorFn | null | undefined)[]): ValidatorFn<T> | null;
   static compose<T extends object = any>(validators: (ValidatorFn | null | undefined)[] | null): ValidatorFn<T> | null {
-    return super.compose(validators) as ValidatorFn<T> | null;
+    return NativeValidators.compose(validators) as ValidatorFn<T> | null;
   }
 
   /**
@@ -211,6 +217,6 @@ export class Validators extends NativeValidators {
    * merged error objects of the async validators if the validation check fails, otherwise `null`.
    */
   static composeAsync<T extends object = any>(validators: (AsyncValidatorFn<T> | null)[]) {
-    return super.composeAsync(validators) as AsyncValidatorFn<T> | null;
+    return NativeValidators.composeAsync(validators) as AsyncValidatorFn<T> | null;
   }
 }

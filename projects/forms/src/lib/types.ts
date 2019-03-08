@@ -1,4 +1,4 @@
-import { AbstractControlOptions, AbstractControl } from '@angular/forms';
+import { AbstractControl } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
@@ -17,25 +17,29 @@ export type ControlType<T> = T extends (infer Item)[]
   ? FormGroup<T>
   : FormControl<T>;
 
-export type FormBuilderControl<T> =
+export type FormBuilderControl<T, E extends object> =
   | T
-  | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
+  | [
+      T,
+      (ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E>)?,
+      (AsyncValidatorFn<E> | AsyncValidatorFn<E>[])?
+    ]
   | FormControl<T>;
 
 /**
  * Form builder control config.
  */
-export type FbControlsConfig<T> = T extends (infer Item)[]
+export type FbControlsConfig<T, E extends object> = T extends (infer Item)[]
   ? T extends [infer ControlModel, UniqToken]
-    ? FormBuilderControl<ControlModel>
+    ? FormBuilderControl<ControlModel, E>
     : FormArray<Item>
   : T extends object
   ? FormGroup<T>
-  : FormBuilderControl<T>;
+  : FormBuilderControl<T, E>;
 
-export interface LegacyControlOptions {
-  validator: ValidatorFn | ValidatorFn[] | null;
-  asyncValidator: AsyncValidatorFn | AsyncValidatorFn[] | null;
+export interface LegacyControlOptions<E extends object> {
+  validator: ValidatorFn<E> | ValidatorFn<E>[] | null;
+  asyncValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null;
 }
 
 export type Control<T extends object> = [T, UniqToken];
@@ -98,7 +102,7 @@ export interface AbstractControlOptions<T extends object = any> {
 }
 
 /**
- * Default validators model includes almost all properties of `typeof Validators`,
+ * The default validators model, it includes almost all properties of `typeof Validators`,
  * excludes: `prototype`, `compose`, `composeAsync` and `nullValidator`.
  * 
  * ### Usage
@@ -111,14 +115,24 @@ const formGroup = new FormGroup<any, ValidatorsModel>({});
 const formArray = new FormArray<any, ValidatorsModel>([]);
 ```
  */
-export type ValidatorsModel = {
-  [P in Exclude<keyof typeof Validators, ExcludedProps>]: typeof Validators[P] extends (...args: any[]) => infer Err
-    ? Err extends (...args: any[]) => infer Sync
-      ? Sync extends (Promise<infer Async> | Observable<infer Async>)
-        ? Async
-        : Sync
-      : Err
-    : null
-};
+export class ValidatorsModel {
+  min: { min: { min: number; actual: number } };
+  max: { max: { max: number; actual: number } };
+  required: { required: true };
+  requiredTrue: { required: true };
+  email: { email: true };
+  minLength: { minlength: { requiredLength: number; actualLength: number } };
+  maxLength: { requiredLength: number; actualLength: number };
+  pattern: { requiredPattern: string; actualValue: string };
+}
+// export type ValidatorsModel = {
+//   [P in Exclude<keyof typeof Validators, ExcludedProps>]: typeof Validators[P] extends (...args: any[]) => infer Err
+//     ? Err extends (...args: any[]) => infer Sync
+//       ? Sync extends (Promise<infer Async> | Observable<infer Async>)
+//         ? Async
+//         : Sync
+//       : Err
+//     : null
+// };
 
 type ExcludedProps = 'prototype' | 'compose' | 'composeAsync' | 'nullValidator';

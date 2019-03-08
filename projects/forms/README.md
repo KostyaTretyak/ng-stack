@@ -1,3 +1,16 @@
+# @ng-stack/forms
+
+> provides wrapped Angular's Reactive Forms to write its more strongly typed.
+
+## Table of contents
+- [Install](#install)
+- [Usage](#usage)
+  - [Using form model](#using-form-model)
+  - [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls)
+  - [Typed Validations](#typed-validations)
+- [How does it works](#how-does-it-works)
+- [Changes API](#changes-api)
+
 ## Install
 
 ```bash
@@ -159,7 +172,47 @@ get addresses() {
 }
 ```
 
-## How does it work
+### Typed Validations
+
+Classes `FormControl`, `FormGroup`, `FormArray` and all methods of `FormBuilder`
+accept "model validation error" as second parameter for generic:
+
+```ts
+const control = new FormControl<string, { someErrorCode: true }>('some value');
+control.getError('someErrorCode'); // OK
+control.errors.someErrorCode // OK
+control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
+control.errors.notExistingErrorCode // Property 'notExistingErrorCode' does not exist on type '{ someErrorCode: true; }'
+```
+
+By default used special type called `ValidatorsModel`.
+
+```ts
+const control = new FormControl('some value');
+control.getError('required'); // OK
+control.getError('email'); // OK
+control.errors.required // OK
+control.errors.email // OK
+control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
+control.errors.notExistingErrorCode // Property 'notExistingErrorCode' does not exist on type '{ email: true; }'
+```
+
+`ValidatorsModel` contains list of properties extracted from `typeof Validators`, and expected returns types:
+
+```ts
+class ValidatorsModel {
+  min: { min: { min: number; actual: number } };
+  max: { max: { max: number; actual: number } };
+  required: { required: true };
+  requiredTrue: { required: true };
+  email: { email: true };
+  minLength: { minlength: { requiredLength: number; actualLength: number } };
+  maxLength: { requiredLength: number; actualLength: number };
+  pattern: { requiredPattern: string; actualValue: string };
+}
+```
+
+## How does it works
 
 In almost all cases, this module absolutely does not change the runtime behavior of native Angular methods.
 

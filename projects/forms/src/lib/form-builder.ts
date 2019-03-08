@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
+import { FormBuilder as NativeFormBuilder } from '@angular/forms';
+
 import {
-  FormBuilder as NativeFormBuilder,
+  FbControlsConfig,
+  LegacyControlOptions,
   AbstractControlOptions,
   ValidatorFn,
   AsyncValidatorFn,
-} from '@angular/forms';
-
-import { FbControlsConfig, LegacyControlOptions } from './types';
+  ValidatorsModel,
+} from './types';
 import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
 import { FormArray } from './form-array';
@@ -32,11 +34,11 @@ export class FormBuilder extends NativeFormBuilder {
    * - `validator`: A synchronous validator function, or an array of validator functions
    * - `asyncValidator`: A single async validator or array of async validator functions
    */
-  group<T extends object = any>(
-    controlsConfig: { [P in keyof T]?: FbControlsConfig<T[P]> },
-    options: AbstractControlOptions | LegacyControlOptions | null = null
+  group<T extends object = any, E extends object = ValidatorsModel>(
+    controlsConfig: { [P in keyof T]?: FbControlsConfig<T[P], E> },
+    options: AbstractControlOptions<E> | LegacyControlOptions<E> | null = null
   ) {
-    return super.group(controlsConfig, options) as FormGroup<T>;
+    return super.group(controlsConfig, options) as FormGroup<T, E>;
   }
 
   /**
@@ -75,12 +77,12 @@ export class DisabledFormControlComponent {
 }
 ```
    */
-  control<T = any>(
+  control<T = any, E extends object = ValidatorsModel>(
     formState: T | { value: T; disabled: boolean } = null,
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
-    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
+    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
+    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
   ) {
-    return super.control(formState, validatorOrOpts, asyncValidator) as FormControl<T>;
+    return super.control(formState, validatorOrOpts, asyncValidator) as FormControl<T, E>;
   }
 
   /**
@@ -97,11 +99,11 @@ export class DisabledFormControlComponent {
    * @param asyncValidator A single async validator or array of async validator
    * functions.
    */
-  array<Item = any>(
-    controlsConfig: FbControlsConfig<Item>[],
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
-    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
+  array<Item = any, E extends object = ValidatorsModel>(
+    controlsConfig: FbControlsConfig<Item, E>[],
+    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
+    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
   ) {
-    return super.array(controlsConfig, validatorOrOpts, asyncValidator) as FormArray<Item>;
+    return super.array(controlsConfig, validatorOrOpts, asyncValidator) as FormArray<Item, E>;
   }
 }

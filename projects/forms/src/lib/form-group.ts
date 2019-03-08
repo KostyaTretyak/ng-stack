@@ -1,14 +1,24 @@
-import { ValidatorFn, AbstractControlOptions, AsyncValidatorFn, FormGroup as NativeFormGroup } from '@angular/forms';
+import { FormGroup as NativeFormGroup } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
-import { StringKeys, ControlType, Status } from './types';
+import {
+  Status,
+  StringKeys,
+  ValidatorFn,
+  AsyncValidatorFn,
+  ValidatorsModel,
+  ValidationErrors,
+  AbstractControlOptions,
+  ControlType,
+} from './types';
 
-export class FormGroup<T extends object = any> extends NativeFormGroup {
+export class FormGroup<T extends object = any, E extends object = ValidatorsModel> extends NativeFormGroup {
   readonly value: T;
   readonly valueChanges: Observable<T>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
+  readonly errors: ValidationErrors<E> | null;
 
   /**
    * Creates a new `FormGroup` instance.
@@ -26,8 +36,8 @@ export class FormGroup<T extends object = any> extends NativeFormGroup {
    */
   constructor(
     public controls: { [P in keyof T]?: ControlType<T[P]> },
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
-    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
+    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
+    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
   ) {
     super(controls, validatorOrOpts, asyncValidator);
   }
@@ -250,6 +260,47 @@ this.form.get('person').get('name');
   }
 
   /**
+   * Sets the synchronous validators that are active on this control. Calling
+   * this overwrites any existing sync validators.
+   */
+  setValidators(newValidator: ValidatorFn<E> | ValidatorFn<E>[] | null) {
+    return super.setValidators(newValidator);
+  }
+
+  /**
+   * Sets the async validators that are active on this control. Calling this
+   * overwrites any existing async validators.
+   */
+  setAsyncValidators(newValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null) {
+    return super.setAsyncValidators(newValidator);
+  }
+
+  /**
+   * Sets errors on a form control when running validations manually, rather than automatically.
+   *
+   * Calling `setErrors` also updates the validity of the parent control.
+   *
+   * ### Manually set the errors for a control
+   *
+   * ```ts
+   * const login = new FormControl('someLogin');
+   * login.setErrors({
+   *   notUnique: true
+   * });
+   *
+   * expect(login.valid).toEqual(false);
+   * expect(login.errors).toEqual({ notUnique: true });
+   *
+   * login.setValue('someOtherLogin');
+   *
+   * expect(login.valid).toEqual(true);
+   * ```
+   */
+  setErrors(errors: ValidationErrors<E> | null, opts: { emitEvent?: boolean } = {}) {
+    return super.setErrors(errors, opts);
+  }
+
+  /**
    * Reports error data for the control with the given controlName.
    *
    * @param errorCode The code of the error to check
@@ -275,8 +326,8 @@ form.get('address').getError('someErrorCode', 'street');
    * @returns error data for that particular error. If the control or error is not present,
    * null is returned.
    */
-  getError<K extends StringKeys<T>>(errorCode: string, controlName?: K) {
-    return super.getError(errorCode, controlName);
+  getError<P extends StringKeys<E>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
+    return super.getError(errorCode, controlName) as E[P] | null;
   }
 
   /**
@@ -307,7 +358,7 @@ form.get('address').hasError('someErrorCode', 'street');
    *
    * If the control is not present, false is returned.
    */
-  hasError<K extends StringKeys<T>>(errorCode: string, controlName?: K) {
+  hasError<P extends StringKeys<E>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
     return super.hasError(errorCode, controlName);
   }
 }
