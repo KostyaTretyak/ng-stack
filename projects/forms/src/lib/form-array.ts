@@ -10,6 +10,7 @@ import {
   ValidatorsModel,
   ValidationErrors,
   AbstractControlOptions,
+  StringKeys,
 } from './types';
 
 export class FormArray<Item = any, E extends object = ValidatorsModel> extends NativeFormArray {
@@ -254,5 +255,67 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    */
   setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
     return super.setErrors(errors, opts);
+  }
+
+  /**
+   * Reports error data for the control with the given controlName.
+   *
+   * @param errorCode The code of the error to check
+   * @param controlName A control name that designates how to move from the current control
+   * to the control that should be queried for errors.
+   *
+   * For example, for the following `FormGroup`:
+   *
+```ts
+form = new FormGroup({
+  address: new FormGroup({ street: new FormControl() })
+});
+```
+   *
+   * The controlName to the 'street' control from the root form would be 'address' -> 'street'.
+   *
+   * It can be provided to this method in combination with `get()` method:
+   * 
+```ts
+form.get('address').getError('someErrorCode', 'street');
+```
+   *
+   * @returns error data for that particular error. If the control or error is not present,
+   * null is returned.
+   */
+  getError<P extends StringKeys<E>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+    return super.getError(errorCode, controlName) as E[P] | null;
+  }
+
+  /**
+   * Reports whether the control with the given controlName has the error specified.
+   *
+   * @param errorCode The code of the error to check
+   * @param controlName A control name that designates how to move from the current control
+   * to the control that should be queried for errors.
+   *
+   * For example, for the following `FormGroup`:
+   *
+```ts
+form = new FormGroup({
+  address: new FormGroup({ street: new FormControl() })
+});
+```
+   *
+   * The controlName to the 'street' control from the root form would be 'address' -> 'street'.
+   *
+   * It can be provided to this method in combination with `get()` method:
+```ts
+form.get('address').hasError('someErrorCode', 'street');
+```
+   *
+   * If no controlName is given, this method checks for the error on the current control.
+   *
+   * @returns whether the given error is present in the control at the given controlName.
+   *
+   * If the control is not present, false is returned.
+   */
+  hasError<P extends StringKeys<E>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+    return super.hasError(errorCode, controlName);
   }
 }
