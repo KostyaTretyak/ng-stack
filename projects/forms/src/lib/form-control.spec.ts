@@ -138,7 +138,6 @@ describe('FormControl', () => {
         // control.getError('notExistingErrorCode');
         // control.errors.email
         // control.errors.notExistingErrorCode
-        const some = control.errors.required;
         expect(control.status).toBe('VALID');
         expect((control as any).get()).toBe(null);
         expect((control as any).get('some value')).toBe(null);
