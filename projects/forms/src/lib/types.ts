@@ -10,10 +10,14 @@ export type StringKeys<T> = Extract<keyof T, string>;
 
 export type ControlType<T> = T extends (infer Item)[]
   ? T extends [infer ControlModel, UniqToken]
-    ? FormControl<ControlModel>
+    ? ControlModel extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
+      ? FormControl<boolean>
+      : FormControl<ControlModel>
     : FormArray<Item>
   : T extends object
   ? FormGroup<T>
+  : T extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
+  ? FormControl<boolean>
   : FormControl<T>;
 
 export type FormBuilderControl<T> =
@@ -26,10 +30,14 @@ export type FormBuilderControl<T> =
  */
 export type FbControlsConfig<T> = T extends (infer Item)[]
   ? T extends [infer ControlModel, UniqToken]
-    ? FormBuilderControl<ControlModel>
+    ? ControlModel extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
+      ? FormBuilderControl<boolean>
+      : FormBuilderControl<ControlModel>
     : FormArray<Item>
   : T extends object
   ? FormGroup<T>
+  : T extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
+  ? FormBuilderControl<boolean>
   : FormBuilderControl<T>;
 
 export interface LegacyControlOptions {
