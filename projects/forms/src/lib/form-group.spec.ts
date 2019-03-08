@@ -150,13 +150,15 @@ describe('FormGroup', () => {
     });
 
     it('getError()', () => {
-      formGroup.getError('someErrorCode', 'firstName');
-      // formGroup.getError('someErrorCode', 'notExistingKey');
+      formGroup.getError('required', 'firstName');
+      // formGroup.getError('required', 'notExistingKey');
+      // formGroup.getError('notExistingErrorCode', 'address');
     });
 
     it('hasError()', () => {
-      formGroup.hasError('someErrorCode', 'firstName');
-      // formGroup.hasError('someErrorCode', 'notExistingKey');
+      formGroup.hasError('required', 'firstName');
+      // formGroup.hasError('required', 'notExistingKey');
+      // formGroup.hasError('notExistingErrorCode', 'address');
     });
   });
 

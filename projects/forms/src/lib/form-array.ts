@@ -1,10 +1,18 @@
-import { FormArray as AliasFormArray, ValidatorFn, AbstractControlOptions, AsyncValidatorFn } from '@angular/forms';
+import { FormArray as NativeFormArray } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
-import { ControlType, Status } from './types';
+import {
+  ControlType,
+  Status,
+  ValidatorFn,
+  AsyncValidatorFn,
+  ValidatorsModel,
+  ValidationErrors,
+  AbstractControlOptions,
+} from './types';
 
-export class FormArray<Item = any> extends AliasFormArray {
+export class FormArray<Item = any, E extends object = ValidatorsModel> extends NativeFormArray {
   readonly value: Item[];
   readonly valueChanges: Observable<Item[]>;
   readonly status: Status;
@@ -25,8 +33,8 @@ export class FormArray<Item = any> extends AliasFormArray {
    */
   constructor(
     public controls: ControlType<Item>[],
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
-    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
+    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
+    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
   ) {
     super(controls, validatorOrOpts, asyncValidator);
   }
@@ -204,5 +212,46 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    */
   getRawValue() {
     return super.getRawValue() as Item[];
+  }
+
+  /**
+   * Sets the synchronous validators that are active on this control. Calling
+   * this overwrites any existing sync validators.
+   */
+  setValidators(newValidator: ValidatorFn<E> | ValidatorFn<E>[] | null) {
+    return super.setValidators(newValidator);
+  }
+
+  /**
+   * Sets the async validators that are active on this control. Calling this
+   * overwrites any existing async validators.
+   */
+  setAsyncValidators(newValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null) {
+    return super.setAsyncValidators(newValidator);
+  }
+
+  /**
+   * Sets errors on a form control when running validations manually, rather than automatically.
+   *
+   * Calling `setErrors` also updates the validity of the parent control.
+   *
+   * ### Manually set the errors for a control
+   *
+   * ```ts
+   * const login = new FormControl('someLogin');
+   * login.setErrors({
+   *   notUnique: true
+   * });
+   *
+   * expect(login.valid).toEqual(false);
+   * expect(login.errors).toEqual({ notUnique: true });
+   *
+   * login.setValue('someOtherLogin');
+   *
+   * expect(login.valid).toEqual(true);
+   * ```
+   */
+  setErrors(errors: ValidationErrors<E> | null, opts: { emitEvent?: boolean } = {}) {
+    return super.setErrors(errors, opts);
   }
 }

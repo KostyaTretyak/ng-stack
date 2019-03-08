@@ -1,3 +1,16 @@
+# @ng-stack/forms
+
+> provides wrapped Angular's Reactive Forms to write its more strongly typed.
+
+## Table of contents
+- [Install](#install)
+- [Usage](#usage)
+  - [Using form model](#using-form-model)
+  - [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls)
+  - [Typed Validations](#typed-validations)
+- [How does it works](#how-does-it-works)
+- [Changes API](#changes-api)
+
 ## Install
 
 ```bash
@@ -159,7 +172,47 @@ get addresses() {
 }
 ```
 
-## How does it work
+### Typed Validations
+
+Classes `FormControl`, `FormGroup`, `FormArray` and all methods of `FormBuilder`
+accept "model validation error" as second parameter for generic:
+
+```ts
+const control = new FormControl<string, { someErrorCode: true }>('some value');
+control.getError('someErrorCode'); // OK
+control.errors.someErrorCode // OK
+control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
+control.errors.notExistingErrorCode // Property 'notExistingErrorCode' does not exist on type '{ someErrorCode: true; }'
+```
+
+By default used special type called `ValidatorsModel`.
+
+```ts
+const control = new FormControl('some value');
+control.getError('required'); // OK
+control.getError('email'); // OK
+control.errors.required // OK
+control.errors.email // OK
+control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
+control.errors.notExistingErrorCode // Property 'notExistingErrorCode' does not exist on type '{ email: true; }'
+```
+
+`ValidatorsModel` contains list of properties extracted from `typeof Validators`, and expected returns types:
+
+```ts
+class ValidatorsModel {
+  min: { min: { min: number; actual: number } };
+  max: { max: { max: number; actual: number } };
+  required: { required: true };
+  requiredTrue: { required: true };
+  email: { email: true };
+  minLength: { minlength: { requiredLength: number; actualLength: number } };
+  maxLength: { requiredLength: number; actualLength: number };
+  pattern: { requiredPattern: string; actualValue: string };
+}
+```
+
+## How does it works
 
 In almost all cases, this module absolutely does not change the runtime behavior of native Angular methods.
 
@@ -181,7 +234,20 @@ The following section describes the changes that have occurred. All of the follo
 
 ### get()
 
-- `formGroup.get()` supporting only signature `get(controlName: string)`, and not supporting `get(path: Array<number | string>)`.
+- `formGroup.get()` supporting only signature:
+
+  ```ts
+  form.get('address').get('street');
+  ```
+
+  and not supporting:
+
+  ```ts
+  form.get('address.street');
+  // OR
+  form.get(['address', 'street']);
+  ```
+
 - Angular native `formControl.get()` method always returns `null`. Because of this, supporting signature only `get()` (without arguments).
 See also issue on github [feat(forms): hide get() method of FormControl from public API](https://github.com/angular/angular/issues/29091).
 
@@ -189,20 +255,24 @@ See also issue on github [feat(forms): hide get() method of FormControl from pub
 
 - `formGroup.getError()` and `formGroup.hasError()` supporting only this signature:
 
-```ts
-form.get('address').getError('someErrorCode', 'street');
-```
+  ```ts
+  form.get('address').getError('someErrorCode', 'street');
+  ```
 
-And not supporting this signature:
+  And not supporting this signature:
 
-```ts
-form.getError('someErrorCode', 'address.street');
-// OR
-form.getError('someErrorCode', ['address', 'street']);
-```
+  ```ts
+  form.getError('someErrorCode', 'address.street');
+  // OR
+  form.getError('someErrorCode', ['address', 'street']);
+  ```
 
 - `formControl.getError()` and `formControl.hasError()` supporting only this signature (without second argument):
 
-```ts
-control.getError('someErrorCode');
-```
+  ```ts
+  control.getError('someErrorCode');
+  ```
+
+### ValidationErrors
+
+Native `ValidatorFn` and `AsyncValidatorFn` are interfaces, in `@ng-stack/forms` this are types.
