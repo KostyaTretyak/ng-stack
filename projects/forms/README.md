@@ -53,7 +53,7 @@ import { FormGroup, FormControl, FormArray } from '@ng-stack/forms';
 const formClontrol = new FormControl('some string');
 const value = formClontrol.value; // some string
 
-formClontrol.setValue(123); // Error: Argument of type '123' is not assignable to parameter of type 'string'
+formClontrol.setValue(123); // Error: Argument of type '123' is not assignable...
 
 // Form model
 class Address {
@@ -90,7 +90,7 @@ appropriate types for form controls by their form models.
 Simple example:
 
 ```ts
-import { FormControl } from '@ng-stack/forms';
+import { FormControl, FormGroup } from '@ng-stack/forms';
 
 // Form model
 class Address {
@@ -104,8 +104,8 @@ const formGroup = new FormGroup<Address>({
   city: new FormControl('Mykolaiv'), // OK
 
   street: new FormGroup({}),
-  // Error: Type 'FormGroup<any>' is missing the following properties
-  // from type 'FormControl<string>'
+  // Error: Type 'FormGroup<any, ValidatorsModel>' is missing
+  // the following properties from type 'FormControl<string, ValidatorsModel>'
 });
 ```
 
@@ -181,7 +181,7 @@ accept "error validation model" as second parameter for a generic:
 const control = new FormControl<string, { someErrorCode: true }>('some value');
 control.getError('someErrorCode'); // OK
 control.errors.someErrorCode // OK
-control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
+control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not...
 control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
@@ -193,7 +193,7 @@ control.getError('required'); // OK
 control.getError('email'); // OK
 control.errors.required // OK
 control.errors.email // OK
-control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
+control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not...
 control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
@@ -221,10 +221,13 @@ For example:
 ```ts
 const control = new FormControl<string, { someErrorCode: true }>('some value');
 const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: 123 });
-control.setValidators(validatorFn); // Without error, but it's not checking match to the `{ someErrorCode: true }`
+
+control.setValidators(validatorFn);
+// Without error, but it's not checking
+// match between `{ someErrorCode: true }` and `{ otherErrorCode: 123 }`
 ```
 
-See issue: [bug(forms): Issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
+See: [bug(forms): issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
 
 ## How does it works
 
