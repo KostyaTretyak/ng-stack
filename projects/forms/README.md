@@ -212,6 +212,20 @@ class ValidatorsModel {
 }
 ```
 
+#### Known issues
+
+For now, the functionality - when a match between a validation model and actually entered validator's functions is checked - is not supported.
+
+For example:
+
+```ts
+const control = new FormControl<string, { someErrorCode: true }>('some value');
+const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: 123 });
+control.setValidators(validatorFn); // Without error, but it's not checking match to the `{ someErrorCode: true }`
+```
+
+See issue: [bug(forms): Issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
+
 ## How does it works
 
 In almost all cases, this module absolutely does not change the runtime behavior of native Angular methods.

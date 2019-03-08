@@ -17,6 +17,7 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
   readonly valueChanges: Observable<Item[]>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
+  readonly errors: ValidationErrors<E> | null;
 
   /**
    * Creates a new `FormArray` instance.
@@ -33,8 +34,8 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
    */
   constructor(
     public controls: ControlType<Item>[],
-    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
-    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
+    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     super(controls, validatorOrOpts, asyncValidator);
   }
@@ -218,7 +219,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * Sets the synchronous validators that are active on this control. Calling
    * this overwrites any existing sync validators.
    */
-  setValidators(newValidator: ValidatorFn<E> | ValidatorFn<E>[] | null) {
+  setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
     return super.setValidators(newValidator);
   }
 
@@ -226,7 +227,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * Sets the async validators that are active on this control. Calling this
    * overwrites any existing async validators.
    */
-  setAsyncValidators(newValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null) {
+  setAsyncValidators(newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null) {
     return super.setAsyncValidators(newValidator);
   }
 
@@ -251,7 +252,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * expect(login.valid).toEqual(true);
    * ```
    */
-  setErrors(errors: ValidationErrors<E> | null, opts: { emitEvent?: boolean } = {}) {
+  setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
     return super.setErrors(errors, opts);
   }
 }

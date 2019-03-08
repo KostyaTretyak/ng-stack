@@ -5,7 +5,6 @@ import { Observable } from 'rxjs';
 import { FormArray } from './form-array';
 import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
-import { Validators } from './validators';
 
 export type StringKeys<T> = Extract<keyof T, string>;
 
@@ -17,29 +16,25 @@ export type ControlType<T> = T extends (infer Item)[]
   ? FormGroup<T>
   : FormControl<T>;
 
-export type FormBuilderControl<T, E extends object> =
+export type FormBuilderControl<T> =
   | T
-  | [
-      T,
-      (ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E>)?,
-      (AsyncValidatorFn<E> | AsyncValidatorFn<E>[])?
-    ]
+  | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
   | FormControl<T>;
 
 /**
  * Form builder control config.
  */
-export type FbControlsConfig<T, E extends object> = T extends (infer Item)[]
+export type FbControlsConfig<T> = T extends (infer Item)[]
   ? T extends [infer ControlModel, UniqToken]
-    ? FormBuilderControl<ControlModel, E>
+    ? FormBuilderControl<ControlModel>
     : FormArray<Item>
   : T extends object
   ? FormGroup<T>
-  : FormBuilderControl<T, E>;
+  : FormBuilderControl<T>;
 
-export interface LegacyControlOptions<E extends object> {
-  validator: ValidatorFn<E> | ValidatorFn<E>[] | null;
-  asyncValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null;
+export interface LegacyControlOptions {
+  validator: ValidatorFn | ValidatorFn[] | null;
+  asyncValidator: AsyncValidatorFn | AsyncValidatorFn[] | null;
 }
 
 export type Control<T extends object> = [T, UniqToken];
@@ -125,14 +120,4 @@ export class ValidatorsModel {
   maxLength: { requiredLength: number; actualLength: number };
   pattern: { requiredPattern: string; actualValue: string };
 }
-// export type ValidatorsModel = {
-//   [P in Exclude<keyof typeof Validators, ExcludedProps>]: typeof Validators[P] extends (...args: any[]) => infer Err
-//     ? Err extends (...args: any[]) => infer Sync
-//       ? Sync extends (Promise<infer Async> | Observable<infer Async>)
-//         ? Async
-//         : Sync
-//       : Err
-//     : null
-// };
 
-type ExcludedProps = 'prototype' | 'compose' | 'composeAsync' | 'nullValidator';
