@@ -175,14 +175,14 @@ get addresses() {
 ### Typed Validations
 
 Classes `FormControl`, `FormGroup`, `FormArray` and all methods of `FormBuilder`
-accept "model validation error" as second parameter for generic:
+accept "error validation model" as second parameter for a generic:
 
 ```ts
 const control = new FormControl<string, { someErrorCode: true }>('some value');
 control.getError('someErrorCode'); // OK
 control.errors.someErrorCode // OK
 control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
-control.errors.notExistingErrorCode // Property 'notExistingErrorCode' does not exist on type '{ someErrorCode: true; }'
+control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
 By default used special type called `ValidatorsModel`.
@@ -194,10 +194,10 @@ control.getError('email'); // OK
 control.errors.required // OK
 control.errors.email // OK
 control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not assignable...
-control.errors.notExistingErrorCode // Property 'notExistingErrorCode' does not exist on type '{ email: true; }'
+control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
-`ValidatorsModel` contains list of properties extracted from `typeof Validators`, and expected returns types:
+`ValidatorsModel` contains a list of properties extracted from `typeof Validators`, and expected returns types:
 
 ```ts
 class ValidatorsModel {
@@ -211,6 +211,20 @@ class ValidatorsModel {
   pattern: { requiredPattern: string; actualValue: string };
 }
 ```
+
+#### Known issues
+
+For now, the functionality - when a match between a validation model and actually entered validator's functions is checked - is not supported.
+
+For example:
+
+```ts
+const control = new FormControl<string, { someErrorCode: true }>('some value');
+const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: 123 });
+control.setValidators(validatorFn); // Without error, but it's not checking match to the `{ someErrorCode: true }`
+```
+
+See issue: [bug(forms): Issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
 
 ## How does it works
 

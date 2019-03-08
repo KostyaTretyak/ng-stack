@@ -18,7 +18,9 @@ describe('FormArray', () => {
 
   xdescribe('checking types only', () => {
     it('constructor()', () => {
-      new FormArray([]);
+      const formArray = new FormArray([]);
+      formArray.getError('required', 'controlName');
+      // formArray.getError('notExistingErrorCode', 'fdsf');
       // new FormArray();
     });
   });

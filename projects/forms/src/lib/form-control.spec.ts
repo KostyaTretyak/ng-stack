@@ -1,6 +1,9 @@
 import { FormControl } from './form-control';
 import { isString, isNumber, isArray } from './assert';
 import { FormGroup } from './form-group';
+import { Validators } from './validators';
+import { AbstractControl } from '@angular/forms';
+import { ValidatorFn } from './types';
 
 describe('FormControl', () => {
   xdescribe('checking types only', () => {
@@ -132,13 +135,12 @@ describe('FormControl', () => {
 
     describe(`other methods`, () => {
       it('get() after passing primitive type to constructor()', () => {
-        const control = new FormControl('some value');
-        control.getError('required');
-        control.getError('email');
+        const control = new FormControl<string, { someErrorCode: true }>('some value');
+        const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: 123 });
+        control.setValidators(validatorFn); // Withot error, but it's not checking match to `{ someErrorCode: true }`
         // control.getError('notExistingErrorCode');
         // control.errors.email
         // control.errors.notExistingErrorCode
-        const some = control.errors.required;
         expect(control.status).toBe('VALID');
         expect((control as any).get()).toBe(null);
         expect((control as any).get('some value')).toBe(null);

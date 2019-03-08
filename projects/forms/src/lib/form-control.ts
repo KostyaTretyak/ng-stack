@@ -34,8 +34,8 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    */
   constructor(
     formState: T | { value: T; disabled: boolean } = null,
-    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
-    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
+    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     super(formState, validatorOrOpts, asyncValidator);
   }
@@ -135,7 +135,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    * Sets the synchronous validators that are active on this control. Calling
    * this overwrites any existing sync validators.
    */
-  setValidators(newValidator: ValidatorFn<E> | ValidatorFn<E>[] | null) {
+  setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
     return super.setValidators(newValidator);
   }
 
@@ -143,7 +143,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    * Sets the async validators that are active on this control. Calling this
    * overwrites any existing async validators.
    */
-  setAsyncValidators(newValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null) {
+  setAsyncValidators(newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null) {
     return super.setAsyncValidators(newValidator);
   }
 
@@ -168,7 +168,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    * expect(login.valid).toEqual(true);
    * ```
    */
-  setErrors(errors: ValidationErrors<E> | null, opts: { emitEvent?: boolean } = {}) {
+  setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
     return super.setErrors(errors, opts);
   }
 

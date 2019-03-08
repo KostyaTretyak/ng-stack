@@ -35,8 +35,8 @@ export class FormBuilder extends NativeFormBuilder {
    * - `asyncValidator`: A single async validator or array of async validator functions
    */
   group<T extends object = any, E extends object = ValidatorsModel>(
-    controlsConfig: { [P in keyof T]?: FbControlsConfig<T[P], E> },
-    options: AbstractControlOptions<E> | LegacyControlOptions<E> | null = null
+    controlsConfig: { [P in keyof T]?: FbControlsConfig<T[P]> },
+    options: AbstractControlOptions | LegacyControlOptions | null = null
   ) {
     return super.group(controlsConfig, options) as FormGroup<T, E>;
   }
@@ -79,8 +79,8 @@ export class DisabledFormControlComponent {
    */
   control<T = any, E extends object = ValidatorsModel>(
     formState: T | { value: T; disabled: boolean } = null,
-    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
-    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
+    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     return super.control(formState, validatorOrOpts, asyncValidator) as FormControl<T, E>;
   }
@@ -100,9 +100,9 @@ export class DisabledFormControlComponent {
    * functions.
    */
   array<Item = any, E extends object = ValidatorsModel>(
-    controlsConfig: FbControlsConfig<Item, E>[],
-    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
-    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
+    controlsConfig: FbControlsConfig<Item>[],
+    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     return super.array(controlsConfig, validatorOrOpts, asyncValidator) as FormArray<Item, E>;
   }

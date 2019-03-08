@@ -10,6 +10,7 @@ import {
   ValidatorsModel,
   ValidationErrors,
   AbstractControlOptions,
+  StringKeys,
 } from './types';
 
 export class FormArray<Item = any, E extends object = ValidatorsModel> extends NativeFormArray {
@@ -17,6 +18,7 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
   readonly valueChanges: Observable<Item[]>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
+  readonly errors: ValidationErrors<E> | null;
 
   /**
    * Creates a new `FormArray` instance.
@@ -33,8 +35,8 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
    */
   constructor(
     public controls: ControlType<Item>[],
-    validatorOrOpts?: ValidatorFn<E> | ValidatorFn<E>[] | AbstractControlOptions<E> | null,
-    asyncValidator?: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null
+    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     super(controls, validatorOrOpts, asyncValidator);
   }
@@ -218,7 +220,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * Sets the synchronous validators that are active on this control. Calling
    * this overwrites any existing sync validators.
    */
-  setValidators(newValidator: ValidatorFn<E> | ValidatorFn<E>[] | null) {
+  setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
     return super.setValidators(newValidator);
   }
 
@@ -226,7 +228,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * Sets the async validators that are active on this control. Calling this
    * overwrites any existing async validators.
    */
-  setAsyncValidators(newValidator: AsyncValidatorFn<E> | AsyncValidatorFn<E>[] | null) {
+  setAsyncValidators(newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null) {
     return super.setAsyncValidators(newValidator);
   }
 
@@ -251,7 +253,69 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * expect(login.valid).toEqual(true);
    * ```
    */
-  setErrors(errors: ValidationErrors<E> | null, opts: { emitEvent?: boolean } = {}) {
+  setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
     return super.setErrors(errors, opts);
+  }
+
+  /**
+   * Reports error data for the control with the given controlName.
+   *
+   * @param errorCode The code of the error to check
+   * @param controlName A control name that designates how to move from the current control
+   * to the control that should be queried for errors.
+   *
+   * For example, for the following `FormGroup`:
+   *
+```ts
+form = new FormGroup({
+  address: new FormGroup({ street: new FormControl() })
+});
+```
+   *
+   * The controlName to the 'street' control from the root form would be 'address' -> 'street'.
+   *
+   * It can be provided to this method in combination with `get()` method:
+   * 
+```ts
+form.get('address').getError('someErrorCode', 'street');
+```
+   *
+   * @returns error data for that particular error. If the control or error is not present,
+   * null is returned.
+   */
+  getError<P extends StringKeys<E>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+    return super.getError(errorCode, controlName) as E[P] | null;
+  }
+
+  /**
+   * Reports whether the control with the given controlName has the error specified.
+   *
+   * @param errorCode The code of the error to check
+   * @param controlName A control name that designates how to move from the current control
+   * to the control that should be queried for errors.
+   *
+   * For example, for the following `FormGroup`:
+   *
+```ts
+form = new FormGroup({
+  address: new FormGroup({ street: new FormControl() })
+});
+```
+   *
+   * The controlName to the 'street' control from the root form would be 'address' -> 'street'.
+   *
+   * It can be provided to this method in combination with `get()` method:
+```ts
+form.get('address').hasError('someErrorCode', 'street');
+```
+   *
+   * If no controlName is given, this method checks for the error on the current control.
+   *
+   * @returns whether the given error is present in the control at the given controlName.
+   *
+   * If the control is not present, false is returned.
+   */
+  hasError<P extends StringKeys<E>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+    return super.hasError(errorCode, controlName);
   }
 }
