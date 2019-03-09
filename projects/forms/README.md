@@ -59,7 +59,7 @@ formClontrol.setValue(123); // Error: Argument of type '123' is not assignable..
 class Address {
   city: string;
   street: string;
-  zip?: string;
+  zip: string;
   other: string;
 }
 
@@ -96,7 +96,7 @@ import { FormControl, FormGroup } from '@ng-stack/forms';
 class Address {
   city: string;
   street: string;
-  zip?: string;
+  zip: string;
   other: string;
 }
 
@@ -127,7 +127,7 @@ import { FormControl, Control, FormGroup } from '@ng-stack/forms';
 class Address {
   city: string;
   street: string;
-  zip?: string;
+  zip: string;
   other: Control<Other>; // Here should be FormControl, instead of a FormGroup
 }
 
@@ -248,7 +248,7 @@ export class FormGroup extends NativeFormGroup {
 }
 ```
 
-The following section describes the changes that have occurred. All of the following restrictions apply only because of the need to more clearly control the data entered by the user.
+The following section describes the changes that have occurred. All of the following restrictions apply only because of the need to more clearly control the data entered by developers.
 
 ## Changes API
 
