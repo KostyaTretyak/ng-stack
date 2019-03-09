@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "npm run build-libs && ng serve",
+    "prestart": "npm run build-libs",
+    "start": "ng serve",
     "build": "npm run build-libs && ng build",
     "build-libs": "ng build contenteditable && ng build api-mock && ng build forms",
     "test": "ng test",
