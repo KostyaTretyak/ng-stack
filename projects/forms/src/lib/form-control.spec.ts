@@ -1,7 +1,6 @@
 import { FormControl } from './form-control';
 import { isString, isNumber, isArray } from './assert';
 import { FormGroup } from './form-group';
-import { Validators } from './validators';
 import { AbstractControl } from '@angular/forms';
 import { ValidatorFn } from './types';
 

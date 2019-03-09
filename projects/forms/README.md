@@ -178,14 +178,17 @@ Classes `FormControl`, `FormGroup`, `FormArray` and all methods of `FormBuilder`
 accept "error validation model" as second parameter for a generic:
 
 ```ts
-const control = new FormControl<string, { someErrorCode: { returnedValue: 123 } }>('some value');
+class ValidationModel {
+  someErrorCode: { returnedValue: 123 };
+}
+const control = new FormControl<string, ValidationModel>('some value');
 control.getError('someErrorCode'); // OK
-control.errors.someErrorCode // OK
+control.errors.someErrorCode; // OK
 control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not...
-control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' does not exist...
+control.errors.notExistingErrorCode; // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
-By default used special type called `ValidatorsModel`.
+By default is used special type called `ValidatorsModel`.
 
 ```ts
 const control = new FormControl('some value');

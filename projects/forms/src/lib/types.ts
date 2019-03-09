@@ -16,7 +16,7 @@ export type ControlType<T> = T extends (infer Item)[]
     : FormArray<Item>
   : T extends object
   ? FormGroup<T>
-  : T extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
+  : T extends boolean
   ? FormControl<boolean>
   : FormControl<T>;
 
@@ -36,7 +36,7 @@ export type FbControlsConfig<T> = T extends (infer Item)[]
     : FormArray<Item>
   : T extends object
   ? FormGroup<T>
-  : T extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
+  : T extends boolean
   ? FormBuilderControl<boolean>
   : FormBuilderControl<T>;
 
