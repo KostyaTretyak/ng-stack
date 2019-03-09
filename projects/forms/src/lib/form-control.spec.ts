@@ -75,6 +75,15 @@ describe('FormControl', () => {
       // control4.reset('');
       // control4.reset([]);
     });
+
+    it('setValidators() with unappropriate ValidatorFn to a validation model', () => {
+      const control = new FormControl<string, { someErrorCode: { returnedValue: 123 } }>('some value');
+      const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: { returnedValue: 456 } });
+
+      control.setValidators(validatorFn);
+      // Without error, but it's not checking match
+      // between model error code (someErrorCode) and actual entered ValidatorFn error code (otherErrorCode)
+    });
   });
 
   describe(`checking runtime work`, () => {

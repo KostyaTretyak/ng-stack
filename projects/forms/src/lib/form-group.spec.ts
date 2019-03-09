@@ -21,8 +21,10 @@ describe('FormGroup', () => {
   class Profile {
     firstName: string;
     address: Control<Address>;
+    someNumber: number;
     someGroup: SomeGroup;
     someArray: number[];
+    someBoolean: boolean;
   }
 
   xdescribe('checking types only', () => {
@@ -49,6 +51,12 @@ describe('FormGroup', () => {
           // new FormControl('some string'),
           // new FormGroup({}),
         ]),
+      });
+
+      const formControl: FormControl<boolean> = new FormControl(true);
+
+      formGroup = new FormGroup<Profile>({
+        someBoolean: new FormControl(true),
       });
     });
 
