@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { FormBuilder as NativeFormBuilder } from '@angular/forms';
 
 import {
-  FbControlsConfig,
+  FbControlConfig,
   LegacyControlOptions,
   AbstractControlOptions,
   ValidatorFn,
@@ -35,7 +35,7 @@ export class FormBuilder extends NativeFormBuilder {
    * - `asyncValidator`: A single async validator or array of async validator functions
    */
   group<T extends object = any, E extends object = ValidatorsModel>(
-    controlsConfig: { [P in keyof T]?: FbControlsConfig<T[P]> },
+    controlsConfig: { [P in keyof T]?: FbControlConfig<T[P]> },
     options: AbstractControlOptions | LegacyControlOptions | null = null
   ) {
     return super.group(controlsConfig, options) as FormGroup<T, E>;
@@ -100,7 +100,7 @@ export class DisabledFormControlComponent {
    * functions.
    */
   array<Item = any, E extends object = ValidatorsModel>(
-    controlsConfig: FbControlsConfig<Item>[],
+    controlsConfig: FbControlConfig<Item>[],
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
