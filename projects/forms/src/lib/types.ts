@@ -128,4 +128,3 @@ export class ValidatorsModel {
   maxLength: { requiredLength: number; actualLength: number };
   pattern: { requiredPattern: string; actualValue: string };
 }
-

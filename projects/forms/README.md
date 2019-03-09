@@ -178,7 +178,7 @@ Classes `FormControl`, `FormGroup`, `FormArray` and all methods of `FormBuilder`
 accept "error validation model" as second parameter for a generic:
 
 ```ts
-const control = new FormControl<string, { someErrorCode: true }>('some value');
+const control = new FormControl<string, { someErrorCode: { returnedValue: 123 } }>('some value');
 control.getError('someErrorCode'); // OK
 control.errors.someErrorCode // OK
 control.getError('notExistingErrorCode'); // Error: Argument of type '"notExistingErrorCode"' is not...
@@ -219,12 +219,12 @@ For now, the functionality - when a match between a validation model and actuall
 For example:
 
 ```ts
-const control = new FormControl<string, { someErrorCode: true }>('some value');
-const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: 123 });
+const control = new FormControl<string, { someErrorCode: { returnedValue: 123 } }>('some value');
+const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: { returnedValue: 456 } });
 
 control.setValidators(validatorFn);
 // Without error, but it's not checking
-// match between `{ someErrorCode: true }` and `{ otherErrorCode: 123 }`
+// match between `someErrorCode` and `otherErrorCode`
 ```
 
 See: [bug(forms): issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
