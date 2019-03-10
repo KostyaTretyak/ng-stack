@@ -97,20 +97,22 @@ export class HttpBackendService implements HttpBackend {
     return of(new HttpResponse<any>(responseConfig)).pipe(delay(this.apiMockConfig.delay));
   }
 
-  protected showApiMockLog(req: HttpRequest<any>, queryParams: ObjectAny, body: any) {
-    const headers = req.headers.keys().map(header => {
+  protected showApiMockLog(req: HttpRequest<any>, queryParams: Params, body: any) {
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+      body: req.body,
+      queryParams,
+      headers: this.getHeaders(req),
+    });
+
+    console.log(`%cres:`, 'color: blue;', body);
+  }
+
+  protected getHeaders(req: HttpRequest<any>) {
+    return req.headers.keys().map(header => {
       let values: string | string[] = req.headers.getAll(header);
       values = values.length == 1 ? values[0] : values;
       return { [header]: values };
     });
-
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-      body: req.body,
-      queryParams,
-      headers,
-    });
-
-    console.log(`%cres:`, 'color: blue;', body);
   }
 
   protected passThruBackend(req: HttpRequest<any>) {
@@ -204,9 +206,13 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
-  protected make404Error(req: HttpRequest<any>) {
+  protected make404Error(req: HttpRequest<any>, queryParams: Params = {}) {
     if (this.apiMockConfig.showLog) {
-      console.log(`%c${req.method} ${req.url}: Error 404: The page not found`, 'color: brown;');
+      console.log(`%creq: ${req.method} ${req.url}: Error 404: The page not found`, 'color: brown;', {
+        body: req.body,
+        queryParams,
+        headers: this.getHeaders(req),
+      });
     }
     return throwError(
       new HttpErrorResponse({
@@ -371,7 +377,7 @@ export class HttpBackendService implements HttpBackend {
 
         if (!item) {
           if (this.apiMockConfig.showLog) {
-            const message = `Item not found with primary key "${primaryKey}" and ID "${restId}", searched in:`;
+            const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
             console.log('%c' + message, 'color: brown', mockData.writeableData);
           }
           return;
