@@ -36,6 +36,8 @@ describe('FormGroup', () => {
         // firstName: new FormControl(2),
         // firstName: new FormControl(true),
         // firstName: new FormControl([]),
+        // firstName: new FormControl({}),
+        // firstName: new FormGroup({}),
         // firstName: new FormArray([]),
         address: new FormControl({
           value: { other: 'some value', city: 'Kyiv', street: 'Khreshchatyk' },

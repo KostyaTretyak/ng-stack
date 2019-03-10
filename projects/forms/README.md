@@ -109,11 +109,11 @@ const formGroup = new FormGroup<Address>({
 });
 ```
 
-As we can see, constructor of `FormGroup` takes form model `Address` for its generic and knows that
+As we can see, constructor of `FormGroup` accept form model `Address` for its generic and knows that
 property `street` have primitive type and should to have a value only with instance of `FormControl`.
 
-If some property of a form model have type that extends `object`, then it should to have a value with
-instance of `FormGroup`. So for an array - instance of `FormArray`.
+If some property of a form model have type that extends `object`, then an appropriate property in a form
+should to have a value with instance of `FormGroup`. So for an array - instance of `FormArray`.
 
 But maybe you want for `FormControl` to accept an object in its constructor, instead of a primitive value.
 What to do in this case? For this purpose a special type `Control<T>` was intended.
@@ -175,10 +175,10 @@ get addresses() {
 ### Typed Validations
 
 Classes `FormControl`, `FormGroup`, `FormArray` and all methods of `FormBuilder`
-accept "error validation model" as second parameter for a generic:
+accept a "validation model" as second parameter for their generics:
 
 ```ts
-class ValidationModel {
+interface ValidationModel {
   someErrorCode: { returnedValue: 123 };
 }
 const control = new FormControl<string, ValidationModel>('some value');
@@ -188,7 +188,7 @@ control.getError('notExistingErrorCode'); // Error: Argument of type '"notExisti
 control.errors.notExistingErrorCode; // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
-By default is used special type called `ValidatorsModel`.
+By default is used special an interface called `ValidatorsModel`.
 
 ```ts
 const control = new FormControl('some value');
@@ -203,7 +203,7 @@ control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' do
 `ValidatorsModel` contains a list of properties extracted from `typeof Validators`, and expected returns types:
 
 ```ts
-class ValidatorsModel {
+interface ValidatorsModel {
   min: { min: { min: number; actual: number } };
   max: { max: { max: number; actual: number } };
   required: { required: true };
@@ -257,15 +257,15 @@ The following section describes the changes that have occurred. All of the follo
 - `formGroup.get()` supporting only signature:
 
   ```ts
-  form.get('address').get('street');
+  formGroup.get('address').get('street');
   ```
 
   and not supporting:
 
   ```ts
-  form.get('address.street');
+  formGroup.get('address.street');
   // OR
-  form.get(['address', 'street']);
+  formGroup.get(['address', 'street']);
   ```
 
 - Angular native `formControl.get()` method always returns `null`. Because of this, supporting signature only `get()` (without arguments).
@@ -276,23 +276,23 @@ See also issue on github [feat(forms): hide get() method of FormControl from pub
 - `formGroup.getError()` and `formGroup.hasError()` supporting only this signature:
 
   ```ts
-  form.get('address').getError('someErrorCode', 'street');
+  formGroup.get('address').getError('someErrorCode', 'street');
   ```
 
   And not supporting this signature:
 
   ```ts
-  form.getError('someErrorCode', 'address.street');
+  formGroup.getError('someErrorCode', 'address.street');
   // OR
-  form.getError('someErrorCode', ['address', 'street']);
+  formGroup.getError('someErrorCode', ['address', 'street']);
   ```
 
 - `formControl.getError()` and `formControl.hasError()` supporting only this signature (without second argument):
 
   ```ts
-  control.getError('someErrorCode');
+  formControl.getError('someErrorCode');
   ```
 
-### ValidationErrors
+### ValidatorFn and AsyncValidatorFn
 
-Native `ValidatorFn` and `AsyncValidatorFn` are interfaces, in `@ng-stack/forms` this are types.
+Native `ValidatorFn` and `AsyncValidatorFn` are interfaces, in `@ng-stack/forms` they are types.
