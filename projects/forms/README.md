@@ -188,7 +188,7 @@ control.getError('notExistingErrorCode'); // Error: Argument of type '"notExisti
 control.errors.notExistingErrorCode; // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
-By default is used special an interface called `ValidatorsModel`.
+By default is used special interface called `ValidatorsModel`.
 
 ```ts
 const control = new FormControl('some value');
@@ -222,7 +222,10 @@ For now, the functionality - when a match between a validation model and actuall
 For example:
 
 ```ts
-const control = new FormControl<string, { someErrorCode: { returnedValue: 123 } }>('some value');
+interface ValidationModel {
+  someErrorCode: { returnedValue: 123 };
+}
+const control = new FormControl<string, ValidationModel>('some value');
 const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: { returnedValue: 456 } });
 
 control.setValidators(validatorFn);
@@ -268,7 +271,7 @@ The following section describes the changes that have occurred. All of the follo
   formGroup.get(['address', 'street']);
   ```
 
-- Angular native `formControl.get()` method always returns `null`. Because of this, supporting signature only `get()` (without arguments).
+- Angular's native `formControl.get()` method always returns `null`. Because of this, supporting signature only `get()` (without arguments).
 See also issue on github [feat(forms): hide get() method of FormControl from public API](https://github.com/angular/angular/issues/29091).
 
 ### getError() and hasError()

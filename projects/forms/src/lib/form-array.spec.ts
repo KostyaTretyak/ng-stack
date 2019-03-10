@@ -17,12 +17,7 @@ describe('FormArray', () => {
   }
 
   xdescribe('checking types only', () => {
-    it('constructor()', () => {
-      const formArray = new FormArray([]);
-      formArray.getError('required', 'controlName');
-      // formArray.getError('notExistingErrorCode', 'fdsf');
-      // new FormArray();
-    });
+    // Waiting for resolving https://github.com/Microsoft/TypeScript/issues/30207
   });
 
   describe(`checking runtime work`, () => {});
