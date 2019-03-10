@@ -85,7 +85,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    * See also: `setValue` for options
    */
   patchValue(
-    value: Partial<T>,
+    value: Required<T>,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
