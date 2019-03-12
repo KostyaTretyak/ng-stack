@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Params } from '@angular/router';
+import { Params, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { HttpBackendService } from './http-backend.service';
@@ -14,7 +14,9 @@ import {
   ApiMockRoute,
   HttpMethod,
   ResponseParam,
+  ApiMockConfig,
 } from './types';
+import { XhrFactory } from '@angular/common/http';
 
 describe('HttpBackendService', () => {
   /**
@@ -22,6 +24,13 @@ describe('HttpBackendService', () => {
    */
   @Injectable()
   class HttpBackendService2 extends HttpBackendService {
+    constructor(apiMockService: ApiMockService, apiMockConfig: ApiMockConfig, xhrFactory: XhrFactory, router: Router) {
+      super(apiMockService, apiMockConfig, xhrFactory, router);
+      (this as any).apiMockConfig = new ApiMockConfig((this as any).apiMockConfig);
+      this.init();
+      (this as any).isInited = true;
+    }
+
     getRootPaths(routeGroups: ApiMockRouteGroup[]) {
       return super.getRootPaths(routeGroups);
     }

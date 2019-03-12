@@ -57,7 +57,9 @@ export class HttpBackendService implements HttpBackend {
 
     try {
       if (!this.isInited) {
+        // Merge with default configs.
         this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
+
         this.init();
         this.isInited = true;
       }
@@ -71,10 +73,11 @@ export class HttpBackendService implements HttpBackend {
         }
         return this.make404Error(req);
       }
+
+      const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
+      let responseParams: ResponseParam[] | void;
       urlTree = this.router.parseUrl(req.urlWithParams);
       queryParams = urlTree.queryParams;
-      let responseParams: ResponseParam[] | void;
-      const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
 
       if (routeDryMatch) {
         const { splitedUrl, splitedRoute, hasLastRestId, routes } = routeDryMatch;
