@@ -1,3 +1,5 @@
+import { Injectable } from '@angular/core';
+import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
 import {
   HttpBackend,
   HttpErrorResponse,
@@ -7,7 +9,6 @@ import {
   HttpXhrBackend,
   XhrFactory,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
 
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
@@ -21,19 +22,19 @@ import {
   ApiMockRouteRoot,
   PartialRoutes,
   RouteDryMatch,
-  GetDataParam,
+  ResponseParam,
   HttpMethod,
   ObjectAny,
 } from './types';
 import { Status } from './http-status-codes';
-import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
 
 @Injectable()
 export class HttpBackendService implements HttpBackend {
+  private isInited: boolean;
   private cachedData: CacheData = {};
   private routeGroups: ApiMockRouteGroup[] = [];
   /**
-   * Root route paths with host, but without restId. Has result transformation:
+   * Root route paths with host, but without restId. Has result of transformation:
    * - `part1/part2/:paramName` -> `part1/part2`
    * - or `https://example.com/part1/part2/:paramName` -> `https://example.com/part1/part2`
    *
@@ -46,43 +47,48 @@ export class HttpBackendService implements HttpBackend {
     private apiMockConfig: ApiMockConfig,
     private xhrFactory: XhrFactory,
     private router: Router
-  ) {
-    try {
-      this.apiMockConfig = new ApiMockConfig(apiMockConfig);
-      this.init();
-    } catch (e) {
-      console.log(e);
-    }
-  }
+  ) {}
 
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+    if (!this.isInited) {
+      try {
+        this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
+        this.init();
+      } catch (e) {
+        return throwError(e);
+      }
+      this.isInited = true;
+    }
+
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
     const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
 
-    if (routeGroupIndex == -1 && this.apiMockConfig.passThruUnknownUrl) {
-      return this.passThruBackend(req);
-    } else if (routeGroupIndex == -1) {
+    if (routeGroupIndex == -1) {
+      if (this.apiMockConfig.passThruUnknownUrl) {
+        return this.passThruBackend(req);
+      }
       return this.make404Error(req);
     }
 
     let body: any;
     const urlTree = this.router.parseUrl(req.urlWithParams);
     const queryParams = urlTree.queryParams;
-    let params: GetDataParam[] | void;
+
     try {
-      const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
-      if (dryMatch) {
-        const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch;
-        params = this.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
-        if (params) {
-          body = this.getResponse(req.method as HttpMethod, params, queryParams);
+      let responseParams: ResponseParam[] | void;
+      const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
+      if (routeDryMatch) {
+        const { splitedUrl, splitedRoute, hasLastRestId, routes } = routeDryMatch;
+        responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
+        if (responseParams) {
+          body = this.getResponse(req.method as HttpMethod, responseParams, queryParams, req.body);
         }
       }
-      if ((!dryMatch || !params) && this.apiMockConfig.passThruUnknownUrl) {
+      if ((!routeDryMatch || !responseParams) && this.apiMockConfig.passThruUnknownUrl) {
         return this.passThruBackend(req);
       }
     } catch (err) {
-      console.log(err);
+      return throwError(err);
     }
 
     if (!body) {
@@ -129,13 +135,13 @@ export class HttpBackendService implements HttpBackend {
     this.routeGroups = this.checkRouteGroups(routeGroups);
     this.rootRoutes = this.getRootPaths(this.routeGroups);
 
-    let loadedApp = false;
+    let isLoadedApp = false;
     if (this.apiMockConfig.showLog && this.apiMockConfig.clearPrevLog) {
       this.router.events.subscribe(event => {
-        if (loadedApp && event instanceof NavigationStart) {
+        if (isLoadedApp && event instanceof NavigationStart) {
           console.clear();
         } else if (event instanceof NavigationEnd) {
-          loadedApp = true;
+          isLoadedApp = true;
         }
       });
     }
@@ -208,11 +214,12 @@ export class HttpBackendService implements HttpBackend {
 
   protected make404Error(req: HttpRequest<any>, queryParams: Params = {}) {
     if (this.apiMockConfig.showLog) {
-      console.log(`%creq: ${req.method} ${req.url}: Error 404: The page not found`, 'color: brown;', {
+      console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
         body: req.body,
         queryParams,
         headers: this.getHeaders(req),
       });
+      console.log('%cres: Error 404: The page not found', 'color: brown;');
     }
     return throwError(
       new HttpErrorResponse({
@@ -224,9 +231,6 @@ export class HttpBackendService implements HttpBackend {
     );
   }
 
-  /**
-   * @param url URL with host.
-   */
   protected findRouteGroupIndex(rootRoutes: PartialRoutes, url: string): number {
     for (const rootRoute of rootRoutes) {
       // We have `rootRoute.length + 1` to avoid such case:
@@ -241,18 +245,25 @@ export class HttpBackendService implements HttpBackend {
   }
 
   /**
-   * @param normalizedUrl If we have URL without host, removed slash from the start.
+   * This method should accepts an URL that matched to a route path by a root segment, for example:
+   * - `root-segment/segment` and `root-segment/:routeId`
+   * - `root-segment/segment` and `root-segment/other/:routeId`.
+   *
+   * Then it splites them by `/` and compares length of `splitedUrl` with length of `splitedRoute` and if
+   * they are equal, returns that route with some metadata.
+   *
+   * @param normalizedUrl If we have URL without host, here should be url with removed slash from the start.
    * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
    */
   protected getRouteDryMatch(normalizedUrl: string, routeGroup: ApiMockRouteGroup): RouteDryMatch | void {
+    const splitedUrl = normalizedUrl.split('/');
     /**
      * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
      */
-    const splitedUrl = normalizedUrl.split('/');
     const countPartOfUrl = splitedUrl.length;
+    const routes: ApiMockRouteGroup = [] as any;
     let pathOfRoute = routeGroup[0].host || '';
     let hasLastRestId = true;
-    const routes: ApiMockRouteGroup = [] as any;
 
     for (const route of routeGroup) {
       routes.push(route);
@@ -280,24 +291,23 @@ export class HttpBackendService implements HttpBackend {
   }
 
   /**
-   * Taken result of dry matching an URL to a route,
+   * Taken result of dry matching an URL to a route path,
    * so length of `splitedUrl` is always must to be equal to length of `splitedRoute`.
    *
-   * This function:
-   * - checks that concated `splitedUrl` is matched to concated `splitedRoute`;
+   * This method checks that concated `splitedUrl` is matched to concated `splitedRoute`;
    *
    * @param splitedUrl Result spliting of an URL by slash.
    * @param splitedRoute Result spliting of concated a route paths by slash.
    * @param hasLastRestId Whethe URL has last restId, e.g. `posts/123` or `posts/123/comments/456`.
    * @param routes Part or full of routes group, that have path matched to an URL.
    */
-  protected getReponseParams(
+  protected getResponseParams(
     splitedUrl: string[],
     splitedRoute: string[],
     hasLastRestId: boolean,
     routes: ApiMockRouteGroup
-  ): GetDataParam[] | void {
-    const params: GetDataParam[] = [];
+  ): ResponseParam[] | void {
+    const responseParams: ResponseParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
 
@@ -310,8 +320,8 @@ export class HttpBackendService implements HttpBackend {
          * but not `posts/123` or `posts/123/comments/456`.
          */
         const cacheKey = splitedUrl.slice(0, i).join('/');
-        const route = routes[params.length];
-        params.push({ cacheKey, primaryKey, restId, route });
+        const route = routes[responseParams.length];
+        responseParams.push({ cacheKey, primaryKey, restId, route });
       } else {
         /**
          * Have result of transformations like this:
@@ -330,12 +340,12 @@ export class HttpBackendService implements HttpBackend {
 
     const lastRoute = routes[routes.length - 1];
     if (!hasLastRestId) {
-      params.push({ cacheKey: splitedUrl.join('/'), route: lastRoute });
+      responseParams.push({ cacheKey: splitedUrl.join('/'), route: lastRoute });
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
       // Signature of a route path is matched to an URL.
-      return params;
+      return responseParams;
     }
   }
 
@@ -344,14 +354,19 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams?: Params): any | void {
+  protected getResponse(
+    httpMethod: HttpMethod,
+    responseParams: ResponseParam[],
+    queryParams?: Params,
+    reqBody?: ObjectAny
+  ): any | void {
     const parents: ObjectAny[] = [];
 
-    for (let i = 0; i < params.length; i++) {
-      const isLastIteration = i + 1 == params.length;
-      const param = params[i];
+    for (let i = 0; i < responseParams.length; i++) {
+      const isLastIteration = i + 1 == responseParams.length;
+      const param = responseParams[i];
       if (!this.cachedData[param.cacheKey]) {
-        const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams);
+        const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams, reqBody);
         this.cachedData[param.cacheKey] = { writeableData, onlyreadData: [] };
         this.setOnlyreadData(param, writeableData);
       }
@@ -363,7 +378,8 @@ export class HttpBackendService implements HttpBackend {
           param.restId,
           httpMethod,
           parents,
-          queryParams
+          queryParams,
+          reqBody
         );
 
         mockData.writeableData = writeableData;
@@ -391,25 +407,25 @@ export class HttpBackendService implements HttpBackend {
     }
 
     const items = parents.pop() as ObjectAny[];
-    const lastParam = params[params.length - 1];
+    const lastParam = responseParams[responseParams.length - 1];
     const lastRestId = lastParam.restId || '';
 
     const clonedParents = this.clone(parents);
     const clonedItems = this.clone(items);
-    return lastParam.route.callbackResponse(clonedItems, lastRestId, httpMethod, clonedParents, queryParams);
+    return lastParam.route.callbackResponse(clonedItems, lastRestId, httpMethod, clonedParents, queryParams, reqBody);
   }
 
   /**
    * Setting onlyread data to `this.cachedData[cacheKey].onlyreadData`
    */
-  protected setOnlyreadData(param: GetDataParam, writeableData: ObjectAny[]) {
+  protected setOnlyreadData(responseParam: ResponseParam, writeableData: ObjectAny[]) {
     let onlyreadData: ObjectAny[];
-    const pickObj = param.route.propertiesForList;
+    const pickObj = responseParam.route.propertiesForList;
     if (pickObj) {
       onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
     } else {
       onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
     }
-    this.cachedData[param.cacheKey].onlyreadData = onlyreadData;
+    this.cachedData[responseParam.cacheKey].onlyreadData = onlyreadData;
   }
 }

@@ -13,7 +13,7 @@ import {
   RouteDryMatch,
   ApiMockRoute,
   HttpMethod,
-  GetDataParam,
+  ResponseParam,
 } from './types';
 
 describe('HttpBackendService', () => {
@@ -38,12 +38,12 @@ describe('HttpBackendService', () => {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
 
-    getReponseParams(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
-      return super.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
+    getResponseParams(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
+      return super.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
     }
 
-    getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams?: Params) {
-      return super.getResponse(httpMethod, params, queryParams);
+    getResponse(httpMethod: HttpMethod, responseParam: ResponseParam[], queryParams?: Params) {
+      return super.getResponse(httpMethod, responseParam, queryParams);
     }
   }
 
@@ -321,7 +321,7 @@ describe('HttpBackendService', () => {
               const splitedUrl = url.split('/');
               const splitedRoute = routePath.split('/');
               const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-              const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
+              const params = httpBackendService.getResponseParams(splitedUrl, splitedRoute, true, routes);
               expect(!!params).toBeFalsy();
             });
           });
@@ -331,12 +331,12 @@ describe('HttpBackendService', () => {
               const splitedUrl = url.split('/');
               const splitedRoute = routePath.split('/');
               const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-              const params = httpBackendService.getReponseParams(
+              const params = httpBackendService.getResponseParams(
                 splitedUrl,
                 splitedRoute,
                 true,
                 routes
-              ) as GetDataParam[];
+              ) as ResponseParam[];
               expect(!!params).toBeTruthy();
               expect(params.length).toEqual(1);
               const param = params[0];
@@ -362,7 +362,7 @@ describe('HttpBackendService', () => {
               const splitedUrl = url.split('/');
               const splitedRoute = routePath.split('/');
               const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-              const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
+              const params = httpBackendService.getResponseParams(splitedUrl, splitedRoute, true, routes);
               expect(!!params).toBeFalsy();
             });
           });
@@ -375,12 +375,12 @@ describe('HttpBackendService', () => {
                 { ...route, path: 'posts/:postId' },
                 { ...route, path: 'comments/:commentId' },
               ];
-              const params = httpBackendService.getReponseParams(
+              const params = httpBackendService.getResponseParams(
                 splitedUrl,
                 splitedRoute,
                 true,
                 routes
-              ) as GetDataParam[];
+              ) as ResponseParam[];
               expect(!!params).toBeTruthy();
               expect(params.length).toEqual(2);
               const param1 = params[0];
@@ -410,7 +410,7 @@ describe('HttpBackendService', () => {
             const splitedUrl = url.split('/');
             const splitedRoute = routePath.split('/');
             const routes: ApiMockRouteGroup = [{ ...route, path: routePath, host: 'https://example.com' }];
-            const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
+            const params = httpBackendService.getResponseParams(splitedUrl, splitedRoute, true, routes);
             expect(!!params).toBeFalsy();
           });
         });
@@ -420,12 +420,12 @@ describe('HttpBackendService', () => {
             const splitedUrl = url.split('/');
             const splitedRoute = routePath.split('/');
             const routes: ApiMockRouteGroup = [{ ...route, path: 'posts/:postId', host: 'https://example.com' }];
-            const params = httpBackendService.getReponseParams(
+            const params = httpBackendService.getResponseParams(
               splitedUrl,
               splitedRoute,
               true,
               routes
-            ) as GetDataParam[];
+            ) as ResponseParam[];
             expect(!!params).toBeTruthy();
             expect(params.length).toEqual(1);
             const param = params[0];
@@ -453,7 +453,7 @@ describe('HttpBackendService', () => {
             const splitedUrl = url.split('/');
             const splitedRoute = routePath.split('/');
             const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-            const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, false, routes);
+            const params = httpBackendService.getResponseParams(splitedUrl, splitedRoute, false, routes);
             expect(!!params).toBeFalsy();
           });
         });
@@ -463,12 +463,12 @@ describe('HttpBackendService', () => {
             const splitedUrl = url.split('/');
             const splitedRoute = routePath.split('/');
             const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-            const params = httpBackendService.getReponseParams(
+            const params = httpBackendService.getResponseParams(
               splitedUrl,
               splitedRoute,
               false,
               routes
-            ) as GetDataParam[];
+            ) as ResponseParam[];
             expect(!!params).toBeTruthy();
             expect(params.length).toEqual(1);
             const param = params[0];
@@ -494,7 +494,7 @@ describe('HttpBackendService', () => {
             const splitedUrl = url.split('/');
             const splitedRoute = routePath.split('/');
             const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-            const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
+            const params = httpBackendService.getResponseParams(splitedUrl, splitedRoute, true, routes);
             expect(!!params).toBeFalsy();
           });
         });
@@ -507,12 +507,12 @@ describe('HttpBackendService', () => {
               { ...route, path: 'posts/:postId' },
               { ...route, path: 'comments/:commentId' },
             ];
-            const params = httpBackendService.getReponseParams(
+            const params = httpBackendService.getResponseParams(
               splitedUrl,
               splitedRoute,
               false,
               routes
-            ) as GetDataParam[];
+            ) as ResponseParam[];
             expect(!!params).toBeTruthy();
             expect(params.length).toEqual(2);
             const param1 = params[0];
@@ -532,8 +532,10 @@ describe('HttpBackendService', () => {
     it('should returns result of calling callbackData()', () => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const params: GetDataParam[] = [{ cacheKey: 'api/posts', route: { path: '', callbackData, callbackResponse } }];
-      const res = httpBackendService.getResponse('GET', params);
+      const responseParam: ResponseParam[] = [
+        { cacheKey: 'api/posts', route: { path: '', callbackData, callbackResponse } },
+      ];
+      const res = httpBackendService.getResponse('GET', responseParam);
       expect(res).toBeDefined();
       expect(Array.isArray(res)).toBe(true);
       expect(res).toEqual(callbackData());
@@ -542,7 +544,7 @@ describe('HttpBackendService', () => {
     it('should searched item with given primaryKey and restId inside result of calling callbackData()', () => {
       const callbackData = () => [{ somePrimaryKey: 23, some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const params: GetDataParam[] = [
+      const responseParam: ResponseParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
@@ -550,7 +552,7 @@ describe('HttpBackendService', () => {
           route: { path: '', callbackData, callbackResponse },
         },
       ];
-      const res = httpBackendService.getResponse('GET', params);
+      const res = httpBackendService.getResponse('GET', responseParam);
       expect(res).toBeDefined();
       expect(Array.isArray(res)).toBe(true);
       expect(res).toEqual(callbackData());
@@ -559,7 +561,7 @@ describe('HttpBackendService', () => {
     it('should returns undefined when search inside result of calling callbackData()', () => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const params: GetDataParam[] = [
+      const responseParam: ResponseParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
@@ -567,7 +569,7 @@ describe('HttpBackendService', () => {
           route: { path: '', callbackData, callbackResponse },
         },
       ];
-      const res = httpBackendService.getResponse('GET', params);
+      const res = httpBackendService.getResponse('GET', responseParam);
       expect(res).toBeUndefined();
     });
   });

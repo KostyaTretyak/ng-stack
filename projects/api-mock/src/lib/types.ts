@@ -11,7 +11,7 @@ export abstract class ApiMockService {
 @Injectable()
 export class ApiMockConfig {
   /**
-   * - Do you need to delete previous console logs?
+   * - Do you need to clear previous console logs?
    *
    * Clears logs between previous route `NavigationStart` and current `NavigationStart` events.
    */
@@ -42,14 +42,14 @@ export class ApiMockConfig {
    */
   passThruUnknownUrl? = false;
   /**
-   * - `true` - 204 code (default) - should NOT return the item after a POST.
+   * - `true` - (default) 204 code - should NOT return the item after a `POST`.
    * - `false` - 200 code - return the item.
    *
    * Tip:
    */
   post204? = true;
   /**
-   * - `true` - should NOT update existing item with POST.
+   * - `true` - should NOT update existing item with `POST`.
    * - `false` - (default) OK to update.
    *
    * Tip:
@@ -60,7 +60,7 @@ export class ApiMockConfig {
    */
   post409? = false;
   /**
-   * - `true` - 204 code (default) - should NOT return the item after a POST.
+   * - `true` - (default) 204 code - should NOT return the item after a `POST`.
    * - `false` - 200 code - return the item.
    *
    * Tip:
@@ -70,7 +70,7 @@ export class ApiMockConfig {
    */
   put204? = true;
   /**
-   * - `true` - create new item if PUT item with that ID not found.
+   * - `true` - create new item if `PUT` item with that ID not found.
    * - `false` - (default) should return 404 code.
    */
   put404? = false;
@@ -96,7 +96,8 @@ export type ApiMockCallbackData<I extends ObjectAny[] = ObjectAny[], P extends O
   itemId?: string,
   httpMethod?: HttpMethod,
   parents?: P,
-  queryParams?: Params
+  queryParams?: Params,
+  postBody?: ObjectAny
 ) => ObjectAny[];
 
 export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
@@ -104,7 +105,8 @@ export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P exten
   itemId?: string,
   httpMethod?: HttpMethod,
   parents?: P,
-  queryParams?: Params
+  queryParams?: Params,
+  postBody?: ObjectAny
 ) => any;
 
 export interface ApiMockRoute {
@@ -134,7 +136,7 @@ export class RouteDryMatch {
   routes: ApiMockRouteGroup;
 }
 
-export interface GetDataParam {
+export interface ResponseParam {
   cacheKey: string;
   route: ApiMockRouteRoot | ApiMockRoute;
   primaryKey?: string;
