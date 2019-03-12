@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
+import { Router, Params, NavigationStart, NavigationEnd, UrlTree } from '@angular/router';
 import {
   HttpBackend,
   HttpErrorResponse,
@@ -51,33 +51,31 @@ export class HttpBackendService implements HttpBackend {
   ) {}
 
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
-    if (!this.isInited) {
-      try {
-        this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
-        this.init();
-      } catch (err) {
-        return this.makeInternalError(req.urlWithParams, err);
-      }
-      this.isInited = true;
-    }
-
-    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
-    const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
-
-    if (routeGroupIndex == -1) {
-      if (this.apiMockConfig.passThruUnknownUrl) {
-        return this.passThruBackend(req);
-      }
-      return this.make404Error(req);
-    }
-
     let body: any;
-    const urlTree = this.router.parseUrl(req.urlWithParams);
-    const queryParams = urlTree.queryParams;
+    let urlTree: UrlTree;
+    let queryParams: Params;
 
     try {
+      if (!this.isInited) {
+        this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
+        this.init();
+        this.isInited = true;
+      }
+
+      const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
+      const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
+
+      if (routeGroupIndex == -1) {
+        if (this.apiMockConfig.passThruUnknownUrl) {
+          return new HttpXhrBackend(this.xhrFactory).handle(req);
+        }
+        return this.make404Error(req);
+      }
+      urlTree = this.router.parseUrl(req.urlWithParams);
+      queryParams = urlTree.queryParams;
       let responseParams: ResponseParam[] | void;
       const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
+
       if (routeDryMatch) {
         const { splitedUrl, splitedRoute, hasLastRestId, routes } = routeDryMatch;
         responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
@@ -85,8 +83,9 @@ export class HttpBackendService implements HttpBackend {
           body = this.getResponse(req.method as HttpMethod, responseParams, queryParams, req.body);
         }
       }
+
       if ((!routeDryMatch || !responseParams) && this.apiMockConfig.passThruUnknownUrl) {
-        return this.passThruBackend(req);
+        return new HttpXhrBackend(this.xhrFactory).handle(req);
       }
     } catch (err) {
       return this.makeInternalError(req.urlWithParams, err);
@@ -120,15 +119,6 @@ export class HttpBackendService implements HttpBackend {
       values = values.length == 1 ? values[0] : values;
       return { [header]: values };
     });
-  }
-
-  protected passThruBackend(req: HttpRequest<any>) {
-    try {
-      return new HttpXhrBackend(this.xhrFactory).handle(req);
-    } catch (ex) {
-      ex.message = 'Cannot create passThru404 backend; ' + (ex.message || '');
-      throw ex;
-    }
   }
 
   protected init() {
