@@ -8,6 +8,7 @@ import {
   HttpResponse,
   HttpXhrBackend,
   XhrFactory,
+  HttpHeaders,
 } from '@angular/common/http';
 
 import { Observable, of, throwError } from 'rxjs';
@@ -26,7 +27,7 @@ import {
   HttpMethod,
   ObjectAny,
 } from './types';
-import { Status } from './http-status-codes';
+import { Status, getStatusText } from './http-status-codes';
 
 @Injectable()
 export class HttpBackendService implements HttpBackend {
@@ -54,8 +55,8 @@ export class HttpBackendService implements HttpBackend {
       try {
         this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
         this.init();
-      } catch (e) {
-        return throwError(e);
+      } catch (err) {
+        return this.makeInternalError(req.urlWithParams, err);
       }
       this.isInited = true;
     }
@@ -88,7 +89,7 @@ export class HttpBackendService implements HttpBackend {
         return this.passThruBackend(req);
       }
     } catch (err) {
-      return throwError(err);
+      return this.makeInternalError(req.urlWithParams, err);
     }
 
     if (!body) {
@@ -227,6 +228,18 @@ export class HttpBackendService implements HttpBackend {
         url: req.urlWithParams,
         statusText: 'page not found',
         error: 'page not found',
+      })
+    );
+  }
+
+  protected makeInternalError(url: string, error: any) {
+    return throwError(
+      new HttpErrorResponse({
+        url,
+        status: Status.INTERNAL_SERVER_ERROR,
+        statusText: getStatusText(Status.INTERNAL_SERVER_ERROR),
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+        error,
       })
     );
   }
