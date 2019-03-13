@@ -12,7 +12,7 @@ import {
 } from '@angular/common/http';
 
 import { Observable, of, throwError } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { delay, tap, catchError } from 'rxjs/operators';
 
 import { pickAllPropertiesAsGetters } from './pick-properties';
 import {
@@ -69,10 +69,9 @@ export class HttpBackendService implements HttpBackend {
 
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
     const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
-    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
 
     if (routeGroupIndex == -1) {
-      return this.send404Error(req, queryParams);
+      return this.send404Error(req);
     }
 
     const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
@@ -82,20 +81,24 @@ export class HttpBackendService implements HttpBackend {
       const { splitedUrl, splitedRoute, hasLastRestId, routes } = routeDryMatch;
       responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
       if (responseParams) {
-        return this.sendResponse(req, responseParams, queryParams);
+        return this.sendResponse(req, responseParams);
       }
     }
-    return this.send404Error(req, queryParams);
+    return this.send404Error(req);
   }
 
-  protected send404Error(req: HttpRequest<any>, queryParams: Params) {
+  protected send404Error(req: HttpRequest<any>) {
     if (this.apiMockConfig.passThruUnknownUrl) {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
-    return this.make404Error(req, queryParams);
+    return this.make404Error(req.urlWithParams);
   }
 
-  protected showApiMockLog(req: HttpRequest<any>, queryParams: Params, body: any) {
+  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, body: any) {
+    if (!this.apiMockConfig.showLog) {
+      return;
+    }
+
     console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
       body: req.body,
       queryParams,
@@ -103,6 +106,20 @@ export class HttpBackendService implements HttpBackend {
     });
 
     console.log(`%cres:`, 'color: blue;', body);
+  }
+
+  protected logErrorResponse(req: HttpRequest<any>, queryParams: Params, err: Error) {
+    if (!this.apiMockConfig.showLog) {
+      return;
+    }
+
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+      body: req.body,
+      queryParams,
+      headers: this.getHeaders(req),
+    });
+    console.log('%cres: The following error occurred:', 'color: brown;');
+    console.log(err);
   }
 
   protected getHeaders(req: HttpRequest<any>) {
@@ -195,20 +212,11 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
-  protected make404Error(req: HttpRequest<any>, queryParams: Params, ...consoleArgs: any[]) {
-    if (this.apiMockConfig.showLog) {
-      console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-        body: req.body,
-        queryParams,
-        headers: this.getHeaders(req),
-      });
-      console.log('%cres: Error 404: The page not found', 'color: brown;', ...consoleArgs);
-    }
-
+  protected make404Error(urlWithParams: string) {
     return throwError(
       new HttpErrorResponse({
         status: Status.NOT_FOUND,
-        url: req.urlWithParams,
+        url: urlWithParams,
         statusText: 'page not found',
         error: 'page not found',
       })
@@ -350,7 +358,8 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[], queryParams: Params) {
+  protected sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[]) {
+    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
     const httpMethod = req.method as HttpMethod;
     const parents: ObjectAny[] = [];
 
@@ -384,8 +393,11 @@ export class HttpBackendService implements HttpBackend {
         const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
-          const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
-          return this.make404Error(req, queryParams, message, mockData.writeableData);
+          if (this.apiMockConfig.showLog) {
+            const message = `%cItem with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
+            console.log(message, 'color: brown;', mockData.writeableData);
+          }
+          return this.make404Error(req.urlWithParams);
         }
 
         parents.push(isLastIteration ? [item] : item);
@@ -421,9 +433,11 @@ export class HttpBackendService implements HttpBackend {
     return observable.pipe(
       delay(this.apiMockConfig.delay),
       tap(res => {
-        if (this.apiMockConfig.showLog) {
-          this.showApiMockLog(req, queryParams, res.body);
-        }
+        this.logSuccessResponse(req, queryParams, res.body);
+      }),
+      catchError(err => {
+        this.logErrorResponse(req, queryParams, err);
+        return throwError(err);
       })
     );
   }

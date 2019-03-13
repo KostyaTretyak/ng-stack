@@ -57,8 +57,8 @@ describe('HttpBackendService', () => {
       return super.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
     }
 
-    sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[], queryParams?: Params) {
-      return super.sendResponse(req, responseParams, queryParams);
+    sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[]) {
+      return super.sendResponse(req, responseParams);
     }
   }
 
