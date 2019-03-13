@@ -1,8 +1,12 @@
+import 'zone.js/dist/zone-patch-rxjs-fake-async';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Params, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import { XhrFactory, HttpRequest, HttpResponse, HttpErrorResponse } from '@angular/common/http';
+
+import { Observable } from 'rxjs';
 
 import { HttpBackendService } from './http-backend.service';
 import { ApiMockModule } from './api-mock.module';
@@ -12,11 +16,10 @@ import {
   PartialRoutes,
   RouteDryMatch,
   ApiMockRoute,
-  HttpMethod,
   ResponseParam,
   ApiMockConfig,
 } from './types';
-import { XhrFactory } from '@angular/common/http';
+import { Status } from './http-status-codes';
 
 describe('HttpBackendService', () => {
   /**
@@ -24,10 +27,13 @@ describe('HttpBackendService', () => {
    */
   @Injectable()
   class HttpBackendService2 extends HttpBackendService {
+    delay: number;
+
     constructor(apiMockService: ApiMockService, apiMockConfig: ApiMockConfig, xhrFactory: XhrFactory, router: Router) {
       super(apiMockService, apiMockConfig, xhrFactory, router);
       (this as any).apiMockConfig = new ApiMockConfig((this as any).apiMockConfig);
       this.init();
+      this.delay = (this as any).apiMockConfig.delay;
       (this as any).isInited = true;
     }
 
@@ -51,8 +57,8 @@ describe('HttpBackendService', () => {
       return super.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
     }
 
-    getResponse(httpMethod: HttpMethod, responseParam: ResponseParam[], queryParams?: Params) {
-      return super.getResponse(httpMethod, responseParam, queryParams);
+    sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[], queryParams?: Params) {
+      return super.sendResponse(req, responseParams, queryParams);
     }
   }
 
@@ -538,19 +544,27 @@ describe('HttpBackendService', () => {
   });
 
   describe('getResponse()', () => {
-    it('should returns result of calling callbackData()', () => {
+    it('should returns result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
       const responseParam: ResponseParam[] = [
         { cacheKey: 'api/posts', route: { path: '', callbackData, callbackResponse } },
       ];
-      const res = httpBackendService.getResponse('GET', responseParam);
-      expect(res).toBeDefined();
-      expect(Array.isArray(res)).toBe(true);
-      expect(res).toEqual(callbackData());
-    });
+      const req = new HttpRequest<any>('GET', 'any/url/here');
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, responseParam);
+      expect(res instanceof Observable).toBe(true);
+      let result: HttpResponse<any> = null;
+      res.subscribe(r => (result = r));
+      expect(result).toBeNull();
 
-    it('should searched item with given primaryKey and restId inside result of calling callbackData()', () => {
+      tick(httpBackendService.delay);
+
+      expect(result instanceof HttpResponse).toBe(true);
+      expect(Array.isArray(result.body)).toBe(true);
+      expect(result.body).toEqual(callbackData());
+    }));
+
+    it('should returns searched item with given primaryKey and restId inside result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ somePrimaryKey: 23, some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
       const responseParam: ResponseParam[] = [
@@ -561,13 +575,21 @@ describe('HttpBackendService', () => {
           route: { path: '', callbackData, callbackResponse },
         },
       ];
-      const res = httpBackendService.getResponse('GET', responseParam);
-      expect(res).toBeDefined();
-      expect(Array.isArray(res)).toBe(true);
-      expect(res).toEqual(callbackData());
-    });
+      const req = new HttpRequest<any>('GET', 'any/url/here');
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, responseParam);
+      expect(res instanceof Observable).toBe(true);
+      let result: HttpResponse<any> = null;
+      res.subscribe(r => (result = r));
+      expect(result).toBeNull();
 
-    it('should returns undefined when search inside result of calling callbackData()', () => {
+      tick(httpBackendService.delay);
+
+      expect(result instanceof HttpResponse).toBe(true);
+      expect(Array.isArray(result.body)).toBe(true);
+      expect(result.body).toEqual(callbackData());
+    }));
+
+    it('should returns undefined when search inside result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
       const responseParam: ResponseParam[] = [
@@ -578,8 +600,13 @@ describe('HttpBackendService', () => {
           route: { path: '', callbackData, callbackResponse },
         },
       ];
-      const res = httpBackendService.getResponse('GET', responseParam);
-      expect(res).toBeUndefined();
-    });
+      const req = new HttpRequest<any>('GET', 'any/url/here');
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, responseParam);
+      expect(res instanceof Observable).toBe(true);
+      let result: HttpResponse<any> = null;
+      res.subscribe(r => fail, err => (result = err));
+      expect(result instanceof HttpErrorResponse).toBe(true);
+      expect(result.status).toBe(Status.NOT_FOUND);
+    }));
   });
 });

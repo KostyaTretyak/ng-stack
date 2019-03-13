@@ -12,7 +12,7 @@ import {
 } from '@angular/common/http';
 
 import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { delay, tap } from 'rxjs/operators';
 
 import { pickAllPropertiesAsGetters } from './pick-properties';
 import {
@@ -51,59 +51,48 @@ export class HttpBackendService implements HttpBackend {
   ) {}
 
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
-    let body: any;
-    let urlTree: UrlTree;
-    let queryParams: Params;
-
     try {
-      if (!this.isInited) {
-        // Merge with default configs.
-        this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
-
-        this.init();
-        this.isInited = true;
-      }
-
-      const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
-      const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
-
-      if (routeGroupIndex == -1) {
-        if (this.apiMockConfig.passThruUnknownUrl) {
-          return new HttpXhrBackend(this.xhrFactory).handle(req);
-        }
-        return this.make404Error(req);
-      }
-
-      const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
-      let responseParams: ResponseParam[] | void;
-      urlTree = this.router.parseUrl(req.urlWithParams);
-      queryParams = urlTree.queryParams;
-
-      if (routeDryMatch) {
-        const { splitedUrl, splitedRoute, hasLastRestId, routes } = routeDryMatch;
-        responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
-        if (responseParams) {
-          body = this.getResponse(req.method as HttpMethod, responseParams, queryParams, req.body);
-        }
-      }
-
-      if ((!routeDryMatch || !responseParams) && this.apiMockConfig.passThruUnknownUrl) {
-        return new HttpXhrBackend(this.xhrFactory).handle(req);
-      }
+      return this.handleReq(req);
     } catch (err) {
       return this.makeInternalError(req.urlWithParams, err);
     }
+  }
 
-    if (!body) {
-      return this.make404Error(req);
+  protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+    if (!this.isInited) {
+      // Merge with default configs.
+      this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
+
+      this.init();
+      this.isInited = true;
     }
 
-    if (this.apiMockConfig.showLog) {
-      this.showApiMockLog(req, queryParams, body);
+    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
+    const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
+    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+
+    if (routeGroupIndex == -1) {
+      return this.send404Error(req, queryParams);
     }
 
-    const responseConfig = { status: Status.OK, url: req.urlWithParams, body };
-    return of(new HttpResponse<any>(responseConfig)).pipe(delay(this.apiMockConfig.delay));
+    const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
+    let responseParams: ResponseParam[] | void;
+
+    if (routeDryMatch) {
+      const { splitedUrl, splitedRoute, hasLastRestId, routes } = routeDryMatch;
+      responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
+      if (responseParams) {
+        return this.sendResponse(req, responseParams, queryParams);
+      }
+    }
+    return this.send404Error(req, queryParams);
+  }
+
+  protected send404Error(req: HttpRequest<any>, queryParams: Params) {
+    if (this.apiMockConfig.passThruUnknownUrl) {
+      return new HttpXhrBackend(this.xhrFactory).handle(req);
+    }
+    return this.make404Error(req, queryParams);
   }
 
   protected showApiMockLog(req: HttpRequest<any>, queryParams: Params, body: any) {
@@ -206,15 +195,16 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
-  protected make404Error(req: HttpRequest<any>, queryParams: Params = {}) {
+  protected make404Error(req: HttpRequest<any>, queryParams: Params, ...consoleArgs: any[]) {
     if (this.apiMockConfig.showLog) {
       console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
         body: req.body,
         queryParams,
         headers: this.getHeaders(req),
       });
-      console.log('%cres: Error 404: The page not found', 'color: brown;');
+      console.log('%cres: Error 404: The page not found', 'color: brown;', ...consoleArgs);
     }
+
     return throwError(
       new HttpErrorResponse({
         status: Status.NOT_FOUND,
@@ -297,7 +287,7 @@ export class HttpBackendService implements HttpBackend {
   }
 
   /**
-   * Taken result of dry matching an URL to a route path,
+   * Takes result of dry matching an URL to a route path,
    * so length of `splitedUrl` is always must to be equal to length of `splitedRoute`.
    *
    * This method checks that concated `splitedUrl` is matched to concated `splitedRoute`;
@@ -344,8 +334,8 @@ export class HttpBackendService implements HttpBackend {
       }
     });
 
-    const lastRoute = routes[routes.length - 1];
     if (!hasLastRestId) {
+      const lastRoute = routes[routes.length - 1];
       responseParams.push({ cacheKey: splitedUrl.join('/'), route: lastRoute });
     }
 
@@ -360,19 +350,15 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected getResponse(
-    httpMethod: HttpMethod,
-    responseParams: ResponseParam[],
-    queryParams?: Params,
-    reqBody?: ObjectAny
-  ): any | void {
+  protected sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[], queryParams: Params) {
+    const httpMethod = req.method as HttpMethod;
     const parents: ObjectAny[] = [];
 
     for (let i = 0; i < responseParams.length; i++) {
       const isLastIteration = i + 1 == responseParams.length;
       const param = responseParams[i];
       if (!this.cachedData[param.cacheKey]) {
-        const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams, reqBody);
+        const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams, req.body);
         this.cachedData[param.cacheKey] = { writeableData, onlyreadData: [] };
         this.setOnlyreadData(param, writeableData);
       }
@@ -385,7 +371,7 @@ export class HttpBackendService implements HttpBackend {
           httpMethod,
           parents,
           queryParams,
-          reqBody
+          req.body
         );
 
         mockData.writeableData = writeableData;
@@ -398,11 +384,8 @@ export class HttpBackendService implements HttpBackend {
         const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
-          if (this.apiMockConfig.showLog) {
-            const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
-            console.log('%c' + message, 'color: brown', mockData.writeableData);
-          }
-          return;
+          const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
+          return this.make404Error(req, queryParams, message, mockData.writeableData);
         }
 
         parents.push(isLastIteration ? [item] : item);
@@ -418,7 +401,31 @@ export class HttpBackendService implements HttpBackend {
 
     const clonedParents = this.clone(parents);
     const clonedItems = this.clone(items);
-    return lastParam.route.callbackResponse(clonedItems, lastRestId, httpMethod, clonedParents, queryParams, reqBody);
+    const resOrBody = lastParam.route.callbackResponse(
+      clonedItems,
+      lastRestId,
+      httpMethod,
+      clonedParents,
+      queryParams,
+      req.body
+    );
+
+    let observable: Observable<HttpResponse<any>>;
+
+    if (resOrBody instanceof Observable) {
+      observable = resOrBody;
+    } else {
+      observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: resOrBody }));
+    }
+
+    return observable.pipe(
+      delay(this.apiMockConfig.delay),
+      tap(res => {
+        if (this.apiMockConfig.showLog) {
+          this.showApiMockLog(req, queryParams, res.body);
+        }
+      })
+    );
   }
 
   /**
