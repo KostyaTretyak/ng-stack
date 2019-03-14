@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Router, Params, NavigationStart, NavigationEnd, UrlTree } from '@angular/router';
+import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
 import {
   HttpBackend,
   HttpErrorResponse,
@@ -71,6 +71,7 @@ export class HttpBackendService implements HttpBackend {
     try {
       return this.handleReq(req);
     } catch (err) {
+      this.logErrorResponse(req, err);
       return throwError(this.makeInternalError(req.urlWithParams, err));
     }
   }
@@ -128,18 +129,24 @@ export class HttpBackendService implements HttpBackend {
     console.log(`%cres:`, 'color: blue;', body);
   }
 
-  protected logErrorResponse(req: HttpRequest<any>, queryParams: Params, err: Error) {
+  protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
     if (!this.apiMockConfig.showLog) {
       return;
     }
 
+    let queryParams: ObjectAny = {};
+    let headers: ObjectAny = {};
+    try {
+      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+      headers = this.getHeaders(req);
+    } catch {}
+
     console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
       body: req.body,
       queryParams,
-      headers: this.getHeaders(req),
+      headers,
     });
-    console.log('%cres: The following error occurred:', 'color: brown;');
-    console.log(err);
+    console.log('%cres:', 'color: brown;', ...consoleArgs);
   }
 
   protected getHeaders(req: HttpRequest<any>) {
@@ -224,13 +231,13 @@ export class HttpBackendService implements HttpBackend {
     });
   }
 
-  protected makeInternalError(url: string, error: any) {
+  protected makeInternalError(url: string, error: Error) {
     return new HttpErrorResponse({
       url,
       status: Status.INTERNAL_SERVER_ERROR,
       statusText: getStatusText(Status.INTERNAL_SERVER_ERROR),
       headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      error,
+      error: error.message,
     });
   }
 
@@ -392,15 +399,12 @@ export class HttpBackendService implements HttpBackend {
         const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
-          const err404 = this.make404Error(req.urlWithParams);
-          this.logErrorResponse(req, queryParams, err404);
-
           if (this.apiMockConfig.showLog) {
-            const message = `%cItem with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
-            console.log(message, 'color: brown;', mockData.writeableData);
+            const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
+            this.logErrorResponse(req, message, mockData.writeableData);
           }
 
-          return throwError(err404);
+          return throwError(this.make404Error(req.urlWithParams));
         }
 
         parents.push(isLastIteration ? [item] : item);
@@ -443,7 +447,7 @@ export class HttpBackendService implements HttpBackend {
         this.logSuccessResponse(req, queryParams, res.body);
       }),
       catchError(err => {
-        this.logErrorResponse(req, queryParams, err);
+        this.logErrorResponse(req, err);
         return throwError(err);
       })
     );
