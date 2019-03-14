@@ -71,7 +71,7 @@ export class HttpBackendService implements HttpBackend {
     try {
       return this.handleReq(req);
     } catch (err) {
-      return this.makeInternalError(req.urlWithParams, err);
+      return throwError(this.makeInternalError(req.urlWithParams, err));
     }
   }
 
@@ -111,7 +111,7 @@ export class HttpBackendService implements HttpBackend {
     if (this.apiMockConfig.passThruUnknownUrl) {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
-    return this.make404Error(req.urlWithParams);
+    return throwError(this.make404Error(req.urlWithParams));
   }
 
   protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, body: any) {
@@ -216,26 +216,22 @@ export class HttpBackendService implements HttpBackend {
   }
 
   protected make404Error(urlWithParams: string) {
-    return throwError(
-      new HttpErrorResponse({
-        status: Status.NOT_FOUND,
-        url: urlWithParams,
-        statusText: getStatusText(Status.NOT_FOUND),
-        error: 'page not found',
-      })
-    );
+    return new HttpErrorResponse({
+      status: Status.NOT_FOUND,
+      url: urlWithParams,
+      statusText: getStatusText(Status.NOT_FOUND),
+      error: 'page not found',
+    });
   }
 
   protected makeInternalError(url: string, error: any) {
-    return throwError(
-      new HttpErrorResponse({
-        url,
-        status: Status.INTERNAL_SERVER_ERROR,
-        statusText: getStatusText(Status.INTERNAL_SERVER_ERROR),
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-        error,
-      })
-    );
+    return new HttpErrorResponse({
+      url,
+      status: Status.INTERNAL_SERVER_ERROR,
+      statusText: getStatusText(Status.INTERNAL_SERVER_ERROR),
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      error,
+    });
   }
 
   protected findRouteGroupIndex(rootRoutes: PartialRoutes, url: string): number {
@@ -396,11 +392,15 @@ export class HttpBackendService implements HttpBackend {
         const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
+          const err404 = this.make404Error(req.urlWithParams);
+          this.logErrorResponse(req, queryParams, err404);
+
           if (this.apiMockConfig.showLog) {
             const message = `%cItem with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
             console.log(message, 'color: brown;', mockData.writeableData);
           }
-          return this.make404Error(req.urlWithParams);
+
+          return throwError(err404);
         }
 
         parents.push(isLastIteration ? [item] : item);
