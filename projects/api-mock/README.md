@@ -18,7 +18,7 @@ where switch `-D` mean - "save to devDependencies in package.json".
 
 ## Peer dependencies
 
-Compatible with Angular >= v4.3.6
+Compatible with `@angular/core` >= v4.3.6 and `rxjs` > v6
 
 ## Usage
 
