@@ -158,5 +158,5 @@ export class MockData {
    *
    * - If HTTP-request have `GET` method without restId, we return this array.
    */
-  onlyreadData: ObjectAny[];
+  readonlyData: ObjectAny[];
 }

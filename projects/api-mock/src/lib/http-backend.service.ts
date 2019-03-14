@@ -50,6 +50,23 @@ export class HttpBackendService implements HttpBackend {
     private router: Router
   ) {}
 
+  protected init() {
+    const routeGroups = this.apiMockService.getRouteGroups();
+    this.routeGroups = this.checkRouteGroups(routeGroups);
+    this.rootRoutes = this.getRootPaths(this.routeGroups);
+
+    let isLoadedApp = false;
+    if (this.apiMockConfig.showLog && this.apiMockConfig.clearPrevLog) {
+      this.router.events.subscribe(event => {
+        if (isLoadedApp && event instanceof NavigationStart) {
+          console.clear();
+        } else if (event instanceof NavigationEnd) {
+          isLoadedApp = true;
+        }
+      });
+    }
+  }
+
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     try {
       return this.handleReq(req);
@@ -58,6 +75,9 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
+  /**
+   * Handles requests.
+   */
   protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (!this.isInited) {
       // Merge with default configs.
@@ -130,23 +150,6 @@ export class HttpBackendService implements HttpBackend {
     });
   }
 
-  protected init() {
-    const routeGroups = this.apiMockService.getRouteGroups();
-    this.routeGroups = this.checkRouteGroups(routeGroups);
-    this.rootRoutes = this.getRootPaths(this.routeGroups);
-
-    let isLoadedApp = false;
-    if (this.apiMockConfig.showLog && this.apiMockConfig.clearPrevLog) {
-      this.router.events.subscribe(event => {
-        if (isLoadedApp && event instanceof NavigationStart) {
-          console.clear();
-        } else if (event instanceof NavigationEnd) {
-          isLoadedApp = true;
-        }
-      });
-    }
-  }
-
   protected clone(data: any) {
     return JSON.parse(JSON.stringify(data));
   }
@@ -217,7 +220,7 @@ export class HttpBackendService implements HttpBackend {
       new HttpErrorResponse({
         status: Status.NOT_FOUND,
         url: urlWithParams,
-        statusText: 'page not found',
+        statusText: getStatusText(Status.NOT_FOUND),
         error: 'page not found',
       })
     );
@@ -368,8 +371,8 @@ export class HttpBackendService implements HttpBackend {
       const param = responseParams[i];
       if (!this.cachedData[param.cacheKey]) {
         const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams, req.body);
-        this.cachedData[param.cacheKey] = { writeableData, onlyreadData: [] };
-        this.setOnlyreadData(param, writeableData);
+        this.cachedData[param.cacheKey] = { writeableData, readonlyData: [] };
+        this.setReadonlyData(param, writeableData);
       }
 
       const mockData = this.cachedData[param.cacheKey];
@@ -384,7 +387,7 @@ export class HttpBackendService implements HttpBackend {
         );
 
         mockData.writeableData = writeableData;
-        this.setOnlyreadData(param, writeableData);
+        this.setReadonlyData(param, writeableData);
       }
 
       if (param.restId) {
@@ -403,7 +406,7 @@ export class HttpBackendService implements HttpBackend {
         parents.push(isLastIteration ? [item] : item);
       } else {
         // No restId at the end of an URL.
-        parents.push(mockData.onlyreadData);
+        parents.push(mockData.readonlyData);
       }
     }
 
@@ -413,6 +416,10 @@ export class HttpBackendService implements HttpBackend {
 
     const clonedParents = this.clone(parents);
     const clonedItems = this.clone(items);
+
+    /**
+     * Response or a body of response.
+     */
     const resOrBody = lastParam.route.callbackResponse(
       clonedItems,
       lastRestId,
@@ -443,16 +450,16 @@ export class HttpBackendService implements HttpBackend {
   }
 
   /**
-   * Setting onlyread data to `this.cachedData[cacheKey].onlyreadData`
+   * Setting readonly data to `this.cachedData[cacheKey].readonlyData`
    */
-  protected setOnlyreadData(responseParam: ResponseParam, writeableData: ObjectAny[]) {
-    let onlyreadData: ObjectAny[];
+  protected setReadonlyData(responseParam: ResponseParam, writeableData: ObjectAny[]) {
+    let readonlyData: ObjectAny[];
     const pickObj = responseParam.route.propertiesForList;
     if (pickObj) {
-      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
+      readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
     } else {
-      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
+      readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(d));
     }
-    this.cachedData[responseParam.cacheKey].onlyreadData = onlyreadData;
+    this.cachedData[responseParam.cacheKey].readonlyData = readonlyData;
   }
 }
