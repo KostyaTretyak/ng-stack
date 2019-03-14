@@ -162,7 +162,7 @@ const formGroup = new FormGroup<any, ValidatorsModel>({});
 const formArray = new FormArray<any, ValidatorsModel>([]);
 ```
  */
-export interface ValidatorsModel {
+export class ValidatorsModel {
   min: { min: { min: number; actual: number } };
   max: { max: { max: number; actual: number } };
   required: { required: true };

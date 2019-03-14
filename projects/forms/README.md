@@ -188,7 +188,7 @@ control.getError('notExistingErrorCode'); // Error: Argument of type '"notExisti
 control.errors.notExistingErrorCode; // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
-By default is used special interface called `ValidatorsModel`.
+By default is used class `ValidatorsModel`.
 
 ```ts
 const control = new FormControl('some value');
@@ -203,7 +203,7 @@ control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' do
 `ValidatorsModel` contains a list of properties extracted from `typeof Validators`, and expected returns types:
 
 ```ts
-interface ValidatorsModel {
+class ValidatorsModel {
   min: { min: { min: number; actual: number } };
   max: { max: { max: number; actual: number } };
   required: { required: true };
