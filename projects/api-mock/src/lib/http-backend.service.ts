@@ -399,10 +399,8 @@ export class HttpBackendService implements HttpBackend {
         const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
-          if (this.apiMockConfig.showLog) {
-            const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
-            this.logErrorResponse(req, message, mockData.writeableData);
-          }
+          const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
+          this.logErrorResponse(req, message, mockData.writeableData);
 
           return throwError(this.make404Error(req.urlWithParams));
         }
