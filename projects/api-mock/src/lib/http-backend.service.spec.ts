@@ -18,6 +18,9 @@ import {
   ApiMockRoute,
   ResponseParam,
   ApiMockConfig,
+  ObjectAny,
+  HttpMethod,
+  MutableReturns,
 } from './types';
 import { Status } from './http-status-codes';
 
@@ -59,6 +62,24 @@ describe('HttpBackendService', () => {
 
     sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[]) {
       return super.sendResponse(req, responseParams);
+    }
+
+    getObservableResponse(
+      req: HttpRequest<any>,
+      httpMethod: HttpMethod,
+      responseParams: ResponseParam[],
+      parents: ObjectAny[],
+      queryParams: Params
+    ) {
+      return super.getObservableResponse(req, httpMethod, responseParams, parents, queryParams);
+    }
+
+    changeItem(req: HttpRequest<any>, responseParam: ResponseParam, writeableData: ObjectAny[]): MutableReturns {
+      return super.changeItem(req, responseParam, writeableData);
+    }
+
+    genId(collection: ObjectAny[], primaryKey: string) {
+      return super.genId(collection, primaryKey);
     }
   }
 
@@ -543,7 +564,7 @@ describe('HttpBackendService', () => {
     });
   });
 
-  describe('getResponse()', () => {
+  describe('sendResponse()', () => {
     it('should returns result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
@@ -608,5 +629,34 @@ describe('HttpBackendService', () => {
       expect(result instanceof HttpErrorResponse).toBe(true);
       expect(result.status).toBe(Status.NOT_FOUND);
     }));
+  });
+
+  describe('getObservableResponse()', () => {});
+
+  describe('changeItem()', () => {});
+
+  describe('genId()', () => {
+    it('should returns 1 as new id', () => {
+      const newId = httpBackendService.genId([], 'id');
+      expect(newId).toBe(1);
+    });
+
+    it('should ignore string id and returns 1 as new id', () => {
+      const collection = [{ id: 'one' }];
+      const newId = httpBackendService.genId(collection, 'id');
+      expect(newId).toBe(1);
+    });
+
+    it('should returns 10 as new id', () => {
+      const collection = [{ id: 9 }];
+      const newId = httpBackendService.genId(collection, 'id');
+      expect(newId).toBe(10);
+    });
+
+    it('should ignore string id and returns 100 as new id', () => {
+      const collection = [{ id: 'one' }, { id: 99 }];
+      const newId = httpBackendService.genId(collection, 'id');
+      expect(newId).toBe(100);
+    });
   });
 });

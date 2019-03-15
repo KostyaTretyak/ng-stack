@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
+import { HttpHeaders } from '@angular/common/http';
+import { Status } from './http-status-codes';
 
 export abstract class ApiMockService {
   abstract getRouteGroups(): ApiMockRouteGroup[];
@@ -27,15 +29,15 @@ export class ApiMockConfig {
    */
   delay? = 500;
   /**
-   * - `true` - 404 code.
-   * - `false` - (default) 204 code - when object-to-delete not found.
+   * - `true` - (default) 404 code - object-to-delete not found.
+   * - `false` - 204 code.
    *
    * Tip:
    * > **204 No Content**
    *
    * > The server successfully processed the request and is not returning any content.
    */
-  delete404? = false;
+  delete404? = true;
   /**
    * - `true` - should pass unrecognized request URL through to original backend.
    * - `false` - (default) return 404 code.
@@ -46,6 +48,9 @@ export class ApiMockConfig {
    * - `false` - 200 code - return the item.
    *
    * Tip:
+   * > **204 No Content**
+   *
+   * > The server successfully processed the request and is not returning any content.
    */
   post204? = true;
   /**
@@ -60,7 +65,7 @@ export class ApiMockConfig {
    */
   post409? = false;
   /**
-   * - `true` - (default) 204 code - should NOT return the item after a `POST`.
+   * - `true` - (default) 204 code - should NOT return the item after a `PUT`.
    * - `false` - 200 code - return the item.
    *
    * Tip:
@@ -157,9 +162,15 @@ export class MockData {
    */
   writeableData: ObjectAny[];
   /**
-   * Array of composed objects with properties as getters (only read properties).
+   * Array of composed objects with properties as getters (readonly properties).
    *
    * - If HTTP-request have `GET` method without restId, we return this array.
    */
   readonlyData: ObjectAny[];
+}
+
+export interface MutableReturns {
+  headers: HttpHeaders;
+  status: Status;
+  body?: any;
 }

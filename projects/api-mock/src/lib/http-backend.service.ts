@@ -26,6 +26,7 @@ import {
   ResponseParam,
   HttpMethod,
   ObjectAny,
+  MutableReturns,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -72,7 +73,8 @@ export class HttpBackendService implements HttpBackend {
       return this.handleReq(req);
     } catch (err) {
       this.logErrorResponse(req, err);
-      return throwError(this.makeInternalError(req.urlWithParams, err));
+      const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, err.message);
+      return throwError(internalErr);
     }
   }
 
@@ -112,7 +114,12 @@ export class HttpBackendService implements HttpBackend {
     if (this.apiMockConfig.passThruUnknownUrl) {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
-    return throwError(this.make404Error(req.urlWithParams));
+
+    const errMsg = 'page not found';
+    this.logErrorResponse(req, errMsg);
+    const err = this.makeError(req, Status.NOT_FOUND, errMsg);
+
+    return throwError(err);
   }
 
   protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, body: any) {
@@ -222,22 +229,13 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
-  protected make404Error(urlWithParams: string) {
+  protected makeError(req: HttpRequest<any>, status: Status, errMsg: string) {
     return new HttpErrorResponse({
-      status: Status.NOT_FOUND,
-      url: urlWithParams,
-      statusText: getStatusText(Status.NOT_FOUND),
-      error: 'page not found',
-    });
-  }
-
-  protected makeInternalError(url: string, error: Error) {
-    return new HttpErrorResponse({
-      url,
-      status: Status.INTERNAL_SERVER_ERROR,
-      statusText: getStatusText(Status.INTERNAL_SERVER_ERROR),
+      url: req.urlWithParams,
+      status,
+      statusText: getStatusText(status),
       headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      error: error.message,
+      error: errMsg,
     });
   }
 
@@ -379,7 +377,19 @@ export class HttpBackendService implements HttpBackend {
       }
 
       const mockData = this.cachedData[param.cacheKey];
-      if (httpMethod != 'GET') {
+
+      if (httpMethod != 'HEAD' && httpMethod != 'GET' && httpMethod != 'OPTIONS') {
+        let update: MutableReturns;
+
+        if (isLastIteration) {
+          update = this.changeItem(req, param, mockData.writeableData);
+          if (update instanceof HttpErrorResponse) {
+            return throwError(update);
+          }
+        }
+
+        const { headers, status, body } = update;
+
         const writeableData = param.route.callbackData(
           mockData.writeableData,
           param.restId,
@@ -402,7 +412,8 @@ export class HttpBackendService implements HttpBackend {
           const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
           this.logErrorResponse(req, message, mockData.writeableData);
 
-          return throwError(this.make404Error(req.urlWithParams));
+          const err = this.makeError(req, Status.NOT_FOUND, 'page not found');
+          return throwError(err);
         }
 
         parents.push(isLastIteration ? [item] : item);
@@ -412,10 +423,193 @@ export class HttpBackendService implements HttpBackend {
       }
     }
 
+    return this.getObservableResponse(req, httpMethod, responseParams, parents, queryParams);
+  }
+
+  protected changeItem(
+    req: HttpRequest<any>,
+    responseParam: ResponseParam,
+    writeableData: ObjectAny[]
+  ): MutableReturns {
+    const httpMethod = req.method as HttpMethod;
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    const { restId } = responseParam;
+    const resourceUrl = restId
+      ? req.url
+          .split('/')
+          .slice(0, -1)
+          .join('/')
+      : req.url;
+
+    switch (httpMethod) {
+      case 'POST':
+        return this.post(req, headers, resourceUrl, responseParam, writeableData);
+      case 'PUT':
+        return this.put(req, headers, resourceUrl, responseParam, writeableData);
+      case 'PATCH':
+        return this.patch(req, headers, resourceUrl, responseParam, writeableData);
+      case 'DELETE':
+        return this.delete(req, headers, resourceUrl, responseParam, writeableData);
+      default:
+        const errMsg = 'Method not allowed';
+        this.logErrorResponse(req, errMsg);
+        return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
+    }
+  }
+
+  protected post(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    resourceUrl: string,
+    responseParam: ResponseParam,
+    writeableData: ObjectAny[]
+  ): MutableReturns {
+    const item: ObjectAny = req.body || {};
+    const { primaryKey, restId } = responseParam;
+    let id = restId;
+
+    if (item[primaryKey] == undefined) {
+      item[primaryKey] = this.genId(writeableData, primaryKey);
+    }
+
+    if (id && id != item[primaryKey]) {
+      const errMsg = `Request "${resourceUrl}/${id}" does not match item.${primaryKey}="${item[primaryKey]}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
+    } else {
+      id = item[primaryKey];
+    }
+
+    const itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
+
+    if (itemIndex == -1) {
+      writeableData.push(item);
+      headers.set('Location', resourceUrl + '/' + id);
+      return { headers, body: item, status: Status.CREATED };
+    } else if (this.apiMockConfig.post409) {
+      const errMsg = `item."${primaryKey}=${id}" exists and may not be updated with POST; use PUT instead.`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.CONFLICT, errMsg);
+    } else {
+      writeableData[itemIndex] = item;
+      return this.apiMockConfig.post204
+        ? { headers, status: Status.NO_CONTENT } // successful; no content
+        : { headers, body: item, status: Status.OK }; // successful; return entity
+    }
+  }
+
+  protected patch(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    resourceUrl: string,
+    responseParam: ResponseParam,
+    writeableData: ObjectAny[]
+  ): MutableReturns {
+    const item: ObjectAny = req.body || {};
+    const { primaryKey, restId } = responseParam;
+    let id = restId;
+    let itemIndex = -1;
+    if (id != undefined) {
+      itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
+    }
+
+    if (id == undefined || itemIndex == -1) {
+      const errMsg = id ? `item.${primaryKey}=${id} not found` : `Missing item.${primaryKey}`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    }
+
+    if (id != item[primaryKey]) {
+      const errMsg = `Request "${resourceUrl}/${id}" does not match item.${primaryKey}="${item[primaryKey]}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
+    } else {
+      id = item[primaryKey];
+    }
+
+    writeableData[itemIndex] = item;
+    return { headers, body: item, status: Status.ACCEPTED };
+  }
+
+  protected put(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    resourceUrl: string,
+    responseParam: ResponseParam,
+    writeableData: ObjectAny[]
+  ): MutableReturns {
+    const item: ObjectAny = req.body || {};
+    const { primaryKey, restId } = responseParam;
+    let id = restId;
+
+    if (item[primaryKey] == undefined) {
+      const errMsg = `Missing ${primaryKey}`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    }
+
+    if (id && id != item[primaryKey]) {
+      const errMsg = `Request "${resourceUrl}/${id}" does not match item.${primaryKey}="${item[primaryKey]}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
+    } else {
+      id = item[primaryKey];
+    }
+
+    const itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
+
+    if (itemIndex != -1) {
+      writeableData[itemIndex] = item;
+      return this.apiMockConfig.put204
+        ? { headers, status: Status.NO_CONTENT } // successful; no content
+        : { headers, body: item, status: Status.OK }; // successful; return entity
+    } else if (this.apiMockConfig.put404) {
+      const errMsg = `item.${primaryKey}='${id} not found and may not be created with PUT; use POST instead.`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    } else {
+      // create new item for id that not found
+      writeableData.push(item);
+      return { headers, body: item, status: Status.CREATED };
+    }
+  }
+
+  protected delete(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    resourceUrl: string,
+    responseParam: ResponseParam,
+    writeableData: ObjectAny[]
+  ): MutableReturns {
+    const { primaryKey, restId: id } = responseParam;
+    let itemIndex = -1;
+    if (id != undefined) {
+      itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
+    }
+
+    if (id == undefined || (this.apiMockConfig.delete404 && itemIndex == -1)) {
+      const errMsg = id ? `Item with ${primaryKey}=${id} not found` : `Missing ${primaryKey}`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    }
+
+    if (itemIndex != -1) {
+      writeableData.splice(itemIndex, 1);
+    }
+
+    return { headers, status: Status.NO_CONTENT };
+  }
+
+  protected getObservableResponse(
+    req: HttpRequest<any>,
+    httpMethod: HttpMethod,
+    responseParams: ResponseParam[],
+    parents: ObjectAny[],
+    queryParams: Params
+  ) {
     const items = parents.pop() as ObjectAny[];
     const lastParam = responseParams[responseParams.length - 1];
     const lastRestId = lastParam.restId || '';
-
     const clonedParents = this.clone(parents);
     const clonedItems = this.clone(items);
 
@@ -449,6 +643,23 @@ export class HttpBackendService implements HttpBackend {
         return throwError(err);
       })
     );
+  }
+
+  /**
+   * Generator of the next available id for item in this collection.
+   *
+   * @param collection - collection of items
+   * @param primaryKey - a primaryKey of the collection
+   */
+  protected genId(collection: ObjectAny[], primaryKey: string): number {
+    let maxId: number;
+
+    maxId = collection.reduce((prevId: number, item: ObjectAny) => {
+      const currId = typeof item[primaryKey] == 'number' ? item[primaryKey] : prevId;
+      return Math.max(prevId, currId);
+    }, 0);
+
+    return maxId + 1;
   }
 
   /**
