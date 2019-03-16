@@ -198,7 +198,7 @@ export class HttpBackendService implements HttpBackend {
           throw new Error(
             `ApiMockModule detect wrong route with path "${path}".
             Every path should match regexp "^([a-zA-Z0-9_-]+\/)+:[a-zA-Z0-9_]+$",
-            for example "posts/:postId", where "postId" is field name of primary key of collection "posts"`
+            for example "posts/:postId", where "postId" is a field name of primary key of collection "posts"`
           );
         }
         if (typeof route.callbackData != 'function') {
@@ -388,7 +388,7 @@ export class HttpBackendService implements HttpBackend {
           }
         }
 
-        const { headers, status, body } = update;
+        // const { headers, status, body } = update;
 
         const writeableData = param.route.callbackData(
           mockData.writeableData,
@@ -433,23 +433,16 @@ export class HttpBackendService implements HttpBackend {
   ): MutableReturns {
     const httpMethod = req.method as HttpMethod;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    const { restId } = responseParam;
-    const resourceUrl = restId
-      ? req.url
-          .split('/')
-          .slice(0, -1)
-          .join('/')
-      : req.url;
 
     switch (httpMethod) {
       case 'POST':
-        return this.post(req, headers, resourceUrl, responseParam, writeableData);
+        return this.post(req, headers, responseParam, writeableData);
       case 'PUT':
-        return this.put(req, headers, resourceUrl, responseParam, writeableData);
+        return this.put(req, headers, responseParam, writeableData);
       case 'PATCH':
-        return this.patch(req, headers, resourceUrl, responseParam, writeableData);
+        return this.patch(req, headers, responseParam, writeableData);
       case 'DELETE':
-        return this.delete(req, headers, resourceUrl, responseParam, writeableData);
+        return this.delete(req, headers, responseParam, writeableData);
       default:
         const errMsg = 'Method not allowed';
         this.logErrorResponse(req, errMsg);
@@ -460,32 +453,35 @@ export class HttpBackendService implements HttpBackend {
   protected post(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    resourceUrl: string,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
   ): MutableReturns {
-    const item: ObjectAny = req.body || {};
+    const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = responseParam;
-    let id = restId;
+    const resourceUrl = restId
+      ? req.url
+          .split('/')
+          .slice(0, -1)
+          .join('/')
+      : req.url;
+
+    if (restId != undefined) {
+      const errMsg = `POST forbidder on this URI, try on ${resourceUrl}`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
+    }
 
     if (item[primaryKey] == undefined) {
       item[primaryKey] = this.genId(writeableData, primaryKey);
     }
 
-    if (id && id != item[primaryKey]) {
-      const errMsg = `Request "${resourceUrl}/${id}" does not match item.${primaryKey}="${item[primaryKey]}"`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.BAD_REQUEST, errMsg);
-    } else {
-      id = item[primaryKey];
-    }
-
-    const itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
+    const id = item[primaryKey];
+    const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == id);
 
     if (itemIndex == -1) {
       writeableData.push(item);
-      headers.set('Location', resourceUrl + '/' + id);
-      return { headers, body: item, status: Status.CREATED };
+      const clonedHeaders = headers.set('Location', resourceUrl + '/' + id);
+      return { headers: clonedHeaders, body: item, status: Status.CREATED };
     } else if (this.apiMockConfig.post409) {
       const errMsg = `item."${primaryKey}=${id}" exists and may not be updated with POST; use PUT instead.`;
       this.logErrorResponse(req, errMsg);
@@ -501,11 +497,10 @@ export class HttpBackendService implements HttpBackend {
   protected patch(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    resourceUrl: string,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
   ): MutableReturns {
-    const item: ObjectAny = req.body || {};
+    const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = responseParam;
     let id = restId;
     let itemIndex = -1;
@@ -520,7 +515,7 @@ export class HttpBackendService implements HttpBackend {
     }
 
     if (id != item[primaryKey]) {
-      const errMsg = `Request "${resourceUrl}/${id}" does not match item.${primaryKey}="${item[primaryKey]}"`;
+      const errMsg = `Request with resource ID "${id}" does not match item.${primaryKey}=${item[primaryKey]}`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.BAD_REQUEST, errMsg);
     } else {
@@ -534,11 +529,10 @@ export class HttpBackendService implements HttpBackend {
   protected put(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    resourceUrl: string,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
   ): MutableReturns {
-    const item: ObjectAny = req.body || {};
+    const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = responseParam;
     let id = restId;
 
@@ -549,7 +543,7 @@ export class HttpBackendService implements HttpBackend {
     }
 
     if (id && id != item[primaryKey]) {
-      const errMsg = `Request "${resourceUrl}/${id}" does not match item.${primaryKey}="${item[primaryKey]}"`;
+      const errMsg = `Request with resource ID "${id}" does not match item.${primaryKey}=${item[primaryKey]}`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.BAD_REQUEST, errMsg);
     } else {
@@ -577,7 +571,6 @@ export class HttpBackendService implements HttpBackend {
   protected delete(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    resourceUrl: string,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
   ): MutableReturns {

@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Params, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { XhrFactory, HttpRequest, HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { XhrFactory, HttpRequest, HttpResponse, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 
@@ -80,6 +80,10 @@ describe('HttpBackendService', () => {
 
     genId(collection: ObjectAny[], primaryKey: string) {
       return super.genId(collection, primaryKey);
+    }
+
+    post(req: HttpRequest<any>, headers: HttpHeaders, responseParam: ResponseParam, writeableData: ObjectAny[]) {
+      return super.post(req, headers, responseParam, writeableData);
     }
   }
 
@@ -657,6 +661,72 @@ describe('HttpBackendService', () => {
       const collection = [{ id: 'one' }, { id: 99 }];
       const newId = httpBackendService.genId(collection, 'id');
       expect(newId).toBe(100);
+    });
+  });
+
+  fdescribe('post()', () => {
+    it('case 1: reqBody == null', () => {
+      const req = new HttpRequest<any>('POST', 'any/url/here', null);
+      const update = httpBackendService.post(
+        req,
+        new HttpHeaders(),
+        { primaryKey: 'postId', route: {} as any, cacheKey: '' },
+        []
+      );
+      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = update;
+      expect(status).toBe(Status.CREATED);
+      expect(resBody).toEqual({ postId: 1 });
+      expect(headers.has('Location')).toBe(true, 'has header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
+    });
+
+    it(`case 2: reqBody have some object`, () => {
+      const reqBody = { other: 'some value here' };
+      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
+      const update = httpBackendService.post(
+        req,
+        new HttpHeaders(),
+        { primaryKey: 'postId', route: {} as any, cacheKey: '' },
+        []
+      );
+      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = update;
+      expect(status).toBe(Status.CREATED);
+      expect(resBody).toEqual({ postId: 1, ...reqBody });
+      expect(headers.has('Location')).toBe(true, 'has header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
+    });
+
+    it(`case 3: POST on URI with restId`, () => {
+      const reqBody = { postId: 123, other: 'some value here' };
+      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
+      const reqHeaders: HttpHeaders = new HttpHeaders();
+      const responseParam: ResponseParam = { primaryKey: 'postId', restId: '456', route: {} as any, cacheKey: '' };
+      const writeableData: ObjectAny[] = [{ postId: 123 }];
+      const update = httpBackendService.post(req, reqHeaders, responseParam, writeableData);
+
+      expect(update instanceof HttpErrorResponse).toBe(true, 'update Errored');
+      const { status, headers } = update;
+      expect(status).toBe(Status.METHOD_NOT_ALLOWED);
+      expect(headers.has('Content-Type')).toBe(true, 'has header "Content-Type"');
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+    });
+
+    it(`case 4: reqBody updates existing ID`, () => {
+      const reqBody = { postId: 123, other: 'some value here' };
+      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
+      const reqHeaders: HttpHeaders = new HttpHeaders();
+      const responseParam: ResponseParam = { primaryKey: 'postId', route: {} as any, cacheKey: '' };
+      const writeableData: ObjectAny[] = [{ postId: 123 }];
+      const update = httpBackendService.post(req, reqHeaders, responseParam, writeableData);
+
+      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = update;
+      expect(status).toBe(Status.NO_CONTENT);
+      expect(resBody).toBeUndefined('should resBody to be undefined');
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });
   });
 });
