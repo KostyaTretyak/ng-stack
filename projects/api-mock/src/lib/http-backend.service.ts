@@ -46,7 +46,7 @@ export class HttpBackendService implements HttpBackend {
 
   constructor(
     private apiMockService: ApiMockService,
-    private apiMockConfig: ApiMockConfig,
+    private config: ApiMockConfig,
     private xhrFactory: XhrFactory,
     private router: Router
   ) {}
@@ -57,7 +57,7 @@ export class HttpBackendService implements HttpBackend {
     this.rootRoutes = this.getRootPaths(this.routeGroups);
 
     let isLoadedApp = false;
-    if (this.apiMockConfig.showLog && this.apiMockConfig.clearPrevLog) {
+    if (this.config.showLog && this.config.clearPrevLog) {
       this.router.events.subscribe(event => {
         if (isLoadedApp && event instanceof NavigationStart) {
           console.clear();
@@ -84,7 +84,7 @@ export class HttpBackendService implements HttpBackend {
   protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (!this.isInited) {
       // Merge with default configs.
-      this.apiMockConfig = new ApiMockConfig(this.apiMockConfig);
+      this.config = new ApiMockConfig(this.config);
 
       this.init();
       this.isInited = true;
@@ -111,7 +111,7 @@ export class HttpBackendService implements HttpBackend {
   }
 
   protected send404Error(req: HttpRequest<any>) {
-    if (this.apiMockConfig.passThruUnknownUrl) {
+    if (this.config.passThruUnknownUrl) {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
 
@@ -123,7 +123,7 @@ export class HttpBackendService implements HttpBackend {
   }
 
   protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, body: any) {
-    if (!this.apiMockConfig.showLog) {
+    if (!this.config.showLog) {
       return;
     }
 
@@ -137,7 +137,7 @@ export class HttpBackendService implements HttpBackend {
   }
 
   protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
-    if (!this.apiMockConfig.showLog) {
+    if (!this.config.showLog) {
       return;
     }
 
@@ -482,13 +482,13 @@ export class HttpBackendService implements HttpBackend {
       writeableData.push(item);
       const clonedHeaders = headers.set('Location', `${resourceUrl}/${id}`);
       return { headers: clonedHeaders, body: item, status: Status.CREATED };
-    } else if (this.apiMockConfig.postUpdate409) {
+    } else if (this.config.postUpdate409) {
       const errMsg = `Error 409: Conflict; item.${primaryKey}=${id} exists and may not be updated with POST; use PUT instead.`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.CONFLICT, errMsg);
     } else {
       writeableData[itemIndex] = item;
-      return this.apiMockConfig.postReturn204
+      return this.config.postReturn204
         ? { headers, status: Status.NO_CONTENT } // successful; no content
         : { headers, body: item, status: Status.OK }; // successful; return entity
     }
@@ -527,10 +527,10 @@ export class HttpBackendService implements HttpBackend {
 
     if (itemIndex != -1) {
       writeableData[itemIndex] = item;
-      return this.apiMockConfig.putReturn204
+      return this.config.putReturn204
         ? { headers, status: Status.NO_CONTENT } // successful; no content
         : { headers, body: item, status: Status.OK }; // successful; return entity
-    } else if (this.apiMockConfig.putNotFound404) {
+    } else if (this.config.putNotFound404) {
       const errMsg =
         `Error 404: Not found; item.${primaryKey}=${restId} ` +
         `not found and may not be created with PUT; use POST instead.`;
@@ -591,7 +591,7 @@ export class HttpBackendService implements HttpBackend {
       itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
     }
 
-    if (id == undefined || (this.apiMockConfig.deleteNotFound404 && itemIndex == -1)) {
+    if (id == undefined || (this.config.deleteNotFound404 && itemIndex == -1)) {
       const errMsg = id ? `Error 404: Not found; item with ${primaryKey}=${id} not found` : `Missing ${primaryKey}`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.NOT_FOUND, errMsg);
@@ -638,7 +638,7 @@ export class HttpBackendService implements HttpBackend {
     }
 
     return observable.pipe(
-      delay(this.apiMockConfig.delay),
+      delay(this.config.delay),
       tap(res => {
         this.logSuccessResponse(req, queryParams, res.body);
       }),
