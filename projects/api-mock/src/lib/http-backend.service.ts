@@ -72,7 +72,7 @@ export class HttpBackendService implements HttpBackend {
     try {
       return this.handleReq(req);
     } catch (err) {
-      this.logErrorResponse(req, err);
+      this.logErrorResponse(req, 'Error 500: Internal Server Error', err);
       const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, err.message);
       return throwError(internalErr);
     }
@@ -115,7 +115,7 @@ export class HttpBackendService implements HttpBackend {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
 
-    const errMsg = 'page not found';
+    const errMsg = 'Error 404: Not found; page not found';
     this.logErrorResponse(req, errMsg);
     const err = this.makeError(req, Status.NOT_FOUND, errMsg);
 
@@ -409,7 +409,7 @@ export class HttpBackendService implements HttpBackend {
         const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
 
         if (!item) {
-          const message = `Item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
+          const message = `Error 404: Not found; item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
           this.logErrorResponse(req, message, mockData.writeableData);
 
           const err = this.makeError(req, Status.NOT_FOUND, 'page not found');
@@ -444,7 +444,7 @@ export class HttpBackendService implements HttpBackend {
       case 'DELETE':
         return this.delete(req, headers, responseParam, writeableData);
       default:
-        const errMsg = 'Method not allowed';
+        const errMsg = 'Error 405: Method not allowed';
         this.logErrorResponse(req, errMsg);
         return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
     }
@@ -466,7 +466,7 @@ export class HttpBackendService implements HttpBackend {
       : req.url;
 
     if (restId != undefined) {
-      const errMsg = `POST forbidder on this URI, try on ${resourceUrl}`;
+      const errMsg = `Error 405: Method not allowed; POST forbidder on this URI, try on "${resourceUrl}"`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
     }
@@ -480,17 +480,66 @@ export class HttpBackendService implements HttpBackend {
 
     if (itemIndex == -1) {
       writeableData.push(item);
-      const clonedHeaders = headers.set('Location', resourceUrl + '/' + id);
+      const clonedHeaders = headers.set('Location', `${resourceUrl}/${id}`);
       return { headers: clonedHeaders, body: item, status: Status.CREATED };
-    } else if (this.apiMockConfig.post409) {
-      const errMsg = `item."${primaryKey}=${id}" exists and may not be updated with POST; use PUT instead.`;
+    } else if (this.apiMockConfig.postUpdate409) {
+      const errMsg = `Error 409: Conflict; item.${primaryKey}=${id} exists and may not be updated with POST; use PUT instead.`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.CONFLICT, errMsg);
     } else {
       writeableData[itemIndex] = item;
-      return this.apiMockConfig.post204
+      return this.apiMockConfig.postReturn204
         ? { headers, status: Status.NO_CONTENT } // successful; no content
         : { headers, body: item, status: Status.OK }; // successful; return entity
+    }
+  }
+
+  protected put(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    responseParam: ResponseParam,
+    writeableData: ObjectAny[]
+  ): MutableReturns {
+    const item: ObjectAny = this.clone(req.body || {});
+    const { primaryKey, restId } = responseParam;
+
+    if (restId == undefined) {
+      const errMsg = `Error 405: Method not allowed; PUT forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
+    }
+
+    if (item[primaryKey] == undefined) {
+      const errMsg = `Error 404: Not found; missing ${primaryKey} field`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    }
+
+    if (restId != undefined && restId != item[primaryKey]) {
+      const errMsg =
+        `Error 400: Bad request; request with resource ID ` +
+        `"${restId}" does not match item.${primaryKey}=${item[primaryKey]}`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
+    }
+
+    const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == restId);
+
+    if (itemIndex != -1) {
+      writeableData[itemIndex] = item;
+      return this.apiMockConfig.putReturn204
+        ? { headers, status: Status.NO_CONTENT } // successful; no content
+        : { headers, body: item, status: Status.OK }; // successful; return entity
+    } else if (this.apiMockConfig.putNotFound404) {
+      const errMsg =
+        `Error 404: Not found; item.${primaryKey}=${restId} ` +
+        `not found and may not be created with PUT; use POST instead.`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    } else {
+      // create new item for id that not found
+      writeableData.push(item);
+      return { headers, body: item, status: Status.CREATED };
     }
   }
 
@@ -502,70 +551,32 @@ export class HttpBackendService implements HttpBackend {
   ): MutableReturns {
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = responseParam;
-    let id = restId;
-    let itemIndex = -1;
-    if (id != undefined) {
-      itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
+
+    if (restId == undefined) {
+      const errMsg = `Error 405: Method not allowed; PATCH forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
     }
 
-    if (id == undefined || itemIndex == -1) {
-      const errMsg = id ? `item.${primaryKey}=${id} not found` : `Missing item.${primaryKey}`;
+    const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == restId);
+
+    if (itemIndex == -1) {
+      let errMsg = 'Error 404: Not found; ';
+      errMsg += restId ? `item.${primaryKey}=${restId} not found` : `missing "${primaryKey}" field`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.NOT_FOUND, errMsg);
     }
 
-    if (id != item[primaryKey]) {
-      const errMsg = `Request with resource ID "${id}" does not match item.${primaryKey}=${item[primaryKey]}`;
+    if (item[primaryKey] != undefined && restId != item[primaryKey]) {
+      const errMsg =
+        `Error 400: Bad request; ` +
+        `request with resource ID "${restId}" does not match item.${primaryKey}=${item[primaryKey]}`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.BAD_REQUEST, errMsg);
-    } else {
-      id = item[primaryKey];
     }
 
-    writeableData[itemIndex] = item;
-    return { headers, body: item, status: Status.ACCEPTED };
-  }
-
-  protected put(
-    req: HttpRequest<any>,
-    headers: HttpHeaders,
-    responseParam: ResponseParam,
-    writeableData: ObjectAny[]
-  ): MutableReturns {
-    const item: ObjectAny = this.clone(req.body || {});
-    const { primaryKey, restId } = responseParam;
-    let id = restId;
-
-    if (item[primaryKey] == undefined) {
-      const errMsg = `Missing ${primaryKey}`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.NOT_FOUND, errMsg);
-    }
-
-    if (id && id != item[primaryKey]) {
-      const errMsg = `Request with resource ID "${id}" does not match item.${primaryKey}=${item[primaryKey]}`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.BAD_REQUEST, errMsg);
-    } else {
-      id = item[primaryKey];
-    }
-
-    const itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
-
-    if (itemIndex != -1) {
-      writeableData[itemIndex] = item;
-      return this.apiMockConfig.put204
-        ? { headers, status: Status.NO_CONTENT } // successful; no content
-        : { headers, body: item, status: Status.OK }; // successful; return entity
-    } else if (this.apiMockConfig.put404) {
-      const errMsg = `item.${primaryKey}='${id} not found and may not be created with PUT; use POST instead.`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.NOT_FOUND, errMsg);
-    } else {
-      // create new item for id that not found
-      writeableData.push(item);
-      return { headers, body: item, status: Status.CREATED };
-    }
+    Object.assign(writeableData[itemIndex], item);
+    return { headers, status: Status.NO_CONTENT };
   }
 
   protected delete(
@@ -580,8 +591,8 @@ export class HttpBackendService implements HttpBackend {
       itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
     }
 
-    if (id == undefined || (this.apiMockConfig.delete404 && itemIndex == -1)) {
-      const errMsg = id ? `Item with ${primaryKey}=${id} not found` : `Missing ${primaryKey}`;
+    if (id == undefined || (this.apiMockConfig.deleteNotFound404 && itemIndex == -1)) {
+      const errMsg = id ? `Error 404: Not found; item with ${primaryKey}=${id} not found` : `Missing ${primaryKey}`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.NOT_FOUND, errMsg);
     }

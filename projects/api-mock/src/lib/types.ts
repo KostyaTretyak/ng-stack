@@ -29,7 +29,7 @@ export class ApiMockConfig {
    */
   delay? = 500;
   /**
-   * - `true` - (default) 404 code - object-to-delete not found.
+   * - `true` - (default) 404 code - if item with that ID not found.
    * - `false` - 204 code.
    *
    * Tip:
@@ -37,7 +37,7 @@ export class ApiMockConfig {
    *
    * > The server successfully processed the request and is not returning any content.
    */
-  delete404? = true;
+  deleteNotFound404? = true;
   /**
    * - `true` - should pass unrecognized request URL through to original backend.
    * - `false` - (default) return 404 code.
@@ -52,10 +52,10 @@ export class ApiMockConfig {
    *
    * > The server successfully processed the request and is not returning any content.
    */
-  post204? = true;
+  postReturn204? = true;
   /**
-   * - `true` - should NOT update existing item with `POST`.
-   * - `false` - (default) OK to update.
+   * - `true` - 409 code - should NOT update existing item with `POST`.
+   * - `false` - (default) 200 code - OK to update.
    *
    * Tip:
    * > **409 Conflict**
@@ -63,7 +63,7 @@ export class ApiMockConfig {
    * > Indicates that the request could not be processed because of conflict in the current
    * > state of the resource, such as an edit conflict between multiple simultaneous updates.
    */
-  post409? = false;
+  postUpdate409? = false;
   /**
    * - `true` - (default) 204 code - should NOT return the item after a `PUT`.
    * - `false` - 200 code - return the item.
@@ -73,12 +73,12 @@ export class ApiMockConfig {
    *
    * > The server successfully processed the request and is not returning any content.
    */
-  put204? = true;
+  putReturn204? = true;
   /**
-   * - `true` - create new item if `PUT` item with that ID not found.
-   * - `false` - (default) should return 404 code.
+   * - `true` - (default) 404 code - if `PUT` item with that ID not found.
+   * - `false` - create new item.
    */
-  put404? = false;
+  putNotFound404? = true;
 
   constructor(apiMockConfig?: ApiMockConfig) {
     Object.assign(this, apiMockConfig || {});
