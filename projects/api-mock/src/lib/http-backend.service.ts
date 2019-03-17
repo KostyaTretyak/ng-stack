@@ -591,8 +591,9 @@ export class HttpBackendService implements HttpBackend {
       itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
     }
 
-    if (id == undefined || (this.config.deleteNotFound404 && itemIndex == -1)) {
-      const errMsg = id ? `Error 404: Not found; item with ${primaryKey}=${id} not found` : `Missing ${primaryKey}`;
+    if (id == undefined || (itemIndex == -1 && this.config.deleteNotFound404)) {
+      let errMsg = 'Error 404: Not found; ';
+      errMsg += id ? `item.${primaryKey}=${id} not found` : `missing "${primaryKey}" field`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.NOT_FOUND, errMsg);
     }
