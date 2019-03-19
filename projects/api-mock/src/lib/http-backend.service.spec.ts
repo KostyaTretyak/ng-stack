@@ -20,7 +20,7 @@ import {
   ApiMockConfig,
   ObjectAny,
   HttpMethod,
-  MutableReturns,
+  HttpResOpts,
 } from './types';
 import { Status } from './http-status-codes';
 
@@ -32,11 +32,11 @@ describe('HttpBackendService', () => {
   class HttpBackendService2 extends HttpBackendService {
     delay: number;
 
-    constructor(apiMockService: ApiMockService, apiMockConfig: ApiMockConfig, xhrFactory: XhrFactory, router: Router) {
-      super(apiMockService, apiMockConfig, xhrFactory, router);
-      (this as any).apiMockConfig = new ApiMockConfig((this as any).apiMockConfig);
+    constructor(apiMockService: ApiMockService, config: ApiMockConfig, xhrFactory: XhrFactory, router: Router) {
+      super(apiMockService, config, xhrFactory, router);
+      (this as any).config = new ApiMockConfig((this as any).config);
       this.init();
-      this.delay = (this as any).apiMockConfig.delay;
+      this.delay = (this as any).config.delay;
       (this as any).isInited = true;
     }
 
@@ -66,15 +66,14 @@ describe('HttpBackendService', () => {
 
     getObservableResponse(
       req: HttpRequest<any>,
-      httpMethod: HttpMethod,
       responseParams: ResponseParam[],
       parents: ObjectAny[],
       queryParams: Params
     ) {
-      return super.getObservableResponse(req, httpMethod, responseParams, parents, queryParams);
+      return super.getObservableResponse(req, responseParams, parents, queryParams);
     }
 
-    changeItem(req: HttpRequest<any>, responseParam: ResponseParam, writeableData: ObjectAny[]): MutableReturns {
+    changeItem(req: HttpRequest<any>, responseParam: ResponseParam, writeableData: ObjectAny[]): HttpResOpts {
       return super.changeItem(req, responseParam, writeableData);
     }
 

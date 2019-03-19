@@ -105,7 +105,10 @@ export type ApiMockCallbackData<I extends ObjectAny[] = ObjectAny[], P extends O
   httpMethod?: HttpMethod,
   parents?: P,
   queryParams?: Params,
-  postBody?: ObjectAny
+  /**
+   * Request body.
+   */
+  reqBody?: any
 ) => ObjectAny[];
 
 export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
@@ -114,7 +117,14 @@ export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P exten
   httpMethod?: HttpMethod,
   parents?: P,
   queryParams?: Params,
-  postBody?: ObjectAny
+  /**
+   * Request body.
+   */
+  reqBody?: any,
+  /**
+   * Response body.
+   */
+  resBody?: any
 ) => any;
 
 export interface ApiMockRoute {
@@ -169,8 +179,13 @@ export class MockData {
   readonlyData: ObjectAny[];
 }
 
-export interface MutableReturns {
+/**
+ * Http Response Options.
+ */
+export interface HttpResOpts {
   headers: HttpHeaders;
-  status: Status;
+  status: number;
   body?: any;
+  statusText?: string;
+  url?: string;
 }

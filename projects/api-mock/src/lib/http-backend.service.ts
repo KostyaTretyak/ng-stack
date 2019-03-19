@@ -12,7 +12,7 @@ import {
 } from '@angular/common/http';
 
 import { Observable, of, throwError } from 'rxjs';
-import { delay, tap, catchError } from 'rxjs/operators';
+import { delay } from 'rxjs/operators';
 
 import { pickAllPropertiesAsGetters } from './pick-properties';
 import {
@@ -26,7 +26,7 @@ import {
   ResponseParam,
   HttpMethod,
   ObjectAny,
-  MutableReturns,
+  HttpResOpts,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -362,7 +362,7 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[]) {
+  protected sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[]): Observable<HttpResponse<any>> {
     const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
     const httpMethod = req.method as HttpMethod;
     const parents: ObjectAny[] = [];
@@ -378,17 +378,11 @@ export class HttpBackendService implements HttpBackend {
 
       const mockData = this.cachedData[param.cacheKey];
 
-      if (httpMethod != 'HEAD' && httpMethod != 'GET' && httpMethod != 'OPTIONS') {
-        let update: MutableReturns;
-
-        if (isLastIteration) {
-          update = this.changeItem(req, param, mockData.writeableData);
-          if (update instanceof HttpErrorResponse) {
-            return throwError(update);
-          }
+      if (isLastIteration && httpMethod != 'HEAD' && httpMethod != 'GET' && httpMethod != 'OPTIONS') {
+        const httpResOpts = this.changeItem(req, param, mockData.writeableData);
+        if (httpResOpts instanceof HttpErrorResponse) {
+          return throwError(httpResOpts);
         }
-
-        // const { headers, status, body } = update;
 
         const writeableData = param.route.callbackData(
           mockData.writeableData,
@@ -401,15 +395,17 @@ export class HttpBackendService implements HttpBackend {
 
         mockData.writeableData = writeableData;
         this.setReadonlyData(param, writeableData);
+
+        return this.getObservableResponse(req, responseParams, parents, queryParams, httpResOpts);
       }
 
       if (param.restId) {
         const primaryKey = param.primaryKey;
         const restId = param.restId;
-        const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
+        const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
 
         if (!item) {
-          const message = `Error 404: Not found; item with primary key "${primaryKey}" and ID "${restId}" not found, searched in:`;
+          const message = `Error 404: Not found; item.${primaryKey}=${restId} not found, searched in:`;
           this.logErrorResponse(req, message, mockData.writeableData);
 
           const err = this.makeError(req, Status.NOT_FOUND, 'page not found');
@@ -423,14 +419,10 @@ export class HttpBackendService implements HttpBackend {
       }
     }
 
-    return this.getObservableResponse(req, httpMethod, responseParams, parents, queryParams);
+    return this.getObservableResponse(req, responseParams, parents, queryParams);
   }
 
-  protected changeItem(
-    req: HttpRequest<any>,
-    responseParam: ResponseParam,
-    writeableData: ObjectAny[]
-  ): MutableReturns {
+  protected changeItem(req: HttpRequest<any>, responseParam: ResponseParam, writeableData: ObjectAny[]): HttpResOpts {
     const httpMethod = req.method as HttpMethod;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
@@ -455,7 +447,7 @@ export class HttpBackendService implements HttpBackend {
     headers: HttpHeaders,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
-  ): MutableReturns {
+  ): HttpResOpts {
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = responseParam;
     const resourceUrl = restId
@@ -499,7 +491,7 @@ export class HttpBackendService implements HttpBackend {
     headers: HttpHeaders,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
-  ): MutableReturns {
+  ): HttpResOpts {
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = responseParam;
 
@@ -548,7 +540,7 @@ export class HttpBackendService implements HttpBackend {
     headers: HttpHeaders,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
-  ): MutableReturns {
+  ): HttpResOpts {
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = responseParam;
 
@@ -584,7 +576,7 @@ export class HttpBackendService implements HttpBackend {
     headers: HttpHeaders,
     responseParam: ResponseParam,
     writeableData: ObjectAny[]
-  ): MutableReturns {
+  ): HttpResOpts {
     const { primaryKey, restId: id } = responseParam;
     let itemIndex = -1;
     if (id != undefined) {
@@ -605,23 +597,32 @@ export class HttpBackendService implements HttpBackend {
     return { headers, status: Status.NO_CONTENT };
   }
 
+  /**
+   * @param resBody Response body.
+   */
   protected getObservableResponse(
     req: HttpRequest<any>,
-    httpMethod: HttpMethod,
     responseParams: ResponseParam[],
     parents: ObjectAny[],
-    queryParams: Params
-  ) {
-    const items = parents.pop() as ObjectAny[];
+    queryParams: Params,
+    httpResOpts?: HttpResOpts
+  ): Observable<HttpResponse<any>> {
     const lastParam = responseParams[responseParams.length - 1];
     const lastRestId = lastParam.restId || '';
     const clonedParents = this.clone(parents);
-    const clonedItems = this.clone(items);
+    const httpMethod = req.method as HttpMethod;
+
+    let clonedItems: ObjectAny[];
+    if (httpMethod == 'GET') {
+      clonedItems = this.clone(parents.pop());
+    } else {
+      clonedItems = [httpResOpts.body];
+    }
 
     /**
-     * Response or a body of response.
+     * Response error or value of a body for response.
      */
-    const resOrBody = lastParam.route.callbackResponse(
+    const errOrBody = lastParam.route.callbackResponse(
       clonedItems,
       lastRestId,
       httpMethod,
@@ -632,22 +633,26 @@ export class HttpBackendService implements HttpBackend {
 
     let observable: Observable<HttpResponse<any>>;
 
-    if (resOrBody instanceof Observable) {
-      observable = resOrBody;
+    if (errOrBody instanceof HttpResponse) {
+      const errMsg =
+        'Error 500: Internal Server Error; forbidden to returns instance of HttpResponse from the callbackResponse';
+      this.logErrorResponse(req, errMsg);
+      const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, errMsg);
+      observable = throwError(internalErr);
+    } else if (errOrBody instanceof HttpErrorResponse) {
+      this.logErrorResponse(req, errOrBody);
+      observable = throwError(errOrBody);
     } else {
-      observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: resOrBody }));
+      this.logSuccessResponse(req, queryParams, errOrBody);
+      if (httpMethod == 'GET') {
+        observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: errOrBody }));
+      } else {
+        httpResOpts.body = errOrBody;
+        observable = of(new HttpResponse(httpResOpts));
+      }
     }
 
-    return observable.pipe(
-      delay(this.config.delay),
-      tap(res => {
-        this.logSuccessResponse(req, queryParams, res.body);
-      }),
-      catchError(err => {
-        this.logErrorResponse(req, err);
-        return throwError(err);
-      })
-    );
+    return observable.pipe(delay(this.config.delay));
   }
 
   /**
