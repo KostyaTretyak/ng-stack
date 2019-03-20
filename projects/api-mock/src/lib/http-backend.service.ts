@@ -609,15 +609,14 @@ export class HttpBackendService implements HttpBackend {
   ): Observable<HttpResponse<any>> {
     const lastParam = responseParams[responseParams.length - 1];
     const lastRestId = lastParam.restId || '';
-    const clonedParents = this.clone(parents);
     const httpMethod = req.method as HttpMethod;
-
     let clonedItems: ObjectAny[];
     if (httpMethod == 'GET') {
       clonedItems = this.clone(parents.pop());
     } else {
-      clonedItems = [httpResOpts.body];
+      clonedItems = httpResOpts.body != undefined ? [httpResOpts.body] : [];
     }
+    const clonedParents: ObjectAny[] = this.clone(parents);
 
     /**
      * Response error or value of a body for response.
