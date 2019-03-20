@@ -174,7 +174,8 @@ export class MockData {
   /**
    * Array of composed objects with properties as getters (readonly properties).
    *
-   * - If HTTP-request have `GET` method without restId, we return this array.
+   * - If HTTP-request have `GET` method without restId, we return this array,
+   * where items may have reduce version of REST resource.
    */
   readonlyData: ObjectAny[];
 }
