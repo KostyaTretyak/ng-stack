@@ -202,10 +202,10 @@ export class HttpBackendService implements HttpBackend {
             for example "posts/:postId", where "postId" is a field name of primary key of collection "posts"`
           );
         }
-        if (typeof route.callbackData != 'function') {
+        if (route.callbackData && typeof route.callbackData != 'function') {
           throw new Error(`Route callbackData with path "${path}" is not a function`);
         }
-        if (typeof route.callbackResponse != 'function') {
+        if (route.callbackResponse && typeof route.callbackResponse != 'function') {
           throw new Error(`Route callbackResponse with path "${path}" is not a function`);
         }
       });
@@ -376,6 +376,11 @@ export class HttpBackendService implements HttpBackend {
     for (let i = 0; i < responseParams.length; i++) {
       const isLastIteration = i + 1 == responseParams.length;
       const param = responseParams[i];
+
+      if (!param.route.callbackData) {
+        continue;
+      }
+
       if (!this.cachedData[param.cacheKey]) {
         const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams, req.body);
         this.cachedData[param.cacheKey] = { writeableData, readonlyData: [] };
@@ -609,7 +614,7 @@ export class HttpBackendService implements HttpBackend {
     responseParams: ResponseParam[],
     parents: ObjectAny[],
     queryParams: Params,
-    httpResOpts?: HttpResOpts
+    httpResOpts: HttpResOpts = {} as any
   ): Observable<HttpResponse<any>> {
     const lastParam = responseParams[responseParams.length - 1];
     const lastRestId = lastParam.restId || '';
@@ -621,18 +626,21 @@ export class HttpBackendService implements HttpBackend {
       clonedItems = httpResOpts.body != undefined ? [httpResOpts.body] : [];
     }
     const clonedParents: ObjectAny[] = this.clone(parents);
-
     /**
      * Response error or value of a body for response.
      */
-    const errOrBody = lastParam.route.callbackResponse(
-      clonedItems,
-      lastRestId,
-      httpMethod,
-      clonedParents,
-      queryParams,
-      req.body
-    );
+    let errOrBody: any = [];
+
+    if (lastParam.route.callbackResponse) {
+      errOrBody = lastParam.route.callbackResponse(
+        clonedItems,
+        lastRestId,
+        httpMethod,
+        clonedParents,
+        queryParams,
+        req.body
+      );
+    }
 
     let observable: Observable<HttpResponse<any>>;
 
@@ -647,13 +655,14 @@ export class HttpBackendService implements HttpBackend {
       observable = throwError(errOrBody);
     } else {
       const logHttpResOpts = {} as LogHttpResOpts;
+
       if (httpMethod == 'GET') {
         logHttpResOpts.body = errOrBody;
         logHttpResOpts.status = Status.OK;
         observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: errOrBody }));
       } else {
-        logHttpResOpts.status = httpResOpts.status;
-        logHttpResOpts.headers = this.getHeaders(httpResOpts.headers);
+        logHttpResOpts.status = httpResOpts.status || Status.OK;
+        logHttpResOpts.headers = httpResOpts.headers ? this.getHeaders(httpResOpts.headers) : [];
         logHttpResOpts.body = errOrBody;
         httpResOpts.body = errOrBody;
         observable = of(new HttpResponse(httpResOpts));

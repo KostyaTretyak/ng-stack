@@ -129,12 +129,12 @@ export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P exten
 
 export interface ApiMockRoute {
   path: string;
-  callbackData: ApiMockCallbackData;
+  callbackData?: ApiMockCallbackData;
   /**
    * Properties for list items, that returns from `callbackData()`.
    */
   propertiesForList?: ObjectAny;
-  callbackResponse: ApiMockCallbackResponse;
+  callbackResponse?: ApiMockCallbackResponse;
 }
 
 export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
