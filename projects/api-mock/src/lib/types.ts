@@ -157,7 +157,7 @@ export class RouteDryMatch {
 export interface ResponseParam {
   cacheKey: string;
   route: ApiMockRouteRoot | ApiMockRoute;
-  primaryKey?: string;
+  primaryKey: string;
   restId?: string;
 }
 
@@ -189,4 +189,10 @@ export interface HttpResOpts {
   body?: any;
   statusText?: string;
   url?: string;
+}
+
+export interface LogHttpResOpts {
+  status: Status;
+  body: any;
+  headers?: ObjectAny[];
 }

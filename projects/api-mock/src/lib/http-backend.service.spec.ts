@@ -283,8 +283,8 @@ describe('HttpBackendService', () => {
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy();
         expect(dryMatch.hasLastRestId).toBeTruthy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+        expect(dryMatch.splitedUrl.join('/')).toBe(splitedUrl.join('/'));
+        expect(dryMatch.splitedRoute.join('/')).toBe(splitedRoute.join('/'));
       });
 
       it('should match an url without primary ID to a route', () => {
@@ -295,8 +295,8 @@ describe('HttpBackendService', () => {
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy();
         expect(dryMatch.hasLastRestId).toBeFalsy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+        expect(dryMatch.splitedUrl.join('/')).toBe(splitedUrl.join('/'));
+        expect(dryMatch.splitedRoute.slice(0, -1).join('/')).toBe(splitedRoute.join('/'));
       });
 
       it('should not match an long url with primary ID to a short route', () => {
@@ -321,8 +321,8 @@ describe('HttpBackendService', () => {
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy();
         expect(dryMatch.hasLastRestId).toBeTruthy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+        expect(dryMatch.splitedUrl.join('/')).toBe(splitedUrl.join('/'));
+        expect(dryMatch.splitedRoute.join('/')).toBe(splitedRoute.join('/'));
       });
 
       it('should match an url with host and without primary ID to a route', () => {
@@ -333,8 +333,8 @@ describe('HttpBackendService', () => {
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy();
         expect(dryMatch.hasLastRestId).toBeFalsy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+        expect(dryMatch.splitedUrl.join('/')).toBe(splitedUrl.join('/'));
+        expect(dryMatch.splitedRoute.slice(0, -1).join('/')).toBe(splitedRoute.join('/'));
       });
     });
 
@@ -572,7 +572,7 @@ describe('HttpBackendService', () => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
       const responseParam: ResponseParam[] = [
-        { cacheKey: 'api/posts', route: { path: '', callbackData, callbackResponse } },
+        { cacheKey: 'api/posts', primaryKey: '', route: { path: '', callbackData, callbackResponse } },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
       const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, responseParam);

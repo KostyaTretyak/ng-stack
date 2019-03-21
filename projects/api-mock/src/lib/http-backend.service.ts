@@ -14,7 +14,7 @@ import {
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
-import { pickAllPropertiesAsGetters } from './pick-properties';
+import { pickAllPropertiesAsGetters, pickProperties } from './pick-properties';
 import {
   ApiMockConfig,
   ApiMockService,
@@ -27,6 +27,7 @@ import {
   HttpMethod,
   ObjectAny,
   HttpResOpts,
+  LogHttpResOpts,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -122,7 +123,7 @@ export class HttpBackendService implements HttpBackend {
     return throwError(err);
   }
 
-  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, body: any) {
+  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: LogHttpResOpts) {
     if (!this.config.showLog) {
       return;
     }
@@ -130,10 +131,10 @@ export class HttpBackendService implements HttpBackend {
     console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
       body: req.body,
       queryParams,
-      headers: this.getHeaders(req),
+      headers: this.getHeaders(req.headers),
     });
 
-    console.log(`%cres:`, 'color: blue;', body);
+    console.log(`%cres:`, 'color: blue;', httpResOpts);
   }
 
   protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
@@ -145,7 +146,7 @@ export class HttpBackendService implements HttpBackend {
     let headers: ObjectAny = {};
     try {
       queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
-      headers = this.getHeaders(req);
+      headers = this.getHeaders(req.headers);
     } catch {}
 
     console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
@@ -156,9 +157,9 @@ export class HttpBackendService implements HttpBackend {
     console.log('%cres:', 'color: brown;', ...consoleArgs);
   }
 
-  protected getHeaders(req: HttpRequest<any>) {
-    return req.headers.keys().map(header => {
-      let values: string | string[] = req.headers.getAll(header);
+  protected getHeaders(headers: HttpHeaders) {
+    return headers.keys().map(header => {
+      let values: string | string[] = headers.getAll(header);
       values = values.length == 1 ? values[0] : values;
       return { [header]: values };
     });
@@ -288,8 +289,6 @@ export class HttpBackendService implements HttpBackend {
         // URL not matched to defined route path.
         break;
       } else if (countPartOfUrl == countPartOfRoute - 1) {
-        // At the end of the URL removed `:restId`, e.g. `['posts', '123']` -> `['posts']`
-        splitedRoute.pop();
         hasLastRestId = false;
       } else {
         // countPartOfUrl == countPartOfRoute
@@ -300,7 +299,7 @@ export class HttpBackendService implements HttpBackend {
 
   /**
    * Takes result of dry matching an URL to a route path,
-   * so length of `splitedUrl` is always must to be equal to length of `splitedRoute`.
+   * so length of `splitedUrl` is always must to be equal to length of `splitedRoute` or "length + 1" (last primaryKey).
    *
    * This method checks that concated `splitedUrl` is matched to concated `splitedRoute`;
    *
@@ -318,7 +317,14 @@ export class HttpBackendService implements HttpBackend {
     const responseParams: ResponseParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
+    let lastPrimaryKey: string;
 
+    if (splitedRoute.length == splitedUrl.length + 1) {
+      lastPrimaryKey = splitedRoute.pop().slice(1);
+    }
+    /**
+     * Here `splitedRoute` like this: `['posts', ':postId', 'comments', ':commentId']`.
+     */
     splitedRoute.forEach((part, i) => {
       if (part.charAt(0) == ':') {
         const restId = splitedUrl[i];
@@ -333,14 +339,14 @@ export class HttpBackendService implements HttpBackend {
       } else {
         /**
          * Have result of transformations like this:
-         * - `posts/123` -> `posts`
-         * - or `posts/123/comments/456` -> `posts/comments`.
+         * - `['posts', '123']` -> `['posts']`
+         * - or `['posts', '123', 'comments', '456']` -> `['posts', 'comments']`.
          */
         partsOfUrl.push(splitedUrl[i]);
         /**
          * Have result of transformations like this:
-         * - `posts/:postId` -> `posts`
-         * - or `posts/:postId/comments/:commentId` -> `posts/comments`.
+         * - `['posts', ':postId']` -> `['posts']`
+         * - or `['posts', ':postId', 'comments', ':commentId']` -> `['posts', 'comments']`.
          */
         partsOfRoute.push(part);
       }
@@ -348,7 +354,7 @@ export class HttpBackendService implements HttpBackend {
 
     if (!hasLastRestId) {
       const lastRoute = routes[routes.length - 1];
-      responseParams.push({ cacheKey: splitedUrl.join('/'), route: lastRoute });
+      responseParams.push({ cacheKey: splitedUrl.join('/'), primaryKey: lastPrimaryKey, route: lastRoute });
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
@@ -393,9 +399,7 @@ export class HttpBackendService implements HttpBackend {
           req.body
         );
 
-        mockData.writeableData = writeableData;
         this.setReadonlyData(param, writeableData);
-
         return this.getObservableResponse(req, responseParams, parents, queryParams, httpResOpts);
       }
 
@@ -642,13 +646,19 @@ export class HttpBackendService implements HttpBackend {
       this.logErrorResponse(req, errOrBody);
       observable = throwError(errOrBody);
     } else {
-      this.logSuccessResponse(req, queryParams, errOrBody);
+      const logHttpResOpts = {} as LogHttpResOpts;
       if (httpMethod == 'GET') {
+        logHttpResOpts.body = errOrBody;
+        logHttpResOpts.status = Status.OK;
         observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: errOrBody }));
       } else {
+        logHttpResOpts.status = httpResOpts.status;
+        logHttpResOpts.headers = this.getHeaders(httpResOpts.headers);
+        logHttpResOpts.body = errOrBody;
         httpResOpts.body = errOrBody;
         observable = of(new HttpResponse(httpResOpts));
       }
+      this.logSuccessResponse(req, queryParams, logHttpResOpts);
     }
 
     return observable.pipe(delay(this.config.delay));
