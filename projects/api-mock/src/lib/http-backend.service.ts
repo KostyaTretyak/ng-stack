@@ -14,7 +14,7 @@ import {
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
-import { pickAllPropertiesAsGetters, pickProperties } from './pick-properties';
+import { pickAllPropertiesAsGetters } from './pick-properties';
 import {
   ApiMockConfig,
   ApiMockService,
@@ -33,9 +33,9 @@ import { Status, getStatusText } from './http-status-codes';
 
 @Injectable()
 export class HttpBackendService implements HttpBackend {
-  private isInited: boolean;
-  private cachedData: CacheData = {};
-  private routeGroups: ApiMockRouteGroup[] = [];
+  protected isInited: boolean;
+  protected cachedData: CacheData = {};
+  protected routeGroups: ApiMockRouteGroup[] = [];
   /**
    * Root route paths with host, but without restId. Has result of transformation:
    * - `part1/part2/:paramName` -> `part1/part2`
@@ -43,13 +43,13 @@ export class HttpBackendService implements HttpBackend {
    *
    * Array of paths revert sorted by length.
    */
-  private rootRoutes: PartialRoutes;
+  protected rootRoutes: PartialRoutes;
 
   constructor(
-    private apiMockService: ApiMockService,
-    private config: ApiMockConfig,
-    private xhrFactory: XhrFactory,
-    private router: Router
+    protected apiMockService: ApiMockService,
+    protected config: ApiMockConfig,
+    protected xhrFactory: XhrFactory,
+    protected router: Router
   ) {}
 
   protected init() {
@@ -195,12 +195,15 @@ export class HttpBackendService implements HttpBackend {
             for example "https://example.com" (without a trailing slash)`
           );
         }
-        if (!/^(?:[\w-]+\/)+:\w+$/.test(path)) {
+        if (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) {
           throw new Error(
             `ApiMockModule detect wrong route with path "${path}".
-            Every path should match regexp "^([a-zA-Z0-9_-]+\/)+:[a-zA-Z0-9_]+$",
+            If you have route.callbackData, every path should match regexp "^([a-zA-Z0-9_-]+\/)+:[a-zA-Z0-9_]+$",
             for example "posts/:postId", where "postId" is a field name of primary key of collection "posts"`
           );
+        }
+        if (!route.callbackData && !/^(?:[\w-]+\/)+[\w-]+$/.test(path)) {
+          throw new Error(`ApiMockModule detect wrong route with path "${path}".`);
         }
         if (route.callbackData && typeof route.callbackData != 'function') {
           throw new Error(`Route callbackData with path "${path}" is not a function`);
