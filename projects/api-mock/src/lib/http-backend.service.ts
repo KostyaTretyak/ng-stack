@@ -210,6 +210,13 @@ If you have route.callback, you should to have corresponding a primary key.`
           );
         }
 
+        if (route.callbackData && typeof route.callbackData != 'function') {
+          throw new Error(`Route callbackData with path "${path}" is not a function`);
+        }
+        if (route.callbackResponse && typeof route.callbackResponse != 'function') {
+          throw new Error(`Route callbackResponse with path "${path}" is not a function`);
+        }
+
         // Checking a path.host
         if (host && !/^https?:\/\/(?:[^\/]+\.)+[^\/]+$/.test(host)) {
           throw new Error(
@@ -217,13 +224,6 @@ If you have route.callback, you should to have corresponding a primary key.`
             Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
             for example "https://example.com" (without a trailing slash)`
           );
-        }
-
-        if (route.callbackData && typeof route.callbackData != 'function') {
-          throw new Error(`Route callbackData with path "${path}" is not a function`);
-        }
-        if (route.callbackResponse && typeof route.callbackResponse != 'function') {
-          throw new Error(`Route callbackResponse with path "${path}" is not a function`);
         }
       });
     });
