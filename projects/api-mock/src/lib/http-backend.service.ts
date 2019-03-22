@@ -142,6 +142,20 @@ route.path should not to have trailing slash.`
     }
   }
 
+  protected getRootPaths(routeGroups: ApiMockRouteGroup[]): PartialRoutes {
+    const rootRoutes = routeGroups.map((route, index) => {
+      // Transformation: `https://example.com/part1/part2/part3/:paramName` -> `https://example.com/part1/part2/part3`
+      const part = route[0].path.split('/:')[0];
+      const host = route[0].host || '';
+      const path = host ? `${host}/${part}` : part;
+      const length = path.length;
+      return { path, length, index };
+    });
+
+    // Revert sorting by path length.
+    return rootRoutes.sort((a, b) => b.length - a.length);
+  }
+
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     try {
       return this.handleReq(req);
@@ -240,20 +254,6 @@ route.path should not to have trailing slash.`
 
   protected clone(data: any) {
     return JSON.parse(JSON.stringify(data));
-  }
-
-  protected getRootPaths(routeGroups: ApiMockRouteGroup[]): PartialRoutes {
-    const rootRoutes = routeGroups.map((route, index) => {
-      // Transformation: `https://example.com/part1/part2/part3/:paramName` -> `https://example.com/part1/part2/part3`
-      const part = route[0].path.split('/:')[0];
-      const host = route[0].host || '';
-      const path = host ? `${host}/${part}` : part;
-      const length = path.length;
-      return { path, length, index };
-    });
-
-    // Revert sorting by path length.
-    return rootRoutes.sort((a, b) => b.length - a.length);
   }
 
   protected makeError(req: HttpRequest<any>, status: Status, errMsg: string) {
