@@ -111,7 +111,7 @@ describe('HttpBackendService', () => {
     },
   };
 
-  fdescribe('checkRouteGroups()', () => {
+  describe('checkRouteGroups()', () => {
     it('route with emty route group', () => {
       const routes: ApiMockRouteGroup[] = [];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
@@ -119,7 +119,7 @@ describe('HttpBackendService', () => {
       expect(result).toEqual(routes);
     });
 
-    describe('param: route path', () => {
+    describe('param: route.path', () => {
       it('path without slashes', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api' }]];
         expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
@@ -171,14 +171,30 @@ describe('HttpBackendService', () => {
       });
     });
 
-    describe('host', () => {
-      it('case 1', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ ...route, host: 'fake host' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host "fake host"/);
+    describe('param: route.host', () => {
+      it('wrong host', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'fake host', path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host/);
       });
 
-      it('case 2', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }]];
+      it('wrong host without HTTP protocol', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'example.com', path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host/);
+      });
+
+      it('wrong host with slash at the end', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'http://example.com/', path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host/);
+      });
+
+      it('right hosts', () => {
+        const routeGroups: ApiMockRouteGroup[] = [
+          [{ host: 'http://example.com', path: 'api' }],
+          [{ host: 'https://example.com', path: 'api' }],
+          [{ host: 'https://example.com.ua', path: 'api' }],
+          [{ host: 'https://приклад.укр', path: 'api' }],
+          [{ host: 'https://xn--80aikifvh.xn--j1amh', path: 'api' }],
+        ];
         expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
         const result = httpBackendService.checkRouteGroups(routeGroups);
         expect(result).toEqual(routeGroups);
