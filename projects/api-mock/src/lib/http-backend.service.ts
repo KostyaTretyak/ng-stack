@@ -69,6 +69,79 @@ export class HttpBackendService implements HttpBackend {
     }
   }
 
+  protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
+    routeGroups.forEach(routeGroup => {
+      routeGroup.forEach((route, i) => {
+        const isLastRoute = i + 1 == routeGroup.length;
+        const path = route.path;
+        const host = (route as any).host;
+
+        // Nested routes should to have route.callbackData and primary keys.
+        if (!isLastRoute && (!route.callbackData || !/^(?:[\w-]+\/)+:\w+$/.test(path))) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detect wrong multi level route with path "${fullPath}".
+With multi level route you should to use a primary key in nested route path,
+for example "api/posts/:postId -> comments", where ":postId" is a primary key of collection "api/posts".
+Also you should to have corresponding route.callbackData.`
+          );
+        }
+
+        // route.callbackData should to have corresponding a primary key.
+        if (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detect wrong route with path "${fullPath}".
+If you have route.callback, you should to have corresponding a primary key.`
+          );
+        }
+
+        // route.callbackData should to have corresponding a primary key.
+        if (!/.+\w$/.test(path)) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detect wrong route with path "${fullPath}".
+route.path should not to have trailing slash.`
+          );
+        }
+
+        if (route.callbackData && typeof route.callbackData != 'function') {
+          throw new Error(`Route callbackData with path "${path}" is not a function`);
+        }
+        if (route.callbackResponse && typeof route.callbackResponse != 'function') {
+          throw new Error(`Route callbackResponse with path "${path}" is not a function`);
+        }
+
+        // Checking a path.host
+        if (host && !/^https?:\/\/(?:[^\/]+\.)+[^\/]+$/.test(host)) {
+          throw new Error(
+            `ApiMockModule detect wrong host "${host}".
+            Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
+            for example "https://example.com" (without a trailing slash)`
+          );
+        }
+      });
+    });
+
+    const incomingRoutes = routeGroups.map(getRootPath);
+    const existingRoutes = this.routeGroups.map(getRootPath);
+
+    incomingRoutes.forEach(incomingRoute => {
+      if (existingRoutes.includes(incomingRoute)) {
+        throw new Error(`ApiMockModule detect duplicate route with path: "${incomingRoute}"`);
+      }
+      existingRoutes.push(incomingRoute);
+    });
+
+    return routeGroups;
+
+    function getRootPath(route: ApiMockRouteRoot[]) {
+      const host = route[0].host || '';
+      const rootPath = route[0].path.split(':')[0];
+      return `${host}/${rootPath}`;
+    }
+  }
+
   handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     try {
       return this.handleReq(req);
@@ -181,79 +254,6 @@ export class HttpBackendService implements HttpBackend {
 
     // Revert sorting by path length.
     return rootRoutes.sort((a, b) => b.length - a.length);
-  }
-
-  protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
-    routeGroups.forEach(routeGroup => {
-      routeGroup.forEach((route, i) => {
-        const isLastRoute = i + 1 == routeGroup.length;
-        const path = route.path;
-        const host = (route as any).host;
-
-        // Nested routes should to have route.callbackData and primary keys.
-        if (!isLastRoute && (!route.callbackData || !/^(?:[\w-]+\/)+:\w+$/.test(path))) {
-          const fullPath = routeGroup.map(r => r.path).join(' -> ');
-          throw new Error(
-            `ApiMockModule detect wrong multi level route with path "${fullPath}".
-With multi level route you should to use a primary key in nested route path,
-for example "api/posts/:postId -> comments", where ":postId" is a primary key of collection "api/posts".
-Also you should to have corresponding route.callbackData.`
-          );
-        }
-
-        // route.callbackData should to have corresponding a primary key.
-        if (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) {
-          const fullPath = routeGroup.map(r => r.path).join(' -> ');
-          throw new Error(
-            `ApiMockModule detect wrong route with path "${fullPath}".
-If you have route.callback, you should to have corresponding a primary key.`
-          );
-        }
-
-        // route.callbackData should to have corresponding a primary key.
-        if (!/.+\w$/.test(path)) {
-          const fullPath = routeGroup.map(r => r.path).join(' -> ');
-          throw new Error(
-            `ApiMockModule detect wrong route with path "${fullPath}".
-route.path should not to have trailing slash.`
-          );
-        }
-
-        if (route.callbackData && typeof route.callbackData != 'function') {
-          throw new Error(`Route callbackData with path "${path}" is not a function`);
-        }
-        if (route.callbackResponse && typeof route.callbackResponse != 'function') {
-          throw new Error(`Route callbackResponse with path "${path}" is not a function`);
-        }
-
-        // Checking a path.host
-        if (host && !/^https?:\/\/(?:[^\/]+\.)+[^\/]+$/.test(host)) {
-          throw new Error(
-            `ApiMockModule detect wrong host "${host}".
-            Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
-            for example "https://example.com" (without a trailing slash)`
-          );
-        }
-      });
-    });
-
-    const incomingRoutes = routeGroups.map(getRootPath);
-    const existingRoutes = this.routeGroups.map(getRootPath);
-
-    incomingRoutes.forEach(incomingRoute => {
-      if (existingRoutes.includes(incomingRoute)) {
-        throw new Error(`ApiMockModule detect duplicate route with path: "${incomingRoute}"`);
-      }
-      existingRoutes.push(incomingRoute);
-    });
-
-    return routeGroups;
-
-    function getRootPath(route: ApiMockRouteRoot[]) {
-      const host = route[0].host || '';
-      const rootPath = route[0].path.split(':')[0];
-      return `${host}/${rootPath}`;
-    }
   }
 
   protected makeError(req: HttpRequest<any>, status: Status, errMsg: string) {
