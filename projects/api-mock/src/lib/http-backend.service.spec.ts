@@ -2,9 +2,9 @@ import 'zone.js/dist/zone-patch-rxjs-fake-async';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { Params, Router } from '@angular/router';
+import { Params } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { XhrFactory, HttpRequest, HttpResponse, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpRequest, HttpResponse, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 
@@ -19,7 +19,6 @@ import {
   ResponseParam,
   ApiMockConfig,
   ObjectAny,
-  HttpMethod,
   HttpResOpts,
 } from './types';
 import { Status } from './http-status-codes';
@@ -30,15 +29,7 @@ describe('HttpBackendService', () => {
    */
   @Injectable()
   class HttpBackendService2 extends HttpBackendService {
-    delay: number;
-
-    constructor(apiMockService: ApiMockService, config: ApiMockConfig, xhrFactory: XhrFactory, router: Router) {
-      super(apiMockService, config, xhrFactory, router);
-      (this as any).config = new ApiMockConfig((this as any).config);
-      this.init();
-      this.delay = (this as any).config.delay;
-      (this as any).isInited = true;
-    }
+    config: ApiMockConfig;
 
     getRootPaths(routeGroups: ApiMockRouteGroup[]) {
       return super.getRootPaths(routeGroups);
@@ -101,6 +92,9 @@ describe('HttpBackendService', () => {
     });
 
     httpBackendService = TestBed.get(HttpBackendService2);
+
+    // Merge with default configs.
+    httpBackendService.config = new ApiMockConfig(httpBackendService.config);
   });
 
   it('should DI create instance of HttpBackendService', () => {
@@ -581,7 +575,7 @@ describe('HttpBackendService', () => {
       res.subscribe(r => (result = r));
       expect(result).toBeNull();
 
-      tick(httpBackendService.delay);
+      tick(httpBackendService.config.delay);
 
       expect(result instanceof HttpResponse).toBe(true);
       expect(Array.isArray(result.body)).toBe(true);
@@ -606,7 +600,7 @@ describe('HttpBackendService', () => {
       res.subscribe(r => (result = r));
       expect(result).toBeNull();
 
-      tick(httpBackendService.delay);
+      tick(httpBackendService.config.delay);
 
       expect(result instanceof HttpResponse).toBe(true);
       expect(Array.isArray(result.body)).toBe(true);
