@@ -134,6 +134,12 @@ describe('HttpBackendService', () => {
         expect(result).toEqual(routeGroups);
       });
 
+      it('route path with trailing slash', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/sessions/' }]];
+        const regexpMsg = /route.path should not to have trailing slash/;
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+      });
+
       it('multi level route paths, without primary keys', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }, { path: 'comments' }]];
         expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong multi level route/);
@@ -173,7 +179,7 @@ describe('HttpBackendService', () => {
       });
     });
 
-    fdescribe('param: route.callbackData and route.callbackResponse', () => {
+    describe('param: route.callbackData and route.callbackResponse', () => {
       it('callbackData as an object', () => {
         const routes: ApiMockRouteGroup[] = [[{ callbackData: {} as any, path: 'api/posts/:postId' }]];
         expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
@@ -234,22 +240,6 @@ describe('HttpBackendService', () => {
         const result = httpBackendService.checkRouteGroups(routeGroups);
         expect(result).toEqual(routeGroups);
       });
-    });
-
-    it('with bad callbackResponse as argument should fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, callbackResponse: {} as any }]];
-      const msg = `Route callbackResponse with path "one/two/three/:primaryId" is not a function`;
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(msg);
-    });
-
-    it('with duplicate root path as arguments with fail', () => {
-      const routes: ApiMockRouteGroup[] = [
-        [{ ...route }],
-        [{ ...route, path: 'four/five/six/:primaryId' }],
-        [{ ...route }],
-      ];
-      const msg = `ApiMockModule detect duplicate route with path: "/one/two/three/"`;
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(msg);
     });
   });
 

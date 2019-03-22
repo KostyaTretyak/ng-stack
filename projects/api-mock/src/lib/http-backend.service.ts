@@ -210,6 +210,15 @@ If you have route.callback, you should to have corresponding a primary key.`
           );
         }
 
+        // route.callbackData should to have corresponding a primary key.
+        if (!/.+\w$/.test(path)) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detect wrong route with path "${fullPath}".
+route.path should not to have trailing slash.`
+          );
+        }
+
         if (route.callbackData && typeof route.callbackData != 'function') {
           throw new Error(`Route callbackData with path "${path}" is not a function`);
         }
