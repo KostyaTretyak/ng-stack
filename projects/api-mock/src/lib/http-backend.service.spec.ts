@@ -31,12 +31,12 @@ describe('HttpBackendService', () => {
   class HttpBackendService2 extends HttpBackendService {
     config: ApiMockConfig;
 
-    getRootPaths(routeGroups: ApiMockRouteGroup[]) {
-      return super.getRootPaths(routeGroups);
-    }
-
     checkRouteGroups(routes: ApiMockRouteGroup[]) {
       return super.checkRouteGroups(routes);
+    }
+
+    getRootPaths(routeGroups: ApiMockRouteGroup[]) {
+      return super.getRootPaths(routeGroups);
     }
 
     findRouteGroupIndex(rootRoutes: PartialRoutes, url: string) {
@@ -111,31 +111,85 @@ describe('HttpBackendService', () => {
     },
   };
 
-  describe('checkRouteGroups()', () => {
-    it('with empty array of routes without throw error', () => {
+  fdescribe('checkRouteGroups()', () => {
+    it('route with emty route group', () => {
       const routes: ApiMockRouteGroup[] = [];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
       const result = httpBackendService.checkRouteGroups(routes);
       expect(result).toEqual(routes);
     });
 
-    it('with correct array of routes without throw error', () => {
+    describe('param: route path', () => {
+      it('path without slashes', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('path with slashes and without primary keys', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/pre-account/login' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('multi level route paths, without primary keys', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }, { path: 'comments' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong multi level route/);
+      });
+
+      it('multi level route paths, without route.callbackData', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId' }, { path: 'comments' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong multi level route/);
+      });
+
+      it('multi level route paths, with route.callbackData and a primary key', () => {
+        const routeGroups: ApiMockRouteGroup[] = [
+          [
+            // Multi level route paths, with callbackData
+            { path: 'api/posts/:postId', callbackData: () => [] },
+            { path: 'comments' },
+          ],
+        ];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('with callbackData, but without a primary key', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts', callbackData: () => [] }]];
+        const regexpMsg = /If you have route.callback, you should/;
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+      });
+
+      it('with callbackData and with a primary key', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId', callbackData: () => [] }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+    });
+
+    describe('host', () => {
+      it('case 1', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ ...route, host: 'fake host' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host "fake host"/);
+      });
+
+      it('case 2', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+    });
+
+    it('correct array of routes without throw error', () => {
       const routes: ApiMockRouteGroup[] = [[{ ...route }]];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
       const result = httpBackendService.checkRouteGroups(routes);
       expect(result).toEqual(routes);
-    });
-
-    it('with correct host as argument should not fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, host: 'https://example.com' }]];
-      expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
-      const result = httpBackendService.checkRouteGroups(routes);
-      expect(result).toEqual(routes);
-    });
-
-    it('with bad host as argument should fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, host: 'fake host' }]];
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/detect wrong host "fake host"/);
     });
 
     it('with bad path as argument should fail', () => {

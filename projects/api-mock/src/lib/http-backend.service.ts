@@ -185,25 +185,37 @@ export class HttpBackendService implements HttpBackend {
 
   protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
     routeGroups.forEach(routeGroup => {
-      routeGroup.forEach(route => {
+      routeGroup.forEach((route, i) => {
+        const isLastRoute = i + 1 == routeGroup.length;
         const path = route.path;
         const host = (route as any).host;
+
+        // Nested routes should to have route.callbackData and primary keys.
+        if (!isLastRoute && (!route.callbackData || !/^(?:[\w-]+\/)+:\w+$/.test(path))) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detect wrong multi level route with path "${fullPath}".
+With multi level route you should to use a primary key in nested route path,
+for example "api/posts/:postId -> comments", where ":postId" is a primary key of collection "api/posts".
+Also you should to have corresponding route.callbackData.`
+          );
+        }
+
+        // route.callbackData should to have corresponding a primary key.
+        if (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detect wrong route with path "${fullPath}".
+If you have route.callback, you should to have corresponding a primary key.`
+          );
+        }
+
         if (host && !/^https?:\/\/[^\/]+$/.test(host)) {
           throw new Error(
             `ApiMockModule detect wrong host "${host}".
             Every host should match regexp "^https?:\/\/[^\/]+$",
             for example "https://example.com" (without a trailing slash)`
           );
-        }
-        if (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) {
-          throw new Error(
-            `ApiMockModule detect wrong route with path "${path}".
-            If you have route.callbackData, every path should match regexp "^([a-zA-Z0-9_-]+\/)+:[a-zA-Z0-9_]+$",
-            for example "posts/:postId", where "postId" is a field name of primary key of collection "posts"`
-          );
-        }
-        if (!route.callbackData && !/^(?:[\w-]+\/)+[\w-]+$/.test(path)) {
-          throw new Error(`ApiMockModule detect wrong route with path "${path}".`);
         }
         if (route.callbackData && typeof route.callbackData != 'function') {
           throw new Error(`Route callbackData with path "${path}" is not a function`);
