@@ -198,6 +198,19 @@ route.path should not to have trailing slash.`
     return this.send404Error(req);
   }
 
+  protected findRouteGroupIndex(rootRoutes: PartialRoutes, url: string): number {
+    for (const rootRoute of rootRoutes) {
+      // We have `rootRoute.length + 1` to avoid such case:
+      // (url) `posts-other/123` == (route) `posts/123`
+      const partUrl = url.substr(0, rootRoute.length + 1);
+      if (partUrl == rootRoute.path || partUrl == `${rootRoute.path}/`) {
+        return rootRoute.index;
+      }
+    }
+
+    return -1;
+  }
+
   protected send404Error(req: HttpRequest<any>) {
     if (this.config.passThruUnknownUrl) {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
@@ -264,19 +277,6 @@ route.path should not to have trailing slash.`
       headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
       error: errMsg,
     });
-  }
-
-  protected findRouteGroupIndex(rootRoutes: PartialRoutes, url: string): number {
-    for (const rootRoute of rootRoutes) {
-      // We have `rootRoute.length + 1` to avoid such case:
-      // (url) `posts-other/123` == (route) `posts/123`
-      const partUrl = url.substr(0, rootRoute.length + 1);
-      if (partUrl == rootRoute.path || partUrl == `${rootRoute.path}/`) {
-        return rootRoute.index;
-      }
-    }
-
-    return -1;
   }
 
   /**

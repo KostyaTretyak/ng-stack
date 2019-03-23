@@ -101,16 +101,6 @@ describe('HttpBackendService', () => {
     expect(httpBackendService instanceof HttpBackendService2).toBeTruthy();
   });
 
-  const route: ApiMockRoute = {
-    path: 'one/two/three/:primaryId',
-    callbackData: () => {
-      return [];
-    },
-    callbackResponse: () => {
-      return {};
-    },
-  };
-
   describe('checkRouteGroups()', () => {
     it('route with emty route group', () => {
       const routes: ApiMockRouteGroup[] = [];
@@ -266,6 +256,7 @@ describe('HttpBackendService', () => {
     [{ host: 'https://example3.com', path: 'one/two/three/four/:primaryId' }],
     [{ host: 'https://example1.com', path: 'one/two/three/four/:primaryId' }],
     [{ host: 'https://example3.com', path: 'one/two/:primaryId' }],
+    [{ host: 'https://example4.com', path: 'api/login' }],
   ];
 
   describe('getRootPaths()', () => {
@@ -303,7 +294,7 @@ describe('HttpBackendService', () => {
   });
 
   describe('findRouteGroupIndex()', () => {
-    it('without host should find right routeIndex', () => {
+    it('param: routes without a host', () => {
       const rootRoutes = httpBackendService.getRootPaths(routesWithoutHost);
       let routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/primaryId');
       expect(routeIndex).toEqual(5);
@@ -317,27 +308,42 @@ describe('HttpBackendService', () => {
       expect(routeIndex).toEqual(3);
       routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/five/primaryId');
       expect(routeIndex).toEqual(6);
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'api/login');
+      expect(routeIndex).toEqual(7);
     });
 
-    it('with host should find right routeIndex', () => {
+    it('param: routes with a host', () => {
       const rootRoutes = httpBackendService.getRootPaths(routesWithMixHost);
-      let host = 'https://example2.com/one/two/primaryId';
-      let routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
+      let url = 'https://example2.com/one/two/primaryId';
+      let routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
       expect(routeIndex).toEqual(4);
-      host = 'https://example4.com/one/two/three/four/primaryId';
-      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
+      url = 'https://example4.com/one/two/three/four/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
       expect(routeIndex).toEqual(5);
-      host = 'https://example4.com/one/two/primaryId';
-      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
+      url = 'https://example4.com/one/two/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
       expect(routeIndex).toEqual(6);
-      host = 'https://example1.com/one/two/primaryId';
-      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
+      url = 'https://example1.com/one/two/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
       expect(routeIndex).toEqual(2);
-      host = 'https://example1.com/one/two-other/primaryId';
-      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
+      url = 'https://example1.com/one/two-other/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
       expect(routeIndex).toEqual(-1);
+      url = 'https://example4.com/api/login';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
+      expect(routeIndex).toEqual(11);
     });
   });
+
+  const route: ApiMockRoute = {
+    path: 'one/two/three/:primaryId',
+    callbackData: () => {
+      return [];
+    },
+    callbackResponse: () => {
+      return {};
+    },
+  };
 
   describe('getRouteDryMatch()', () => {
     let dryMatch: RouteDryMatch | void;
