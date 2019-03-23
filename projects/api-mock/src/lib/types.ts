@@ -152,13 +152,13 @@ export class RouteDryMatch {
   splitedRoute: string[];
   routes: ApiMockRouteGroup;
   hasLastRestId: boolean;
-  lastPrimaryKey: string;
+  lastPrimaryKey?: string;
 }
 
 export interface ResponseParam {
   cacheKey: string;
   route: ApiMockRouteRoot | ApiMockRoute;
-  primaryKey?: string;
+  primaryKey: string;
   restId?: string;
 }
 

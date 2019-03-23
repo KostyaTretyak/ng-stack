@@ -189,8 +189,7 @@ route.path should not to have trailing slash.`
     let responseParams: ResponseParam[] | void;
 
     if (routeDryMatch) {
-      const { splitedUrl, splitedRoute, hasLastRestId, lastPrimaryKey, routes } = routeDryMatch;
-      responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, lastPrimaryKey, routes);
+      responseParams = this.getResponseParams(routeDryMatch);
       if (responseParams) {
         return this.sendResponse(req, responseParams);
       }
@@ -269,22 +268,17 @@ route.path should not to have trailing slash.`
 
   /**
    * Takes result of dry matching an URL to a route path,
-   * so length of `splitedUrl` is always must to be equal to length of `splitedRoute` or "length + 1" (last primaryKey).
+   * so length of `splitedUrl` is always must to be equal to length of `splitedRoute`.
    *
    * This method checks that concated `splitedUrl` is matched to concated `splitedRoute`;
-   *
-   * @param splitedUrl Result spliting of an URL by slash.
-   * @param splitedRoute Result spliting of concated a route paths by slash.
-   * @param hasLastRestId Whethe URL has last restId, e.g. `posts/123` or `posts/123/comments/456`.
-   * @param routes Part or full of routes group, that have path matched to an URL.
    */
-  protected getResponseParams(
-    splitedUrl: string[],
-    splitedRoute: string[],
-    hasLastRestId: boolean,
-    lastPrimaryKey: string,
-    routes: ApiMockRouteGroup
-  ): ResponseParam[] | void {
+  protected getResponseParams({
+    splitedUrl,
+    splitedRoute,
+    hasLastRestId,
+    lastPrimaryKey,
+    routes,
+  }: RouteDryMatch): ResponseParam[] | void {
     const responseParams: ResponseParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
