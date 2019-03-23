@@ -211,6 +211,50 @@ route.path should not to have trailing slash.`
     return -1;
   }
 
+  /**
+   * This method should accepts an URL that matched to a route path by a root segment, for example:
+   * - `root-segment/segment` and `root-segment/:routeId`
+   * - `root-segment/segment` and `root-segment/other/:routeId`.
+   *
+   * Then it splites them by `/` and compares length of `splitedUrl` with length of `splitedRoute` and if
+   * they are equal, returns that route with some metadata.
+   *
+   * @param normalizedUrl If we have URL without host, here should be url with removed slash from the start.
+   * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
+   */
+  protected getRouteDryMatch(normalizedUrl: string, routeGroup: ApiMockRouteGroup): RouteDryMatch | void {
+    const splitedUrl = normalizedUrl.split('/');
+    /**
+     * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
+     */
+    const countPartOfUrl = splitedUrl.length;
+    const routes: ApiMockRouteGroup = [] as any;
+    let pathOfRoute = routeGroup[0].host || '';
+    let hasLastRestId = true;
+
+    for (const route of routeGroup) {
+      routes.push(route);
+      pathOfRoute += pathOfRoute ? `/${route.path}` : route.path;
+      const splitedRoute = pathOfRoute.split('/');
+      /**
+       * `['posts', ':postId', 'comments', ':commentId']` -> 4 parts of a route.
+       */
+      const countPartOfRoute = splitedRoute.length;
+
+      if (countPartOfUrl > countPartOfRoute) {
+        continue;
+      } else if (countPartOfUrl < countPartOfRoute - 1) {
+        // URL not matched to defined route path.
+        break;
+      } else if (countPartOfUrl == countPartOfRoute - 1) {
+        hasLastRestId = false;
+      } else {
+        // countPartOfUrl == countPartOfRoute
+      }
+      return { splitedUrl, splitedRoute, hasLastRestId, routes };
+    }
+  }
+
   protected send404Error(req: HttpRequest<any>) {
     if (this.config.passThruUnknownUrl) {
       return new HttpXhrBackend(this.xhrFactory).handle(req);
@@ -277,50 +321,6 @@ route.path should not to have trailing slash.`
       headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
       error: errMsg,
     });
-  }
-
-  /**
-   * This method should accepts an URL that matched to a route path by a root segment, for example:
-   * - `root-segment/segment` and `root-segment/:routeId`
-   * - `root-segment/segment` and `root-segment/other/:routeId`.
-   *
-   * Then it splites them by `/` and compares length of `splitedUrl` with length of `splitedRoute` and if
-   * they are equal, returns that route with some metadata.
-   *
-   * @param normalizedUrl If we have URL without host, here should be url with removed slash from the start.
-   * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
-   */
-  protected getRouteDryMatch(normalizedUrl: string, routeGroup: ApiMockRouteGroup): RouteDryMatch | void {
-    const splitedUrl = normalizedUrl.split('/');
-    /**
-     * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
-     */
-    const countPartOfUrl = splitedUrl.length;
-    const routes: ApiMockRouteGroup = [] as any;
-    let pathOfRoute = routeGroup[0].host || '';
-    let hasLastRestId = true;
-
-    for (const route of routeGroup) {
-      routes.push(route);
-      pathOfRoute += pathOfRoute ? `/${route.path}` : route.path;
-      const splitedRoute = pathOfRoute.split('/');
-      /**
-       * `['posts', ':postId', 'comments', ':commentId']` -> 4 parts of a route.
-       */
-      const countPartOfRoute = splitedRoute.length;
-
-      if (countPartOfUrl > countPartOfRoute) {
-        continue;
-      } else if (countPartOfUrl < countPartOfRoute - 1) {
-        // URL not matched to defined route path.
-        break;
-      } else if (countPartOfUrl == countPartOfRoute - 1) {
-        hasLastRestId = false;
-      } else {
-        // countPartOfUrl == countPartOfRoute
-      }
-      return { splitedUrl, splitedRoute, hasLastRestId, routes };
-    }
   }
 
   /**
