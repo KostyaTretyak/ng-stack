@@ -150,8 +150,9 @@ export type PartialRoutes = Array<{ path: string; length: number; index: number 
 export class RouteDryMatch {
   splitedUrl: string[];
   splitedRoute: string[];
-  hasLastRestId: boolean;
   routes: ApiMockRouteGroup;
+  hasLastRestId: boolean;
+  lastPrimaryKey: string;
 }
 
 export interface ResponseParam {

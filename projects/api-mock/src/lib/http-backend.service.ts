@@ -189,8 +189,8 @@ route.path should not to have trailing slash.`
     let responseParams: ResponseParam[] | void;
 
     if (routeDryMatch) {
-      const { splitedUrl, splitedRoute, hasLastRestId, routes } = routeDryMatch;
-      responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
+      const { splitedUrl, splitedRoute, hasLastRestId, lastPrimaryKey, routes } = routeDryMatch;
+      responseParams = this.getResponseParams(splitedUrl, splitedRoute, hasLastRestId, lastPrimaryKey, routes);
       if (responseParams) {
         return this.sendResponse(req, responseParams);
       }
@@ -231,6 +231,7 @@ route.path should not to have trailing slash.`
     const routes: ApiMockRouteGroup = [] as any;
     let pathOfRoute = routeGroup[0].host || '';
     let hasLastRestId = true;
+    let lastPrimaryKey: string;
 
     for (const route of routeGroup) {
       routes.push(route);
@@ -247,11 +248,22 @@ route.path should not to have trailing slash.`
         // URL not matched to defined route path.
         break;
       } else if (countPartOfUrl == countPartOfRoute - 1) {
-        hasLastRestId = false;
+        const lastElement = splitedRoute.pop();
+        if (lastElement.charAt(0) == ':') {
+          lastPrimaryKey = lastElement.slice(1);
+          hasLastRestId = false;
+        } else {
+          // URL not matched to defined route path.
+          break;
+        }
       } else {
         // countPartOfUrl == countPartOfRoute
+        const lastElement = splitedRoute[splitedRoute.length - 1];
+        if (lastElement.charAt(0) == ':') {
+          lastPrimaryKey = lastElement.slice(1);
+        }
       }
-      return { splitedUrl, splitedRoute, hasLastRestId, routes };
+      return { splitedUrl, splitedRoute, hasLastRestId, lastPrimaryKey, routes };
     }
   }
 
@@ -270,16 +282,13 @@ route.path should not to have trailing slash.`
     splitedUrl: string[],
     splitedRoute: string[],
     hasLastRestId: boolean,
+    lastPrimaryKey: string,
     routes: ApiMockRouteGroup
   ): ResponseParam[] | void {
     const responseParams: ResponseParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
-    let lastPrimaryKey: string;
 
-    if (splitedRoute.length == splitedUrl.length + 1) {
-      lastPrimaryKey = splitedRoute.pop().slice(1);
-    }
     /**
      * Here `splitedRoute` like this: `['posts', ':postId', 'comments', ':commentId']`.
      */
