@@ -255,74 +255,6 @@ route.path should not to have trailing slash.`
     }
   }
 
-  protected send404Error(req: HttpRequest<any>) {
-    if (this.config.passThruUnknownUrl) {
-      return new HttpXhrBackend(this.xhrFactory).handle(req);
-    }
-
-    const errMsg = 'Error 404: Not found; page not found';
-    this.logErrorResponse(req, errMsg);
-    const err = this.makeError(req, Status.NOT_FOUND, errMsg);
-
-    return throwError(err);
-  }
-
-  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: LogHttpResOpts) {
-    if (!this.config.showLog) {
-      return;
-    }
-
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-      body: req.body,
-      queryParams,
-      headers: this.getHeaders(req.headers),
-    });
-
-    console.log(`%cres:`, 'color: blue;', httpResOpts);
-  }
-
-  protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
-    if (!this.config.showLog) {
-      return;
-    }
-
-    let queryParams: ObjectAny = {};
-    let headers: ObjectAny = {};
-    try {
-      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
-      headers = this.getHeaders(req.headers);
-    } catch {}
-
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-      body: req.body,
-      queryParams,
-      headers,
-    });
-    console.log('%cres:', 'color: brown;', ...consoleArgs);
-  }
-
-  protected getHeaders(headers: HttpHeaders) {
-    return headers.keys().map(header => {
-      let values: string | string[] = headers.getAll(header);
-      values = values.length == 1 ? values[0] : values;
-      return { [header]: values };
-    });
-  }
-
-  protected clone(data: any) {
-    return JSON.parse(JSON.stringify(data));
-  }
-
-  protected makeError(req: HttpRequest<any>, status: Status, errMsg: string) {
-    return new HttpErrorResponse({
-      url: req.urlWithParams,
-      status,
-      statusText: getStatusText(status),
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      error: errMsg,
-    });
-  }
-
   /**
    * Takes result of dry matching an URL to a route path,
    * so length of `splitedUrl` is always must to be equal to length of `splitedRoute` or "length + 1" (last primaryKey).
@@ -455,6 +387,74 @@ route.path should not to have trailing slash.`
     }
 
     return this.getObservableResponse(req, responseParams, parents, queryParams);
+  }
+
+  protected send404Error(req: HttpRequest<any>) {
+    if (this.config.passThruUnknownUrl) {
+      return new HttpXhrBackend(this.xhrFactory).handle(req);
+    }
+
+    const errMsg = 'Error 404: Not found; page not found';
+    this.logErrorResponse(req, errMsg);
+    const err = this.makeError(req, Status.NOT_FOUND, errMsg);
+
+    return throwError(err);
+  }
+
+  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: LogHttpResOpts) {
+    if (!this.config.showLog) {
+      return;
+    }
+
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+      body: req.body,
+      queryParams,
+      headers: this.getHeaders(req.headers),
+    });
+
+    console.log(`%cres:`, 'color: blue;', httpResOpts);
+  }
+
+  protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
+    if (!this.config.showLog) {
+      return;
+    }
+
+    let queryParams: ObjectAny = {};
+    let headers: ObjectAny = {};
+    try {
+      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+      headers = this.getHeaders(req.headers);
+    } catch {}
+
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+      body: req.body,
+      queryParams,
+      headers,
+    });
+    console.log('%cres:', 'color: brown;', ...consoleArgs);
+  }
+
+  protected getHeaders(headers: HttpHeaders) {
+    return headers.keys().map(header => {
+      let values: string | string[] = headers.getAll(header);
+      values = values.length == 1 ? values[0] : values;
+      return { [header]: values };
+    });
+  }
+
+  protected clone(data: any) {
+    return JSON.parse(JSON.stringify(data));
+  }
+
+  protected makeError(req: HttpRequest<any>, status: Status, errMsg: string) {
+    return new HttpErrorResponse({
+      url: req.urlWithParams,
+      status,
+      statusText: getStatusText(status),
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      error: errMsg,
+    });
   }
 
   protected changeItem(req: HttpRequest<any>, responseParam: ResponseParam, writeableData: ObjectAny[]): HttpResOpts {
