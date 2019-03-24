@@ -475,104 +475,170 @@ describe('HttpBackendService', () => {
     });
   });
 
-  fdescribe('getReponseParams()', () => {
-    const badArgs = [
-      // URL with restId
-      ['api/posts/123', 'api/posts-other/:postId'],
-      ['api/posts/123', 'api-other/posts/:postId'],
-      ['api/posts-other/123', 'api/posts/:postId'],
-      ['api-other/posts/123', 'api/posts/:postId'],
+  describe('getReponseParams()', () => {
+    describe('URL not matched to a route path', () => {
+      const badArgs = [
+        // Route without primaryKey
+        ['api/login', 'api/login-other'],
+        ['api/login', 'api-other/login'],
+        ['api/login-other', 'api/login'],
+        ['api-other/login', 'api/login'],
 
-      // Multi level nesting of route paths
-      ['api/posts/123/comments/456', 'api/posts/:postId/comments-other/:commentId'],
-      ['api/posts/123/comments/456', 'api-other/posts/:postId/comments/:commentId'],
-      ['api/posts/123/comments-other/456', 'api/posts/:postId/comments/:commentId'],
-      ['api-other/posts/123/comments/456', 'api/posts/:postId/comments/:commentId'],
+        // URL with restId
+        ['api/posts/123', 'api/posts-other/:postId'],
+        ['api/posts/123', 'api-other/posts/:postId'],
+        ['api/posts-other/123', 'api/posts/:postId'],
+        ['api-other/posts/123', 'api/posts/:postId'],
 
-      // URL without restId
-      ['api/posts', 'api/posts-other/:postId'],
-      ['api/posts', 'api-other/posts/:postId'],
-      ['api/posts-other', 'api/posts/:postId'],
-      ['api-other/posts', 'api/posts/:postId'],
-    ];
+        // Multi level nesting of route paths
+        ['api/posts/123/comments/456', 'api/posts/:postId/comments-other/:commentId'],
+        ['api/posts/123/comments/456', 'api-other/posts/:postId/comments/:commentId'],
+        ['api/posts/123/comments-other/456', 'api/posts/:postId/comments/:commentId'],
+        ['api-other/posts/123/comments/456', 'api/posts/:postId/comments/:commentId'],
 
-    badArgs.forEach(([url, routePath], i) => {
-      it(`"${url}" not matched to "${routePath}"`, () => {
-        const splitedUrl = url.split('/');
-        const hasLastRestId = i >= 0 && i < 8 ? true : false;
-        const splitedRoute = hasLastRestId ? routePath.split('/') : routePath.split('/').slice(0, -1);
-        const routes = [{ path: routePath }] as [ApiMockRouteRoot, ...ApiMockRoute[]];
+        // URL without restId
+        ['api/posts', 'api/posts-other/:postId'],
+        ['api/posts', 'api-other/posts/:postId'],
+        ['api/posts-other', 'api/posts/:postId'],
+        ['api-other/posts', 'api/posts/:postId'],
+      ];
 
-        const routeDryMatch: RouteDryMatch = {
-          splitedUrl,
-          splitedRoute,
-          hasLastRestId,
-          routes,
-        };
+      badArgs.forEach(([url, routePath], i) => {
+        it(`"${url}" and "${routePath}"`, () => {
+          const splitedUrl = url.split('/');
+          const hasLastRestId = i >= 0 && i < 12 ? true : false;
+          const splitedRoute = hasLastRestId ? routePath.split('/') : routePath.split('/').slice(0, -1);
+          const routes = [{ path: routePath }] as [ApiMockRouteRoot, ...ApiMockRoute[]];
 
-        const params = httpBackendService.getResponseParams(routeDryMatch);
-        if (!!params) {
-          console.log(params);
-        }
-        expect(!!params).toBeFalsy('getResponseParams() not returns params');
+          const routeDryMatch: RouteDryMatch = {
+            splitedUrl,
+            splitedRoute,
+            hasLastRestId,
+            routes,
+          };
+
+          const params = httpBackendService.getResponseParams(routeDryMatch);
+          expect(!!params).toBeFalsy('getResponseParams() not returns params');
+        });
       });
     });
 
-    const goodArgs = [
-      // URL with restId
-      ['api/posts/123', 'api/posts/:postId'],
-      ['api/comments/456', 'api/comments/:commentId'],
-
-      // Multi level nesting of route paths
-      ['api/posts/123/comments/456', 'api/posts/:postId/comments/:commentId'],
-
-      // URL without restId
-      ['api/posts', 'api/posts/:postId'],
-      ['api/comments', 'api/comments/:commentId'],
-    ];
-
-    goodArgs.forEach(([url, routePath], i) => {
-      it(`"${url}" matched to "${routePath}"`, () => {
-        const splitedUrl = url.split('/');
-        const routes = [{ path: routePath }, { path: routePath }] as [ApiMockRouteRoot, ...ApiMockRoute[]];
-        const paramsLength = splitedUrl.length == 5 ? 2 : 1;
-        const lastPrimaryKey = routePath
-          .split('/')
-          .slice(-1)[0]
-          .slice(1);
-        let hasLastRestId: boolean;
-        let splitedRoute: string[];
-        let cacheKey: string;
-        let restId: string;
-
-        if (i >= 0 && i < 3) {
-          hasLastRestId = true;
-          splitedRoute = routePath.split('/');
-          cacheKey = splitedUrl.slice(0, -1).join('/');
-          restId = splitedUrl.slice(-1)[0];
-        } else {
-          hasLastRestId = false;
-          splitedRoute = routePath.split('/').slice(0, -1);
-          cacheKey = splitedUrl.join('/');
-          restId = undefined;
-        }
-
+    describe('One level nesting of route paths', () => {
+      it(`URL with restId`, () => {
+        const url = 'api/posts/123';
+        const routePath = 'api/posts/:postId';
         const routeDryMatch: RouteDryMatch = {
-          splitedUrl,
-          splitedRoute,
-          hasLastRestId,
-          lastPrimaryKey,
-          routes,
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: true,
+          lastPrimaryKey: 'anyKey',
+          routes: [{ path: routePath }],
         };
 
         const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
         expect(!!params).toBeTruthy('getResponseParams() returns params');
-        expect(params.length).toEqual(paramsLength);
-        const param = params[params.length - 1];
-        expect(param.cacheKey).toBe(cacheKey);
-        expect(param.primaryKey).toBe(lastPrimaryKey);
-        expect(param.restId).toBe(restId);
+        expect(params.length).toEqual(1);
+        const param = params[0];
+        expect(param.cacheKey).toBe('api/posts');
+        expect(param.primaryKey).toBe('postId');
+        expect(param.restId).toBe('123');
         expect(param.route).toEqual({ path: routePath });
+      });
+
+      it(`URL without restId`, () => {
+        const url = 'api/posts';
+        const routePath = 'api/posts';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: false,
+          lastPrimaryKey: 'postId',
+          routes: [{ path: 'api/posts/:postId' }],
+        };
+
+        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
+        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        expect(params.length).toEqual(1);
+        const param = params[0];
+        expect(param.cacheKey).toBe('api/posts');
+        expect(param.primaryKey).toBe('postId');
+        expect(param.restId).toBeUndefined();
+        expect(param.route).toEqual({ path: 'api/posts/:postId' });
+      });
+
+      it(`Route without primaryKey`, () => {
+        const url = 'api/login';
+        const routePath = 'api/login';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: false,
+          lastPrimaryKey: undefined,
+          routes: [{ path: routePath }],
+        };
+
+        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
+        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        expect(params.length).toEqual(1);
+        const param = params[0];
+        expect(param.cacheKey).toBe(url);
+        expect(param.primaryKey).toBeUndefined();
+        expect(param.restId).toBeUndefined();
+        expect(param.route).toEqual({ path: routePath });
+      });
+    });
+
+    describe('Multi level nesting of route paths', () => {
+      it(`URL with restId`, () => {
+        const url = 'api/posts/123/comments/456';
+        const routePath = 'api/posts/:postId/comments/:commentId';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: true,
+          lastPrimaryKey: 'anyKey',
+          routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
+        };
+
+        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
+        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        expect(params.length).toEqual(2);
+        const param1 = params[0];
+        expect(param1.cacheKey).toBe('api/posts');
+        expect(param1.primaryKey).toBe('postId');
+        expect(param1.restId).toBe('123');
+        expect(param1.route).toEqual({ path: 'api/posts/:postId' });
+        const param2 = params[1];
+        expect(param2.cacheKey).toBe('api/posts/123/comments');
+        expect(param2.primaryKey).toBe('commentId');
+        expect(param2.restId).toBe('456');
+        expect(param2.route).toEqual({ path: 'comments/:commentId' });
+      });
+
+      it(`URL without restId`, () => {
+        const url = 'api/posts/123/comments';
+        const routePath = 'api/posts/:postId/comments';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: false,
+          lastPrimaryKey: 'commentId',
+          routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
+        };
+
+        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
+        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        expect(params.length).toEqual(2);
+        const param1 = params[0];
+        expect(param1.cacheKey).toBe('api/posts');
+        expect(param1.primaryKey).toBe('postId');
+        expect(param1.restId).toBe('123');
+        expect(param1.route).toEqual({ path: 'api/posts/:postId' });
+        const param2 = params[1];
+        expect(param2.cacheKey).toBe('api/posts/123/comments');
+        expect(param2.primaryKey).toBe('commentId');
+        expect(param2.restId).toBeUndefined();
+        expect(param2.route).toEqual({ path: 'comments/:commentId' });
       });
     });
   });
