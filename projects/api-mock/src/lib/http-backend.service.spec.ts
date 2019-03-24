@@ -357,7 +357,7 @@ describe('HttpBackendService', () => {
         routeGroup = [{ path: routePath }, { path: 'level-two/one/two' }];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(false);
+        expect(dryMatch.hasLastRestId).toBeUndefined();
         expect(dryMatch.lastPrimaryKey).toBe('primaryId');
         expect(dryMatch.splitedRoute.join('/')).toBe('one/two/three');
         expect(dryMatch.routes).toEqual([{ path: routePath }]);
@@ -393,7 +393,7 @@ describe('HttpBackendService', () => {
         routeGroup = [{ host: 'https://example.com', path: 'one/two/:primaryId' }, { path: 'level-two/one/two' }];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(false);
+        expect(dryMatch.hasLastRestId).toBeUndefined();
         expect(dryMatch.lastPrimaryKey).toBe('primaryId');
         expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/one/two');
         expect(dryMatch.routes).toEqual([{ host: 'https://example.com', path: 'one/two/:primaryId' }]);
@@ -417,7 +417,7 @@ describe('HttpBackendService', () => {
         routeGroup = [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }, { path: 'one/two/:otherId' }];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(false);
+        expect(dryMatch.hasLastRestId).toBeUndefined();
         expect(dryMatch.lastPrimaryKey).toBe('commentId');
         expect(dryMatch.splitedRoute.join('/')).toBe('api/posts/:postId/comments');
         expect(dryMatch.routes).toEqual([{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }]);
@@ -464,7 +464,7 @@ describe('HttpBackendService', () => {
         ];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(false);
+        expect(dryMatch.hasLastRestId).toBeUndefined();
         expect(dryMatch.lastPrimaryKey).toBe('commentId');
         expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments');
         expect(dryMatch.routes).toEqual([

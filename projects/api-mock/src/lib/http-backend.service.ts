@@ -228,7 +228,7 @@ route.path should not to have trailing slash.`
     const countPartOfUrl = splitedUrl.length;
     const routes: ApiMockRouteGroup = [] as any;
     let pathOfRoute = routeGroup[0].host || '';
-    let hasLastRestId = false;
+    let hasLastRestId: boolean;
     let lastPrimaryKey: string;
 
     for (const route of routeGroup) {
