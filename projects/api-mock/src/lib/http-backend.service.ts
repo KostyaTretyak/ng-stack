@@ -80,7 +80,7 @@ export class HttpBackendService implements HttpBackend {
         if (!isLastRoute && (!route.callbackData || !/^(?:[\w-]+\/)+:\w+$/.test(path))) {
           const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
-            `ApiMockModule detect wrong multi level route with path "${fullPath}".
+            `ApiMockModule detected wrong multi level route with path "${fullPath}".
 With multi level route you should to use a primary key in nested route path,
 for example "api/posts/:postId -> comments", where ":postId" is a primary key of collection "api/posts".
 Also you should to have corresponding route.callbackData.`
@@ -91,7 +91,7 @@ Also you should to have corresponding route.callbackData.`
         if (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) {
           const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
-            `ApiMockModule detect wrong route with path "${fullPath}".
+            `ApiMockModule detected wrong route with path "${fullPath}".
 If you have route.callback, you should to have corresponding a primary key.`
           );
         }
@@ -100,7 +100,7 @@ If you have route.callback, you should to have corresponding a primary key.`
         if (!/.+\w$/.test(path)) {
           const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
-            `ApiMockModule detect wrong route with path "${fullPath}".
+            `ApiMockModule detected wrong route with path "${fullPath}".
 route.path should not to have trailing slash.`
           );
         }
@@ -115,7 +115,7 @@ route.path should not to have trailing slash.`
         // Checking a path.host
         if (host && !/^https?:\/\/(?:[^\/]+\.)+[^\/]+$/.test(host)) {
           throw new Error(
-            `ApiMockModule detect wrong host "${host}".
+            `ApiMockModule detected wrong host "${host}".
             Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
             for example "https://example.com" (without a trailing slash)`
           );
@@ -128,7 +128,7 @@ route.path should not to have trailing slash.`
 
     incomingRoutes.forEach(incomingRoute => {
       if (existingRoutes.includes(incomingRoute)) {
-        throw new Error(`ApiMockModule detect duplicate route with path: "${incomingRoute}"`);
+        throw new Error(`ApiMockModule detected duplicate route with path: "${incomingRoute}"`);
       }
       existingRoutes.push(incomingRoute);
     });

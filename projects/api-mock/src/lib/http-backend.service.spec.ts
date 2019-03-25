@@ -129,14 +129,14 @@ describe('HttpBackendService', () => {
 
       it('multi level route paths, without primary keys', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }, { path: 'comments' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong multi level route/);
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
       });
     });
 
     describe('param: route.path and route.callbackData', () => {
       it('multi level route paths, without route.callbackData', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId' }, { path: 'comments' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong multi level route/);
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
       });
 
       it('multi level route paths, with route.callbackData and a primary key', () => {
@@ -202,17 +202,17 @@ describe('HttpBackendService', () => {
     describe('param: route.host', () => {
       it('wrong host', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ host: 'fake host', path: 'api' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host/);
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
       });
 
       it('wrong host without HTTP protocol', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ host: 'example.com', path: 'api' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host/);
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
       });
 
       it('wrong host with slash at the end', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ host: 'http://example.com/', path: 'api' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detect wrong host/);
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
       });
 
       it('right hosts', () => {
@@ -643,7 +643,7 @@ describe('HttpBackendService', () => {
     });
   });
 
-  describe('sendResponse()', () => {
+  fdescribe('sendResponse()', () => {
     it('should returns result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
