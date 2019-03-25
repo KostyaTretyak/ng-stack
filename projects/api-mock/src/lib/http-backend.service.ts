@@ -605,11 +605,7 @@ route.path should not to have trailing slash.`
     let observable: Observable<HttpResponse<any>>;
 
     if (errOrBody instanceof HttpResponse) {
-      const errMsg =
-        'Error 500: Internal Server Error; forbidden to returns instance of HttpResponse from the callbackResponse';
-      this.logErrorResponse(req, errMsg);
-      const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, errMsg);
-      observable = throwError(internalErr);
+      observable = of(errOrBody);
     } else if (errOrBody instanceof HttpErrorResponse) {
       this.logErrorResponse(req, errOrBody);
       observable = throwError(errOrBody);
