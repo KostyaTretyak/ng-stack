@@ -155,7 +155,7 @@ export class RouteDryMatch {
   lastPrimaryKey?: string;
 }
 
-export interface ResponseParam {
+export interface ChainParam {
   cacheKey: string;
   route: ApiMockRouteRoot | ApiMockRoute;
   primaryKey: string;
@@ -184,7 +184,7 @@ export class MockData {
 /**
  * Http Response Options.
  */
-export interface HttpResOpts {
+export interface ResponseOptions {
   headers: HttpHeaders;
   status: number;
   body?: any;

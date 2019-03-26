@@ -23,11 +23,12 @@ import {
   ApiMockRouteRoot,
   PartialRoutes,
   RouteDryMatch,
-  ResponseParam,
+  ChainParam,
   HttpMethod,
   ObjectAny,
-  HttpResOpts,
+  ResponseOptions,
   LogHttpResOpts,
+  MockData,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -188,9 +189,9 @@ route.path should not to have trailing slash.`
     const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
 
     if (routeDryMatch) {
-      const responseParams = this.getResponseParams(routeDryMatch);
-      if (responseParams) {
-        return this.sendResponse(req, responseParams);
+      const chainParams = this.getChainParams(routeDryMatch);
+      if (chainParams) {
+        return this.sendResponse(req, chainParams);
       }
     }
     return this.send404Error(req);
@@ -271,14 +272,14 @@ route.path should not to have trailing slash.`
    *
    * This method checks that concated `splitedUrl` is matched to concated `splitedRoute`;
    */
-  protected getResponseParams({
+  protected getChainParams({
     splitedUrl,
     splitedRoute,
     hasLastRestId,
     lastPrimaryKey,
     routes,
-  }: RouteDryMatch): ResponseParam[] | void {
-    const responseParams: ResponseParam[] = [];
+  }: RouteDryMatch): ChainParam[] | void {
+    const chainParams: ChainParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
 
@@ -294,8 +295,8 @@ route.path should not to have trailing slash.`
          * but not `posts/123` or `posts/123/comments/456`.
          */
         const cacheKey = splitedUrl.slice(0, i).join('/');
-        const route = routes[responseParams.length];
-        responseParams.push({ cacheKey, primaryKey, restId, route });
+        const route = routes[chainParams.length];
+        chainParams.push({ cacheKey, primaryKey, restId, route });
       } else {
         /**
          * Have result of transformations like this:
@@ -314,12 +315,12 @@ route.path should not to have trailing slash.`
 
     if (!hasLastRestId) {
       const lastRoute = routes[routes.length - 1];
-      responseParams.push({ cacheKey: splitedUrl.join('/'), primaryKey: lastPrimaryKey, route: lastRoute });
+      chainParams.push({ cacheKey: splitedUrl.join('/'), primaryKey: lastPrimaryKey, route: lastRoute });
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
       // Signature of a route path is matched to an URL.
-      return responseParams;
+      return chainParams;
     }
   }
 
@@ -328,82 +329,101 @@ route.path should not to have trailing slash.`
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[]): Observable<HttpResponse<any>> {
+  protected sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]): Observable<HttpResponse<any>> {
     const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
     const httpMethod = req.method as HttpMethod;
-    const parents: ObjectAny[] = [];
+    /** Last chain param */
+    const chainParam = chainParams[chainParams.length - 1];
+    const parents = this.getParents(req, chainParams);
 
-    for (let i = 0; i < responseParams.length; i++) {
-      const isLastIteration = i + 1 == responseParams.length;
-      const param = responseParams[i];
+    if (parents instanceof HttpErrorResponse) {
+      return throwError(parents);
+    }
 
-      if (!param.route.callbackData) {
-        continue;
+    let responseOptions = {} as ResponseOptions;
+
+    if (chainParam.route.callbackData) {
+      const mockData = this.cacheGetData(parents, chainParam, queryParams, req.body);
+      responseOptions = this.callRequestMethod(req, chainParam, mockData);
+
+      if (responseOptions instanceof HttpErrorResponse) {
+        return throwError(responseOptions);
       }
 
-      if (!this.cachedData[param.cacheKey]) {
-        const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams, req.body);
-        this.cachedData[param.cacheKey] = { writeableData, readonlyData: [] };
-        this.setReadonlyData(param, writeableData);
-      }
-
-      const mockData = this.cachedData[param.cacheKey];
-
-      if (isLastIteration && httpMethod != 'HEAD' && httpMethod != 'GET' && httpMethod != 'OPTIONS') {
-        const httpResOpts = this.changeItem(req, param, mockData.writeableData);
-        if (httpResOpts instanceof HttpErrorResponse) {
-          return throwError(httpResOpts);
-        }
-
-        const writeableData = param.route.callbackData(
+      if (httpMethod != 'GET') {
+        const writeableData = chainParam.route.callbackData(
           mockData.writeableData,
-          param.restId,
+          chainParam.restId,
           httpMethod,
           parents,
           queryParams,
           req.body
         );
 
-        this.setReadonlyData(param, writeableData);
-        return this.getObservableResponse(req, responseParams, parents, queryParams, httpResOpts);
-      }
-
-      if (param.restId) {
-        const primaryKey = param.primaryKey;
-        const restId = param.restId;
-        const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
-
-        if (!item) {
-          const message = `Error 404: Not found; item.${primaryKey}=${restId} not found, searched in:`;
-          this.logErrorResponse(req, message, mockData.writeableData);
-
-          const err = this.makeError(req, Status.NOT_FOUND, 'page not found');
-          return throwError(err);
-        }
-
-        parents.push(isLastIteration ? [item] : item);
-      } else {
-        // No restId at the end of an URL.
-        parents.push(mockData.readonlyData);
+        this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
+        this.setReadonlyData(chainParam, writeableData);
       }
     }
 
-    return this.getObservableResponse(req, responseParams, parents, queryParams);
+    const items = responseOptions.body !== undefined ? responseOptions.body : [];
+    return this.response(req, chainParam, parents, queryParams, responseOptions, items);
   }
 
-  protected changeItem(req: HttpRequest<any>, responseParam: ResponseParam, writeableData: ObjectAny[]): HttpResOpts {
+  protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
+    if (!this.cachedData[chainParam.cacheKey]) {
+      const writeableData = chainParam.route.callbackData([], chainParam.restId, 'GET', parents, queryParams, body);
+      this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
+      this.setReadonlyData(chainParam, writeableData);
+    }
+
+    return this.cachedData[chainParam.cacheKey];
+  }
+
+  protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
+    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+    const parents: ObjectAny[] = [];
+
+    // for() without last chainParam.
+    for (let i = 0; i < chainParams.length - 1; i++) {
+      const chainParam = chainParams[i];
+
+      const mockData = this.cacheGetData(parents, chainParam, queryParams, req.body);
+      const primaryKey = chainParam.primaryKey;
+      const restId = chainParam.restId;
+      const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
+
+      if (!item) {
+        const message = `Error 404: Not found; item.${primaryKey}=${restId} not found, searched in:`;
+        this.logErrorResponse(req, message, mockData.writeableData);
+
+        return this.makeError(req, Status.NOT_FOUND, 'item not found');
+      }
+
+      parents.push(item);
+    }
+
+    return parents;
+  }
+
+  protected callRequestMethod(
+    req: HttpRequest<any>,
+    chainParam: ChainParam,
+    mockData: MockData
+  ): ResponseOptions | HttpErrorResponse {
     const httpMethod = req.method as HttpMethod;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
     switch (httpMethod) {
+      case 'GET':
+        return this.get(req, headers, chainParam, mockData);
       case 'POST':
-        return this.post(req, headers, responseParam, writeableData);
+        return this.post(req, headers, chainParam, mockData.writeableData);
       case 'PUT':
-        return this.put(req, headers, responseParam, writeableData);
+        return this.put(req, headers, chainParam, mockData.writeableData);
       case 'PATCH':
-        return this.patch(req, headers, responseParam, writeableData);
+        return this.patch(req, headers, chainParam, mockData.writeableData);
       case 'DELETE':
-        return this.delete(req, headers, responseParam, writeableData);
+        return this.delete(req, headers, chainParam, mockData.writeableData);
       default:
         const errMsg = 'Error 405: Method not allowed';
         this.logErrorResponse(req, errMsg);
@@ -411,14 +431,41 @@ route.path should not to have trailing slash.`
     }
   }
 
+  protected get(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    chainParam: ChainParam,
+    mockData: MockData
+  ): ResponseOptions | HttpErrorResponse {
+    const primaryKey = chainParam.primaryKey;
+    const restId = chainParam.restId;
+    let body: ObjectAny[] = [];
+
+    if (restId !== undefined) {
+      const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
+
+      if (!item) {
+        const message = `Error 404: Not found; item.${primaryKey}=${restId} not found, searched in:`;
+        this.logErrorResponse(req, message, mockData.writeableData);
+
+        return this.makeError(req, Status.NOT_FOUND, 'item not found');
+      }
+      body = [item];
+    } else {
+      body = mockData.readonlyData;
+    }
+
+    return { status: Status.OK, headers, body };
+  }
+
   protected post(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    responseParam: ResponseParam,
+    chainParam: ChainParam,
     writeableData: ObjectAny[]
-  ): HttpResOpts {
+  ): ResponseOptions | HttpErrorResponse {
     const item: ObjectAny = this.clone(req.body || {});
-    const { primaryKey, restId } = responseParam;
+    const { primaryKey, restId } = chainParam;
     const resourceUrl = restId
       ? req.url
           .split('/')
@@ -432,7 +479,7 @@ route.path should not to have trailing slash.`
       return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
     }
 
-    if (item[primaryKey] == undefined) {
+    if (item[primaryKey] === undefined) {
       item[primaryKey] = this.genId(writeableData, primaryKey);
     }
 
@@ -458,11 +505,11 @@ route.path should not to have trailing slash.`
   protected put(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    responseParam: ResponseParam,
+    chainParam: ChainParam,
     writeableData: ObjectAny[]
-  ): HttpResOpts {
+  ): ResponseOptions | HttpErrorResponse {
     const item: ObjectAny = this.clone(req.body || {});
-    const { primaryKey, restId } = responseParam;
+    const { primaryKey, restId } = chainParam;
 
     if (restId == undefined) {
       const errMsg = `Error 405: Method not allowed; PUT forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
@@ -476,7 +523,7 @@ route.path should not to have trailing slash.`
       return this.makeError(req, Status.NOT_FOUND, errMsg);
     }
 
-    if (restId != undefined && restId != item[primaryKey]) {
+    if (restId != item[primaryKey]) {
       const errMsg =
         `Error 400: Bad request; request with resource ID ` +
         `"${restId}" does not match item.${primaryKey}=${item[primaryKey]}`;
@@ -507,11 +554,11 @@ route.path should not to have trailing slash.`
   protected patch(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    responseParam: ResponseParam,
+    chainParam: ChainParam,
     writeableData: ObjectAny[]
-  ): HttpResOpts {
+  ): ResponseOptions | HttpErrorResponse {
     const item: ObjectAny = this.clone(req.body || {});
-    const { primaryKey, restId } = responseParam;
+    const { primaryKey, restId } = chainParam;
 
     if (restId == undefined) {
       const errMsg = `Error 405: Method not allowed; PATCH forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
@@ -543,10 +590,10 @@ route.path should not to have trailing slash.`
   protected delete(
     req: HttpRequest<any>,
     headers: HttpHeaders,
-    responseParam: ResponseParam,
+    chainParam: ChainParam,
     writeableData: ObjectAny[]
-  ): HttpResOpts {
-    const { primaryKey, restId: id } = responseParam;
+  ): ResponseOptions | HttpErrorResponse {
+    const { primaryKey, restId: id } = chainParam;
     let itemIndex = -1;
     if (id != undefined) {
       itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
@@ -566,62 +613,55 @@ route.path should not to have trailing slash.`
     return { headers, status: Status.NO_CONTENT };
   }
 
-  /**
-   * @param resBody Response body.
-   */
-  protected getObservableResponse(
+  protected response(
     req: HttpRequest<any>,
-    responseParams: ResponseParam[],
+    chainParam: ChainParam,
     parents: ObjectAny[],
     queryParams: Params,
-    httpResOpts: HttpResOpts = {} as any
+    responseOptions: ResponseOptions = {} as any,
+    items: ObjectAny[]
   ): Observable<HttpResponse<any>> {
-    const lastParam = responseParams[responseParams.length - 1];
-    const lastRestId = lastParam.restId || '';
+    const restId = chainParam.restId || '';
     const httpMethod = req.method as HttpMethod;
-    let clonedItems: ObjectAny[];
-    if (httpMethod == 'GET') {
-      clonedItems = this.clone(parents.pop());
-    } else {
-      clonedItems = httpResOpts.body != undefined ? [httpResOpts.body] : [];
-    }
-    const clonedParents: ObjectAny[] = this.clone(parents);
+    const clonedItems: ObjectAny[] = this.clone(items);
     /**
-     * Response error or value of a body for response.
+     * Response or value of a body for response.
      */
-    let errOrBody: any = [];
+    let resOrBody = clonedItems;
 
-    if (lastParam.route.callbackResponse) {
-      errOrBody = lastParam.route.callbackResponse(
+    if (chainParam.route.callbackResponse) {
+      const clonedParents = this.clone(parents);
+      const clonedReqBody = this.clone(req.body);
+      resOrBody = chainParam.route.callbackResponse(
         clonedItems,
-        lastRestId,
+        restId,
         httpMethod,
         clonedParents,
         queryParams,
-        req.body
+        clonedReqBody
       );
     }
 
     let observable: Observable<HttpResponse<any>>;
 
-    if (errOrBody instanceof HttpResponse) {
-      observable = of(errOrBody);
-    } else if (errOrBody instanceof HttpErrorResponse) {
-      this.logErrorResponse(req, errOrBody);
-      observable = throwError(errOrBody);
+    if (resOrBody instanceof HttpErrorResponse) {
+      this.logErrorResponse(req, resOrBody);
+      observable = throwError(resOrBody);
+    } else if (resOrBody instanceof HttpResponse) {
+      observable = of(resOrBody);
     } else {
       const logHttpResOpts = {} as LogHttpResOpts;
 
       if (httpMethod == 'GET') {
-        logHttpResOpts.body = errOrBody;
+        logHttpResOpts.body = resOrBody;
         logHttpResOpts.status = Status.OK;
-        observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: errOrBody }));
+        observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: resOrBody }));
       } else {
-        logHttpResOpts.status = httpResOpts.status || Status.OK;
-        logHttpResOpts.headers = httpResOpts.headers ? this.getHeaders(httpResOpts.headers) : [];
-        logHttpResOpts.body = errOrBody;
-        httpResOpts.body = errOrBody;
-        observable = of(new HttpResponse(httpResOpts));
+        logHttpResOpts.status = responseOptions.status || Status.OK;
+        logHttpResOpts.headers = responseOptions.headers ? this.getHeaders(responseOptions.headers) : [];
+        logHttpResOpts.body = resOrBody;
+        responseOptions.body = resOrBody;
+        observable = of(new HttpResponse(responseOptions));
       }
       this.logSuccessResponse(req, queryParams, logHttpResOpts);
     }
@@ -632,13 +672,11 @@ route.path should not to have trailing slash.`
   /**
    * Generator of the next available id for item in this collection.
    *
-   * @param collection - collection of items
+   * @param writeableData - collection of items
    * @param primaryKey - a primaryKey of the collection
    */
-  protected genId(collection: ObjectAny[], primaryKey: string): number {
-    let maxId: number;
-
-    maxId = collection.reduce((prevId: number, item: ObjectAny) => {
+  protected genId(writeableData: ObjectAny[], primaryKey: string): number {
+    const maxId = writeableData.reduce((prevId: number, item: ObjectAny) => {
       const currId = typeof item[primaryKey] == 'number' ? item[primaryKey] : prevId;
       return Math.max(prevId, currId);
     }, 0);
@@ -717,14 +755,14 @@ route.path should not to have trailing slash.`
   /**
    * Setting readonly data to `this.cachedData[cacheKey].readonlyData`
    */
-  protected setReadonlyData(responseParam: ResponseParam, writeableData: ObjectAny[]) {
+  protected setReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
     let readonlyData: ObjectAny[];
-    const pickObj = responseParam.route.propertiesForList;
+    const pickObj = chainParam.route.propertiesForList;
     if (pickObj) {
       readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
     } else {
       readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(d));
     }
-    this.cachedData[responseParam.cacheKey].readonlyData = readonlyData;
+    this.cachedData[chainParam.cacheKey].readonlyData = readonlyData;
   }
 }

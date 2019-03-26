@@ -15,12 +15,13 @@ import {
   ApiMockService,
   PartialRoutes,
   RouteDryMatch,
-  ResponseParam,
+  ChainParam,
   ApiMockConfig,
   ObjectAny,
-  HttpResOpts,
+  ResponseOptions,
   ApiMockRouteRoot,
   ApiMockRoute,
+  MockData,
 } from './types';
 import { Status } from './http-status-codes';
 
@@ -48,33 +49,35 @@ describe('HttpBackendService', () => {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
 
-    getResponseParams(routeDryMatch: RouteDryMatch) {
-      return super.getResponseParams(routeDryMatch);
+    getChainParams(routeDryMatch: RouteDryMatch) {
+      return super.getChainParams(routeDryMatch);
     }
 
-    sendResponse(req: HttpRequest<any>, responseParams: ResponseParam[]) {
-      return super.sendResponse(req, responseParams);
+    sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]) {
+      return super.sendResponse(req, chainParams);
     }
 
-    getObservableResponse(
+    response(
       req: HttpRequest<any>,
-      responseParams: ResponseParam[],
+      lastParam: ChainParam,
       parents: ObjectAny[],
-      queryParams: Params
+      queryParams: Params,
+      responseOptions: ResponseOptions = {} as any,
+      items: ObjectAny[]
     ) {
-      return super.getObservableResponse(req, responseParams, parents, queryParams);
+      return super.response(req, lastParam, parents, queryParams, responseOptions, items);
     }
 
-    changeItem(req: HttpRequest<any>, responseParam: ResponseParam, writeableData: ObjectAny[]): HttpResOpts {
-      return super.changeItem(req, responseParam, writeableData);
+    callRequestMethod(req: HttpRequest<any>, chainParam: ChainParam, mockData: MockData): ResponseOptions {
+      return super.callRequestMethod(req, chainParam, mockData);
     }
 
     genId(collection: ObjectAny[], primaryKey: string) {
       return super.genId(collection, primaryKey);
     }
 
-    post(req: HttpRequest<any>, headers: HttpHeaders, responseParam: ResponseParam, writeableData: ObjectAny[]) {
-      return super.post(req, headers, responseParam, writeableData);
+    post(req: HttpRequest<any>, headers: HttpHeaders, chainParam: ChainParam, writeableData: ObjectAny[]) {
+      return super.post(req, headers, chainParam, writeableData);
     }
   }
 
@@ -517,8 +520,8 @@ describe('HttpBackendService', () => {
             routes,
           };
 
-          const params = httpBackendService.getResponseParams(routeDryMatch);
-          expect(!!params).toBeFalsy('getResponseParams() not returns params');
+          const params = httpBackendService.getChainParams(routeDryMatch);
+          expect(!!params).toBeFalsy('getChainParams() not returns params');
         });
       });
     });
@@ -535,8 +538,8 @@ describe('HttpBackendService', () => {
           routes: [{ path: routePath }],
         };
 
-        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
-        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(1);
         const param = params[0];
         expect(param.cacheKey).toBe('api/posts');
@@ -556,8 +559,8 @@ describe('HttpBackendService', () => {
           routes: [{ path: 'api/posts/:postId' }],
         };
 
-        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
-        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(1);
         const param = params[0];
         expect(param.cacheKey).toBe('api/posts');
@@ -577,8 +580,8 @@ describe('HttpBackendService', () => {
           routes: [{ path: routePath }],
         };
 
-        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
-        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(1);
         const param = params[0];
         expect(param.cacheKey).toBe(url);
@@ -600,8 +603,8 @@ describe('HttpBackendService', () => {
           routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
         };
 
-        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
-        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(2);
         const param1 = params[0];
         expect(param1.cacheKey).toBe('api/posts');
@@ -626,8 +629,8 @@ describe('HttpBackendService', () => {
           routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
         };
 
-        const params = httpBackendService.getResponseParams(routeDryMatch) as ResponseParam[];
-        expect(!!params).toBeTruthy('getResponseParams() returns params');
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(2);
         const param1 = params[0];
         expect(param1.cacheKey).toBe('api/posts');
@@ -643,15 +646,15 @@ describe('HttpBackendService', () => {
     });
   });
 
-  fdescribe('sendResponse()', () => {
+  describe('sendResponse()', () => {
     it('should returns result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const responseParam: ResponseParam[] = [
+      const chainParam: ChainParam[] = [
         { cacheKey: 'api/posts', primaryKey: '', route: { path: '', callbackData, callbackResponse } },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, responseParam);
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(r => (result = r));
@@ -667,7 +670,7 @@ describe('HttpBackendService', () => {
     it('should returns searched item with given primaryKey and restId inside result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ somePrimaryKey: 23, some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const responseParam: ResponseParam[] = [
+      const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
@@ -676,7 +679,7 @@ describe('HttpBackendService', () => {
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, responseParam);
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(r => (result = r));
@@ -692,7 +695,7 @@ describe('HttpBackendService', () => {
     it('should returns undefined when search inside result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const responseParam: ResponseParam[] = [
+      const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
@@ -701,7 +704,7 @@ describe('HttpBackendService', () => {
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, responseParam);
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(r => fail, err => (result = err));
@@ -742,7 +745,7 @@ describe('HttpBackendService', () => {
   describe('post()', () => {
     it('case 1: reqBody == null', () => {
       const req = new HttpRequest<any>('POST', 'any/url/here', null);
-      const update = httpBackendService.post(
+      const update: ResponseOptions = httpBackendService.post(
         req,
         new HttpHeaders(),
         { primaryKey: 'postId', route: {} as any, cacheKey: '' },
@@ -759,7 +762,7 @@ describe('HttpBackendService', () => {
     it(`case 2: reqBody have some object`, () => {
       const reqBody = { other: 'some value here' };
       const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
-      const update = httpBackendService.post(
+      const update: ResponseOptions = httpBackendService.post(
         req,
         new HttpHeaders(),
         { primaryKey: 'postId', route: {} as any, cacheKey: '' },
@@ -777,9 +780,9 @@ describe('HttpBackendService', () => {
       const reqBody = { postId: 123, other: 'some value here' };
       const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
       const reqHeaders: HttpHeaders = new HttpHeaders();
-      const responseParam: ResponseParam = { primaryKey: 'postId', restId: '456', route: {} as any, cacheKey: '' };
+      const chainParam: ChainParam = { primaryKey: 'postId', restId: '456', route: {} as any, cacheKey: '' };
       const writeableData: ObjectAny[] = [{ postId: 123 }];
-      const update = httpBackendService.post(req, reqHeaders, responseParam, writeableData);
+      const update = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
 
       expect(update instanceof HttpErrorResponse).toBe(true, 'update Errored');
       const { status, headers } = update;
@@ -792,9 +795,9 @@ describe('HttpBackendService', () => {
       const reqBody = { postId: 123, other: 'some value here' };
       const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
       const reqHeaders: HttpHeaders = new HttpHeaders();
-      const responseParam: ResponseParam = { primaryKey: 'postId', route: {} as any, cacheKey: '' };
+      const chainParam: ChainParam = { primaryKey: 'postId', route: {} as any, cacheKey: '' };
       const writeableData: ObjectAny[] = [{ postId: 123 }];
-      const update = httpBackendService.post(req, reqHeaders, responseParam, writeableData);
+      const update: ResponseOptions = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
 
       expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
       const { status, body: resBody, headers } = update;
