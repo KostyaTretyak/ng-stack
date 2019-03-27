@@ -164,7 +164,7 @@ route.path should not to have trailing slash.`
     try {
       return this.handleReq(req);
     } catch (err) {
-      this.logErrorResponse(req, 'Error 500: Internal Server Error', err);
+      this.logErrorResponse(req, 'Error 500: Internal Server Error;', err);
       const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, err.message);
       return throwError(internalErr);
     }
@@ -375,6 +375,9 @@ route.path should not to have trailing slash.`
   protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
     if (!this.cachedData[chainParam.cacheKey]) {
       const writeableData = chainParam.route.callbackData([], chainParam.restId, 'GET', parents, queryParams, body);
+      if (!Array.isArray(writeableData)) {
+        throw new TypeError('route.callbackData() should returns an array');
+      }
       this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
       this.setReadonlyData(chainParam, writeableData);
     }
