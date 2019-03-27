@@ -88,12 +88,15 @@ Also you should to have corresponding route.callbackData.`
           );
         }
 
-        // route.callbackData should to have corresponding a primary key.
-        if (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) {
+        // route.callbackData should to have corresponding a primary key, and vice versa.
+        if (
+          (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) ||
+          (/^(?:[\w-]+\/)+:\w+$/.test(path) && !route.callbackData)
+        ) {
           const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
             `ApiMockModule detected wrong route with path "${fullPath}".
-If you have route.callback, you should to have corresponding a primary key.`
+If you have route.callbackData, you should to have corresponding a primary key, and vice versa.`
           );
         }
 

@@ -59,13 +59,13 @@ describe('HttpBackendService', () => {
 
     response(
       req: HttpRequest<any>,
-      lastParam: ChainParam,
+      chainParam: ChainParam,
       parents: ObjectAny[],
       queryParams: Params,
       responseOptions: ResponseOptions = {} as any,
       items: ObjectAny[]
     ) {
-      return super.response(req, lastParam, parents, queryParams, responseOptions, items);
+      return super.response(req, chainParam, parents, queryParams, responseOptions, items);
     }
 
     callRequestMethod(req: HttpRequest<any>, chainParam: ChainParam, mockData: MockData): ResponseOptions {
@@ -157,7 +157,13 @@ describe('HttpBackendService', () => {
 
       it('with callbackData, but without a primary key', () => {
         const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts', callbackData: () => [] }]];
-        const regexpMsg = /If you have route.callback, you should/;
+        const regexpMsg = /If you have route.callbackData, you should/;
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+      });
+
+      it('with a primary key, but without callbackData', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/pre-account/:login' }]];
+        const regexpMsg = /If you have route.callbackData, you should/;
         expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
       });
 
@@ -183,12 +189,16 @@ describe('HttpBackendService', () => {
       });
 
       it('callbackResponse as an object', () => {
-        const routes: ApiMockRouteGroup[] = [[{ callbackResponse: {} as any, path: 'api/posts/:postId' }]];
+        const routes: ApiMockRouteGroup[] = [
+          [{ callbackResponse: {} as any, callbackData: () => [], path: 'api/posts/:postId' }],
+        ];
         expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
       });
 
       it('callbackResponse as a function', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ callbackResponse: () => [], path: 'api/posts/:postId' }]];
+        const routeGroups: ApiMockRouteGroup[] = [
+          [{ callbackResponse: () => [], callbackData: () => [], path: 'api/posts/:postId' }],
+        ];
         expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
         const result = httpBackendService.checkRouteGroups(routeGroups);
         expect(result).toEqual(routeGroups);
@@ -478,7 +488,7 @@ describe('HttpBackendService', () => {
     });
   });
 
-  describe('getReponseParams()', () => {
+  describe('getChainParams()', () => {
     describe('URL not matched to a route path', () => {
       const badArgs = [
         // Route without primaryKey
@@ -713,7 +723,7 @@ describe('HttpBackendService', () => {
     }));
   });
 
-  describe('getObservableResponse()', () => {});
+  describe('response()', () => {});
 
   describe('changeItem()', () => {});
 
