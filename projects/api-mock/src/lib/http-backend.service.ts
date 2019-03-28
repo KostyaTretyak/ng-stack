@@ -636,15 +636,13 @@ route.path should not to have trailing slash.`
     let resOrBody = clonedItems;
 
     if (chainParam.route.callbackResponse) {
-      const clonedParents = this.clone(parents);
-      const clonedReqBody = this.clone(req.body);
       resOrBody = chainParam.route.callbackResponse(
         clonedItems,
         restId,
         httpMethod,
-        clonedParents,
+        this.clone(parents),
         queryParams,
-        clonedReqBody
+        this.clone(req.body)
       );
     }
 
