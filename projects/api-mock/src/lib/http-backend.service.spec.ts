@@ -1,8 +1,12 @@
+import 'zone.js/dist/zone-patch-rxjs-fake-async';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Params } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpRequest, HttpResponse, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+
+import { Observable } from 'rxjs';
 
 import { HttpBackendService } from './http-backend.service';
 import { ApiMockModule } from './api-mock.module';
@@ -11,10 +15,15 @@ import {
   ApiMockService,
   PartialRoutes,
   RouteDryMatch,
+  ChainParam,
+  ApiMockConfig,
+  ObjectAny,
+  ResponseOptions,
+  ApiMockRouteRoot,
   ApiMockRoute,
-  HttpMethod,
-  GetDataParam,
+  MockData,
 } from './types';
+import { Status } from './http-status-codes';
 
 describe('HttpBackendService', () => {
   /**
@@ -22,12 +31,14 @@ describe('HttpBackendService', () => {
    */
   @Injectable()
   class HttpBackendService2 extends HttpBackendService {
-    getRootPaths(routeGroups: ApiMockRouteGroup[]) {
-      return super.getRootPaths(routeGroups);
-    }
+    config: ApiMockConfig;
 
     checkRouteGroups(routes: ApiMockRouteGroup[]) {
       return super.checkRouteGroups(routes);
+    }
+
+    getRootPaths(routeGroups: ApiMockRouteGroup[]) {
+      return super.getRootPaths(routeGroups);
     }
 
     findRouteGroupIndex(rootRoutes: PartialRoutes, url: string) {
@@ -38,12 +49,35 @@ describe('HttpBackendService', () => {
       return super.getRouteDryMatch(normalizedUrl, routeGroup);
     }
 
-    getReponseParams(splitedUrl: string[], splitedRoute: string[], hasLastRestId: boolean, routes: ApiMockRouteGroup) {
-      return super.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
+    getChainParams(routeDryMatch: RouteDryMatch) {
+      return super.getChainParams(routeDryMatch);
     }
 
-    getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams?: Params) {
-      return super.getResponse(httpMethod, params, queryParams);
+    sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]) {
+      return super.sendResponse(req, chainParams);
+    }
+
+    response(
+      req: HttpRequest<any>,
+      chainParam: ChainParam,
+      parents: ObjectAny[],
+      queryParams: Params,
+      responseOptions: ResponseOptions = {} as any,
+      items: ObjectAny[]
+    ) {
+      return super.response(req, chainParam, parents, queryParams, responseOptions, items);
+    }
+
+    callRequestMethod(req: HttpRequest<any>, chainParam: ChainParam, mockData: MockData): ResponseOptions {
+      return super.callRequestMethod(req, chainParam, mockData);
+    }
+
+    genId(collection: ObjectAny[], primaryKey: string) {
+      return super.genId(collection, primaryKey);
+    }
+
+    post(req: HttpRequest<any>, headers: HttpHeaders, chainParam: ChainParam, writeableData: ObjectAny[]) {
+      return super.post(req, headers, chainParam, writeableData);
     }
   }
 
@@ -62,487 +96,591 @@ describe('HttpBackendService', () => {
     });
 
     httpBackendService = TestBed.get(HttpBackendService2);
-  });
 
-  it('should DI create instance of HttpBackendService', () => {
-    expect(httpBackendService instanceof HttpBackendService2).toBeTruthy();
+    // Merge with default configs.
+    httpBackendService.config = new ApiMockConfig(httpBackendService.config);
   });
-
-  const route: ApiMockRoute = {
-    path: 'one/two/three/:primaryId',
-    callbackData: () => {
-      return [];
-    },
-    callbackResponse: () => {
-      return {};
-    },
-  };
 
   describe('checkRouteGroups()', () => {
-    it('with empty array of routes without throw error', () => {
+    it('route with emty route group', () => {
       const routes: ApiMockRouteGroup[] = [];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
       const result = httpBackendService.checkRouteGroups(routes);
       expect(result).toEqual(routes);
     });
 
-    it('with correct array of routes without throw error', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route }]];
-      expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
-      const result = httpBackendService.checkRouteGroups(routes);
-      expect(result).toEqual(routes);
+    describe('param: route.path', () => {
+      it('path without slashes', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('path with slashes and without primary keys', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/sessions' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('route path with trailing slash', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/sessions/' }]];
+        const regexpMsg = /route.path should not to have trailing slash/;
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+      });
+
+      it('multi level route paths, without primary keys', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }, { path: 'comments' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
+      });
     });
 
-    it('with correct host as argument should not fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, host: 'https://example.com' }]];
-      expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
-      const result = httpBackendService.checkRouteGroups(routes);
-      expect(result).toEqual(routes);
+    describe('param: route.path and route.callbackData', () => {
+      it('multi level route paths, without route.callbackData', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId' }, { path: 'comments' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
+      });
+
+      it('multi level route paths, with route.callbackData and a primary key', () => {
+        const routeGroups: ApiMockRouteGroup[] = [
+          [
+            // Multi level route paths, with callbackData
+            { path: 'api/posts/:postId', callbackData: () => [] },
+            { path: 'comments' },
+          ],
+        ];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('with callbackData, but without a primary key', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts', callbackData: () => [] }]];
+        const regexpMsg = /If you have route.callbackData, you should/;
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+      });
+
+      it('with a primary key, but without callbackData', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/pre-account/:login' }]];
+        const regexpMsg = /If you have route.callbackData, you should/;
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+      });
+
+      it('with callbackData and with a primary key', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId', callbackData: () => [] }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
     });
 
-    it('with bad host as argument should fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, host: 'fake host' }]];
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/detect wrong host "fake host"/);
+    describe('param: route.callbackData and route.callbackResponse', () => {
+      it('callbackData as an object', () => {
+        const routes: ApiMockRouteGroup[] = [[{ callbackData: {} as any, path: 'api/posts/:postId' }]];
+        expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
+      });
+
+      it('callbackData as a function', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ callbackData: () => [], path: 'api/posts/:postId' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('callbackResponse as an object', () => {
+        const routes: ApiMockRouteGroup[] = [
+          [{ callbackResponse: {} as any, callbackData: () => [], path: 'api/posts/:postId' }],
+        ];
+        expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
+      });
+
+      it('callbackResponse as a function', () => {
+        const routeGroups: ApiMockRouteGroup[] = [
+          [{ callbackResponse: () => [], callbackData: () => [], path: 'api/posts/:postId' }],
+        ];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
+
+      it('callbackResponse as a function, without path primary key', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ callbackResponse: () => [], path: 'api/pre-account/login' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
     });
 
-    it('with bad path as argument should fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, path: 'some' }]];
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/detect wrong route with path "some"/);
-    });
+    describe('param: route.host', () => {
+      it('wrong host', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'fake host', path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
+      });
 
-    it('with bad callbackData as argument should fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, callbackData: {} as any }]];
-      const msg = `Route callbackData with path "one/two/three/:primaryId" is not a function`;
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(msg);
-    });
+      it('wrong host without HTTP protocol', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'example.com', path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
+      });
 
-    it('with bad callbackResponse as argument should fail', () => {
-      const routes: ApiMockRouteGroup[] = [[{ ...route, callbackResponse: {} as any }]];
-      const msg = `Route callbackResponse with path "one/two/three/:primaryId" is not a function`;
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(msg);
-    });
+      it('wrong host with slash at the end', () => {
+        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'http://example.com/', path: 'api' }]];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
+      });
 
-    it('with duplicate root path as arguments with fail', () => {
-      const routes: ApiMockRouteGroup[] = [
-        [{ ...route }],
-        [{ ...route, path: 'four/five/six/:primaryId' }],
-        [{ ...route }],
-      ];
-      const msg = `ApiMockModule detect duplicate route with path: "/one/two/three/"`;
-      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(msg);
+      it('right hosts', () => {
+        const routeGroups: ApiMockRouteGroup[] = [
+          [{ host: 'http://example.com', path: 'api' }],
+          [{ host: 'https://example.com', path: 'api' }],
+          [{ host: 'https://example.com.ua', path: 'api' }],
+          [{ host: 'https://приклад.укр', path: 'api' }],
+          [{ host: 'https://xn--80aikifvh.xn--j1amh', path: 'api' }],
+        ];
+        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+        const result = httpBackendService.checkRouteGroups(routeGroups);
+        expect(result).toEqual(routeGroups);
+      });
     });
   });
 
+  const routesWithoutHost: ApiMockRouteGroup[] = [
+    [{ path: 'one/:primaryId' }],
+    [{ path: 'one/two/:primaryId' }],
+    [{ path: 'one/two/three/four/five/six/seven/:primaryId' }],
+    [{ path: 'one/two/three/four/five/six/:primaryId' }],
+    [{ path: 'one/two/three/:primaryId' }],
+    [{ path: 'one/two/three/four/:primaryId' }],
+    [{ path: 'one/two/three/four/five/:primaryId' }],
+    [{ path: 'api/login' }],
+  ];
+
+  const routesWithMixHost: ApiMockRouteGroup[] = [
+    [{ host: 'https://example3.com', path: 'one/two/three/four/five/six/:primaryId' }],
+    [{ host: 'https://example2.com', path: 'one/two/three/four/five/six/:primaryId' }],
+    [{ host: 'https://example1.com', path: 'one/two/:primaryId' }],
+    [{ host: 'https://example1.com', path: 'one/two/three/four/five/six/:primaryId' }],
+    [{ host: 'https://example2.com', path: 'one/two/:primaryId' }],
+    [{ host: 'https://example4.com', path: 'one/two/three/four/:primaryId' }],
+    [{ host: 'https://example4.com', path: 'one/two/:primaryId' }],
+    [{ host: 'https://example2.com', path: 'one/two/three/four/:primaryId' }],
+    [{ host: 'https://example3.com', path: 'one/two/three/four/:primaryId' }],
+    [{ host: 'https://example1.com', path: 'one/two/three/four/:primaryId' }],
+    [{ host: 'https://example3.com', path: 'one/two/:primaryId' }],
+    [{ host: 'https://example4.com', path: 'api/login' }],
+  ];
+
   describe('getRootPaths()', () => {
-    const routesWithoutHost: ApiMockRouteGroup[] = [
-      [{ ...route, path: 'one/:primaryId' }],
-      [{ ...route, path: 'one/two/:primaryId' }],
-      [{ ...route, path: 'one/two/three/four/five/six/seven/:primaryId' }],
-      [{ ...route, path: 'one/two/three/four/five/six/:primaryId' }],
-      [{ ...route, path: 'one/two/three/:primaryId' }],
-      [{ ...route, path: 'one/two/three/four/:primaryId' }],
-      [{ ...route, path: 'one/two/three/four/five/:primaryId' }],
-    ];
-
-    const routesWithMixHost: ApiMockRouteGroup[] = [
-      [{ ...route, host: 'https://example3.com', path: 'one/two/three/four/five/six/:primaryId' }],
-      [{ ...route, host: 'https://example2.com', path: 'one/two/three/four/five/six/:primaryId' }],
-      [{ ...route, host: 'https://example1.com', path: 'one/two/:primaryId' }],
-      [{ ...route, host: 'https://example1.com', path: 'one/two/three/four/five/six/:primaryId' }],
-      [{ ...route, host: 'https://example2.com', path: 'one/two/:primaryId' }],
-      [{ ...route, host: 'https://example4.com', path: 'one/two/three/four/:primaryId' }],
-      [{ ...route, host: 'https://example4.com', path: 'one/two/:primaryId' }],
-      [{ ...route, host: 'https://example2.com', path: 'one/two/three/four/:primaryId' }],
-      [{ ...route, host: 'https://example3.com', path: 'one/two/three/four/:primaryId' }],
-      [{ ...route, host: 'https://example1.com', path: 'one/two/three/four/:primaryId' }],
-      [{ ...route, host: 'https://example3.com', path: 'one/two/:primaryId' }],
-    ];
-
-    describe('getRootPaths()', () => {
-      it('without host should sort root path by length with revert order', () => {
-        const rootRoutes = httpBackendService.getRootPaths(routesWithoutHost);
-        expect(rootRoutes[0].path).toBe('one/two/three/four/five/six/seven');
-        expect(rootRoutes[0].index).toEqual(2);
-        expect(rootRoutes[1].path).toBe('one/two/three/four/five/six');
-        expect(rootRoutes[1].index).toEqual(3);
-        expect(rootRoutes[2].path).toBe('one/two/three/four/five');
-        expect(rootRoutes[2].index).toEqual(6);
-        expect(rootRoutes[3].path).toBe('one/two/three/four');
-        expect(rootRoutes[3].index).toEqual(5);
-        expect(rootRoutes[4].path).toBe('one/two/three');
-        expect(rootRoutes[4].index).toEqual(4);
-        expect(rootRoutes[5].path).toBe('one/two');
-        expect(rootRoutes[5].index).toEqual(1);
-        expect(rootRoutes[6].path).toBe('one');
-        expect(rootRoutes[6].index).toEqual(0);
-      });
-
-      it('with host should sort root path by length with revert order', () => {
-        const rootRoutes = httpBackendService.getRootPaths(routesWithMixHost);
-        expect(rootRoutes[0].path).toBe('https://example3.com/one/two/three/four/five/six');
-        expect(rootRoutes[0].index).toEqual(0);
-        expect(rootRoutes[2].path).toBe('https://example1.com/one/two/three/four/five/six');
-        expect(rootRoutes[2].index).toEqual(3);
-        expect(rootRoutes[3].path).toBe('https://example4.com/one/two/three/four');
-        expect(rootRoutes[3].index).toEqual(5);
-        expect(rootRoutes[5].path).toBe('https://example3.com/one/two/three/four');
-        expect(rootRoutes[5].index).toEqual(8);
-      });
+    it('param: route.path only', () => {
+      const rootRoutes = httpBackendService.getRootPaths(routesWithoutHost);
+      expect(rootRoutes[0].path).toBe('one/two/three/four/five/six/seven');
+      expect(rootRoutes[0].index).toEqual(2);
+      expect(rootRoutes[1].path).toBe('one/two/three/four/five/six');
+      expect(rootRoutes[1].index).toEqual(3);
+      expect(rootRoutes[2].path).toBe('one/two/three/four/five');
+      expect(rootRoutes[2].index).toEqual(6);
+      expect(rootRoutes[3].path).toBe('one/two/three/four');
+      expect(rootRoutes[3].index).toEqual(5);
+      expect(rootRoutes[4].path).toBe('one/two/three');
+      expect(rootRoutes[4].index).toEqual(4);
+      expect(rootRoutes[5].path).toBe('api/login');
+      expect(rootRoutes[5].index).toEqual(7);
+      expect(rootRoutes[6].path).toBe('one/two');
+      expect(rootRoutes[6].index).toEqual(1);
+      expect(rootRoutes[7].path).toBe('one');
+      expect(rootRoutes[7].index).toEqual(0);
     });
 
-    describe('findRouteGroupIndex()', () => {
-      it('without host should find right routeIndex', () => {
-        const rootRoutes = httpBackendService.getRootPaths(routesWithoutHost);
-        let routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/primaryId');
-        expect(routeIndex).toEqual(5);
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/primaryId');
-        expect(routeIndex).toEqual(1);
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one-other/primaryId');
-        expect(routeIndex).toEqual(-1);
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/five/six/seven/primaryId');
-        expect(routeIndex).toEqual(2);
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/five/six/primaryId');
-        expect(routeIndex).toEqual(3);
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/five/primaryId');
-        expect(routeIndex).toEqual(6);
-      });
+    it('param: route.path and route.host', () => {
+      const rootRoutes = httpBackendService.getRootPaths(routesWithMixHost);
+      expect(rootRoutes[0].path).toBe('https://example3.com/one/two/three/four/five/six');
+      expect(rootRoutes[0].index).toEqual(0);
+      expect(rootRoutes[2].path).toBe('https://example1.com/one/two/three/four/five/six');
+      expect(rootRoutes[2].index).toEqual(3);
+      expect(rootRoutes[3].path).toBe('https://example4.com/one/two/three/four');
+      expect(rootRoutes[3].index).toEqual(5);
+      expect(rootRoutes[5].path).toBe('https://example3.com/one/two/three/four');
+      expect(rootRoutes[5].index).toEqual(8);
+    });
+  });
 
-      it('with host should find right routeIndex', () => {
-        const rootRoutes = httpBackendService.getRootPaths(routesWithMixHost);
-        let host = 'https://example2.com/one/two/primaryId';
-        let routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
-        expect(routeIndex).toEqual(4);
-        host = 'https://example4.com/one/two/three/four/primaryId';
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
-        expect(routeIndex).toEqual(5);
-        host = 'https://example4.com/one/two/primaryId';
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
-        expect(routeIndex).toEqual(6);
-        host = 'https://example1.com/one/two/primaryId';
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
-        expect(routeIndex).toEqual(2);
-        host = 'https://example1.com/one/two-other/primaryId';
-        routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, host);
-        expect(routeIndex).toEqual(-1);
-      });
+  describe('findRouteGroupIndex()', () => {
+    it('param: routes without a host', () => {
+      const rootRoutes = httpBackendService.getRootPaths(routesWithoutHost);
+      let routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/primaryId');
+      expect(routeIndex).toEqual(5);
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/primaryId');
+      expect(routeIndex).toEqual(1);
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one-other/primaryId');
+      expect(routeIndex).toEqual(-1);
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/five/six/seven/primaryId');
+      expect(routeIndex).toEqual(2);
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/five/six/primaryId');
+      expect(routeIndex).toEqual(3);
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'one/two/three/four/five/primaryId');
+      expect(routeIndex).toEqual(6);
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, 'api/login');
+      expect(routeIndex).toEqual(7);
+    });
+
+    it('param: routes with a host', () => {
+      const rootRoutes = httpBackendService.getRootPaths(routesWithMixHost);
+      let url = 'https://example2.com/one/two/primaryId';
+      let routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
+      expect(routeIndex).toEqual(4);
+      url = 'https://example4.com/one/two/three/four/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
+      expect(routeIndex).toEqual(5);
+      url = 'https://example4.com/one/two/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
+      expect(routeIndex).toEqual(6);
+      url = 'https://example1.com/one/two/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
+      expect(routeIndex).toEqual(2);
+      url = 'https://example1.com/one/two-other/primaryId';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
+      expect(routeIndex).toEqual(-1);
+      url = 'https://example4.com/api/login';
+      routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
+      expect(routeIndex).toEqual(11);
     });
   });
 
   describe('getRouteDryMatch()', () => {
     let dryMatch: RouteDryMatch | void;
-    let routeGroup: ApiMockRouteGroup;
     let url: string;
-    let splitedUrl: string[];
-    let splitedRoute: string[];
+    let routePath: string;
+    let routeGroup: ApiMockRouteGroup;
 
-    describe('one level of nesting', () => {
-      it('should match an url with primary ID to a route', () => {
+    describe('one level of route.path nesting', () => {
+      it('url with primary ID', () => {
         url = 'one/two/three-other/123';
-        routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
-        splitedUrl = ['one', 'two', 'three-other', '123'];
-        splitedRoute = ['one', 'two', 'three', ':primaryId'];
+        routePath = 'one/two/three/:primaryId';
+        routeGroup = [{ path: routePath }, { path: 'level-two/one/two' }];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
-        expect(!!dryMatch).toBeTruthy();
-        expect(dryMatch.hasLastRestId).toBeTruthy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBe(true);
+        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch.splitedRoute.join('/')).toBe(routePath);
+        expect(dryMatch.routes).toEqual([{ path: routePath }]);
       });
 
-      it('should match an url without primary ID to a route', () => {
+      it('url without primary ID', () => {
         url = 'one/two/three-other';
-        routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
-        splitedUrl = ['one', 'two', 'three-other'];
-        splitedRoute = ['one', 'two', 'three'];
+        routePath = 'one/two/three/:primaryId';
+        routeGroup = [{ path: routePath }, { path: 'level-two/one/two' }];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
-        expect(!!dryMatch).toBeTruthy();
-        expect(dryMatch.hasLastRestId).toBeFalsy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBeUndefined();
+        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch.splitedRoute.join('/')).toBe('one/two/three');
+        expect(dryMatch.routes).toEqual([{ path: routePath }]);
       });
 
-      it('should not match an long url with primary ID to a short route', () => {
+      it('should not match a long url to a short route', () => {
         url = 'one/two/three-other/four/123';
-        routeGroup = [{ ...route, path: 'one/two/three/:primaryId' }];
-        dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup);
+        routePath = 'one/two/three/:primaryId';
+        dryMatch = httpBackendService.getRouteDryMatch(url, [{ path: routePath }]);
         expect(!!dryMatch).toBeFalsy();
       });
 
-      it('should not match an short url with primary ID to a long route', () => {
+      it('should not match a short url to a long route', () => {
         url = 'one/two/three-other/123';
-        routeGroup = [{ ...route, path: 'one/two/three/five/six/:primaryId' }];
+        routePath = 'one/two/three/five/six/:primaryId';
+        dryMatch = httpBackendService.getRouteDryMatch(url, [{ path: routePath }]);
+        expect(!!dryMatch).toBeFalsy();
+      });
+
+      it('url with host and with primary ID', () => {
+        url = 'https://example.com/one/two-other/123';
+        routeGroup = [{ host: 'https://example.com', path: 'one/two/:primaryId' }, { path: 'level-two/one/two' }];
+        dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBe(true);
+        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/one/two/:primaryId');
+        expect(dryMatch.routes).toEqual([{ host: 'https://example.com', path: 'one/two/:primaryId' }]);
+      });
+
+      it('url with host and without primary ID', () => {
+        url = 'https://example.com/one/two-other';
+        routeGroup = [{ host: 'https://example.com', path: 'one/two/:primaryId' }, { path: 'level-two/one/two' }];
+        dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBeUndefined();
+        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/one/two');
+        expect(dryMatch.routes).toEqual([{ host: 'https://example.com', path: 'one/two/:primaryId' }]);
+      });
+    });
+
+    describe('multi level of route.path nesting', () => {
+      it('url with primary ID', () => {
+        url = 'api/posts/123/comments-other/456';
+        routeGroup = [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }, { path: 'one/two/:otherId' }];
+        dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBe(true);
+        expect(dryMatch.lastPrimaryKey).toBe('commentId');
+        expect(dryMatch.splitedRoute.join('/')).toBe('api/posts/:postId/comments/:commentId');
+        expect(dryMatch.routes).toEqual([{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }]);
+      });
+
+      it('url without primary ID', () => {
+        url = 'api/posts/123/comments-other';
+        routeGroup = [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }, { path: 'one/two/:otherId' }];
+        dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBeUndefined();
+        expect(dryMatch.lastPrimaryKey).toBe('commentId');
+        expect(dryMatch.splitedRoute.join('/')).toBe('api/posts/:postId/comments');
+        expect(dryMatch.routes).toEqual([{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }]);
+      });
+
+      it('should not match a long url to a short route', () => {
+        url = 'one/two/three/four/five/six/seven';
+        routeGroup = [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup);
         expect(!!dryMatch).toBeFalsy();
       });
 
-      it('should match an url with host and with primary ID to a route', () => {
-        url = 'https://example.com/one/two-other/123';
-        routeGroup = [{ ...route, host: 'https://example.com', path: 'one/two/:primaryId' }];
-        splitedUrl = ['https:', '', 'example.com', 'one', 'two-other', '123'];
-        splitedRoute = ['https:', '', 'example.com', 'one', 'two', ':primaryId'];
+      it('should not match a short url to a long route', () => {
+        url = 'one';
+        routeGroup = [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }];
+        dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup);
+        expect(!!dryMatch).toBeFalsy();
+      });
+
+      it('url with host and with primary ID', () => {
+        url = 'https://example.com/api/posts/123/comments-other/456';
+        routeGroup = [
+          { host: 'https://example.com', path: 'api/posts/:postId' },
+          { path: 'comments/:commentId' },
+          { path: 'one/two/:otherId' },
+        ];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
-        expect(!!dryMatch).toBeTruthy();
-        expect(dryMatch.hasLastRestId).toBeTruthy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBe(true);
+        expect(dryMatch.lastPrimaryKey).toBe('commentId');
+        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments/:commentId');
+        expect(dryMatch.routes).toEqual([
+          { host: 'https://example.com', path: 'api/posts/:postId' },
+          { path: 'comments/:commentId' },
+        ]);
       });
 
-      it('should match an url with host and without primary ID to a route', () => {
-        url = 'https://example.com/one/two-other';
-        routeGroup = [{ ...route, host: 'https://example.com', path: 'one/two/:primaryId' }];
-        splitedUrl = ['https:', '', 'example.com', 'one', 'two-other'];
-        splitedRoute = ['https:', '', 'example.com', 'one', 'two'];
+      it('url with host and without primary ID', () => {
+        url = 'https://example.com/api/posts/123/comments-other';
+        routeGroup = [
+          { host: 'https://example.com', path: 'api/posts/:postId' },
+          { path: 'comments/:commentId' },
+          { path: 'one/two/:otherId' },
+        ];
         dryMatch = httpBackendService.getRouteDryMatch(url, routeGroup) as RouteDryMatch;
-        expect(!!dryMatch).toBeTruthy();
-        expect(dryMatch.hasLastRestId).toBeFalsy();
-        expect(dryMatch.splitedUrl.toString()).toBe(splitedUrl.toString());
-        expect(dryMatch.splitedRoute.toString()).toBe(splitedRoute.toString());
-      });
-    });
-
-    describe('many level of nesting', () => {});
-  });
-
-  describe('getReponseParams()', () => {
-    let badArgs: Map<string, string>;
-    let goodArgs: Map<string, string>;
-    describe('with last restId', () => {
-      describe('without host', () => {
-        describe('one level nesting', () => {
-          badArgs = new Map([
-            ['api/posts/123', 'api/posts-other/:postId'],
-            ['api/posts/123', 'api-other/posts/:postId'],
-            ['api/posts-other/123', 'api/posts/:postId'],
-            ['api-other/posts/123', 'api/posts/:postId'],
-          ]);
-          goodArgs = new Map([['api/posts/123', 'api/posts/:postId']]);
-
-          badArgs.forEach((routePath, url) => {
-            it(`should not matched "${url}" to "${routePath}"`, () => {
-              const splitedUrl = url.split('/');
-              const splitedRoute = routePath.split('/');
-              const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-              const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
-              expect(!!params).toBeFalsy();
-            });
-          });
-
-          goodArgs.forEach((routePath, url) => {
-            it(`should matched "${url}" to "${routePath}"`, () => {
-              const splitedUrl = url.split('/');
-              const splitedRoute = routePath.split('/');
-              const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-              const params = httpBackendService.getReponseParams(
-                splitedUrl,
-                splitedRoute,
-                true,
-                routes
-              ) as GetDataParam[];
-              expect(!!params).toBeTruthy();
-              expect(params.length).toEqual(1);
-              const param = params[0];
-              expect(param.cacheKey).toBe('api/posts');
-              expect(param.primaryKey).toBe('postId');
-              expect(param.restId).toBe('123');
-              expect(param.route === routes[0]).toBeTruthy();
-            });
-          });
-        });
-
-        describe('multi level nesting', () => {
-          badArgs = new Map([
-            ['api/posts/123/comments/456', 'api/posts/:postId/comments-other/:commentId'],
-            ['api/posts/123/comments/456', 'api-other/posts/:postId/comments/:commentId'],
-            ['api/posts/123/comments-other/456', 'api/posts/:postId/comments/:commentId'],
-            ['api-other/posts/123/comments/456', 'api/posts/:postId/comments/:commentId'],
-          ]);
-          goodArgs = new Map([['api/posts/123/comments/456', 'api/posts/:postId/comments/:commentId']]);
-
-          badArgs.forEach((routePath, url) => {
-            it(`should not matched "${url}" to "${routePath}"`, () => {
-              const splitedUrl = url.split('/');
-              const splitedRoute = routePath.split('/');
-              const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-              const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
-              expect(!!params).toBeFalsy();
-            });
-          });
-
-          goodArgs.forEach((routePath, url) => {
-            it(`should matched "${url}" to "${routePath}"`, () => {
-              const splitedUrl = url.split('/');
-              const splitedRoute = routePath.split('/');
-              const routes: ApiMockRouteGroup = [
-                { ...route, path: 'posts/:postId' },
-                { ...route, path: 'comments/:commentId' },
-              ];
-              const params = httpBackendService.getReponseParams(
-                splitedUrl,
-                splitedRoute,
-                true,
-                routes
-              ) as GetDataParam[];
-              expect(!!params).toBeTruthy();
-              expect(params.length).toEqual(2);
-              const param1 = params[0];
-              expect(param1.route === routes[0]).toBeTruthy();
-              const param2 = params[1];
-              expect(param2.cacheKey).toBe('api/posts/123/comments');
-              expect(param2.primaryKey).toBe('commentId');
-              expect(param2.restId).toBe('456');
-              expect(param2.route === routes[1]).toBeTruthy();
-            });
-          });
-        });
-      });
-
-      describe('with host', () => {
-        badArgs = new Map([
-          ['https://example.com/api/posts/123', 'https://example.com/api/posts-other/:postId'],
-          ['https://example.com/api/posts/123', 'https://example.com/api-other/posts/:postId'],
-          ['https://example.com/api/posts-other/123', 'https://example.com/api/posts/:postId'],
-          ['https://example.com/api-other/posts/123', 'https://example.com/api/posts/:postId'],
-          ['https://example1.com/api/posts/123', 'https://example.com/api/posts/:postId'],
+        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
+        expect(dryMatch.hasLastRestId).toBeUndefined();
+        expect(dryMatch.lastPrimaryKey).toBe('commentId');
+        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments');
+        expect(dryMatch.routes).toEqual([
+          { host: 'https://example.com', path: 'api/posts/:postId' },
+          { path: 'comments/:commentId' },
         ]);
-        goodArgs = new Map([['https://example.com/api/posts/123', 'https://example.com/api/posts/:postId']]);
-
-        badArgs.forEach((routePath, url) => {
-          it(`should not matched "${url}" to "${routePath}"`, () => {
-            const splitedUrl = url.split('/');
-            const splitedRoute = routePath.split('/');
-            const routes: ApiMockRouteGroup = [{ ...route, path: routePath, host: 'https://example.com' }];
-            const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
-            expect(!!params).toBeFalsy();
-          });
-        });
-
-        goodArgs.forEach((routePath, url) => {
-          it(`should matched "${url}" to "${routePath}"`, () => {
-            const splitedUrl = url.split('/');
-            const splitedRoute = routePath.split('/');
-            const routes: ApiMockRouteGroup = [{ ...route, path: 'posts/:postId', host: 'https://example.com' }];
-            const params = httpBackendService.getReponseParams(
-              splitedUrl,
-              splitedRoute,
-              true,
-              routes
-            ) as GetDataParam[];
-            expect(!!params).toBeTruthy();
-            expect(params.length).toEqual(1);
-            const param = params[0];
-            expect(param.cacheKey).toBe('https://example.com/api/posts');
-            expect(param.primaryKey).toBe('postId');
-            expect(param.restId).toBe('123');
-            expect(param.route === routes[0]).toBeTruthy();
-          });
-        });
-      });
-    });
-
-    describe('without last restId', () => {
-      describe('one level nesting', () => {
-        badArgs = new Map([
-          ['api/posts', 'api/posts-other'],
-          ['api/posts', 'api-other/posts'],
-          ['api/posts-other', 'api/posts'],
-          ['api-other/posts', 'api/posts'],
-        ]);
-        goodArgs = new Map([['api/posts', 'api/posts']]);
-
-        badArgs.forEach((routePath, url) => {
-          it(`should not matched "${url}" to "${routePath}"`, () => {
-            const splitedUrl = url.split('/');
-            const splitedRoute = routePath.split('/');
-            const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-            const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, false, routes);
-            expect(!!params).toBeFalsy();
-          });
-        });
-
-        goodArgs.forEach((routePath, url) => {
-          it(`should matched "${url}" to "${routePath}"`, () => {
-            const splitedUrl = url.split('/');
-            const splitedRoute = routePath.split('/');
-            const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-            const params = httpBackendService.getReponseParams(
-              splitedUrl,
-              splitedRoute,
-              false,
-              routes
-            ) as GetDataParam[];
-            expect(!!params).toBeTruthy();
-            expect(params.length).toEqual(1);
-            const param = params[0];
-            expect(param.cacheKey).toBe('api/posts');
-            expect(param.primaryKey).toBeUndefined();
-            expect(param.restId).toBeUndefined();
-            expect(param.route === routes[0]).toBeTruthy();
-          });
-        });
-      });
-
-      describe('multi level nesting', () => {
-        badArgs = new Map([
-          ['api/posts/123/comments', 'api/posts/:postId/comments-other'],
-          ['api/posts/123/comments', 'api-other/posts/:postId/comments'],
-          ['api/posts/123/comments-other', 'api/posts/:postId/comments'],
-          ['api-other/posts/123/comments', 'api/posts/:postId/comments'],
-        ]);
-        goodArgs = new Map([['api/posts/123/comments', 'api/posts/:postId/comments']]);
-
-        badArgs.forEach((routePath, url) => {
-          it(`should not matched "${url}" to "${routePath}"`, () => {
-            const splitedUrl = url.split('/');
-            const splitedRoute = routePath.split('/');
-            const routes: ApiMockRouteGroup = [{ ...route, path: routePath }];
-            const params = httpBackendService.getReponseParams(splitedUrl, splitedRoute, true, routes);
-            expect(!!params).toBeFalsy();
-          });
-        });
-
-        goodArgs.forEach((routePath, url) => {
-          it(`should matched "${url}" to "${routePath}"`, () => {
-            const splitedUrl = url.split('/');
-            const splitedRoute = routePath.split('/');
-            const routes: ApiMockRouteGroup = [
-              { ...route, path: 'posts/:postId' },
-              { ...route, path: 'comments/:commentId' },
-            ];
-            const params = httpBackendService.getReponseParams(
-              splitedUrl,
-              splitedRoute,
-              false,
-              routes
-            ) as GetDataParam[];
-            expect(!!params).toBeTruthy();
-            expect(params.length).toEqual(2);
-            const param1 = params[0];
-            expect(param1.route === routes[0]).toBeTruthy();
-            const param2 = params[1];
-            expect(param2.cacheKey).toBe('api/posts/123/comments');
-            expect(param2.primaryKey).toBeUndefined();
-            expect(param2.restId).toBeUndefined();
-            expect(param2.route === routes[1]).toBeTruthy();
-          });
-        });
       });
     });
   });
 
-  describe('getResponse()', () => {
-    it('should returns result of calling callbackData()', () => {
+  describe('getChainParams()', () => {
+    describe('URL not matched to a route path', () => {
+      const badArgs = [
+        // Route without primaryKey
+        ['api/login', 'api/login-other'],
+        ['api/login', 'api-other/login'],
+        ['api/login-other', 'api/login'],
+        ['api-other/login', 'api/login'],
+
+        // URL with restId
+        ['api/posts/123', 'api/posts-other/:postId'],
+        ['api/posts/123', 'api-other/posts/:postId'],
+        ['api/posts-other/123', 'api/posts/:postId'],
+        ['api-other/posts/123', 'api/posts/:postId'],
+
+        // Multi level nesting of route paths
+        ['api/posts/123/comments/456', 'api/posts/:postId/comments-other/:commentId'],
+        ['api/posts/123/comments/456', 'api-other/posts/:postId/comments/:commentId'],
+        ['api/posts/123/comments-other/456', 'api/posts/:postId/comments/:commentId'],
+        ['api-other/posts/123/comments/456', 'api/posts/:postId/comments/:commentId'],
+
+        // URL without restId
+        ['api/posts', 'api/posts-other/:postId'],
+        ['api/posts', 'api-other/posts/:postId'],
+        ['api/posts-other', 'api/posts/:postId'],
+        ['api-other/posts', 'api/posts/:postId'],
+      ];
+
+      badArgs.forEach(([url, routePath], i) => {
+        it(`"${url}" and "${routePath}"`, () => {
+          const splitedUrl = url.split('/');
+          const hasLastRestId = i >= 0 && i < 12 ? true : false;
+          const splitedRoute = hasLastRestId ? routePath.split('/') : routePath.split('/').slice(0, -1);
+          const routes = [{ path: routePath }] as [ApiMockRouteRoot, ...ApiMockRoute[]];
+
+          const routeDryMatch: RouteDryMatch = {
+            splitedUrl,
+            splitedRoute,
+            hasLastRestId,
+            routes,
+          };
+
+          const params = httpBackendService.getChainParams(routeDryMatch);
+          expect(!!params).toBeFalsy('getChainParams() not returns params');
+        });
+      });
+    });
+
+    describe('One level nesting of route paths', () => {
+      it(`URL with restId`, () => {
+        const url = 'api/posts/123';
+        const routePath = 'api/posts/:postId';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: true,
+          lastPrimaryKey: 'anyKey',
+          routes: [{ path: routePath }],
+        };
+
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
+        expect(params.length).toEqual(1);
+        const param = params[0];
+        expect(param.cacheKey).toBe('api/posts');
+        expect(param.primaryKey).toBe('postId');
+        expect(param.restId).toBe('123');
+        expect(param.route).toEqual({ path: routePath });
+      });
+
+      it(`URL without restId`, () => {
+        const url = 'api/posts';
+        const routePath = 'api/posts';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: false,
+          lastPrimaryKey: 'postId',
+          routes: [{ path: 'api/posts/:postId' }],
+        };
+
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
+        expect(params.length).toEqual(1);
+        const param = params[0];
+        expect(param.cacheKey).toBe('api/posts');
+        expect(param.primaryKey).toBe('postId');
+        expect(param.restId).toBeUndefined();
+        expect(param.route).toEqual({ path: 'api/posts/:postId' });
+      });
+
+      it(`Route without primaryKey`, () => {
+        const url = 'api/login';
+        const routePath = 'api/login';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: false,
+          lastPrimaryKey: undefined,
+          routes: [{ path: routePath }],
+        };
+
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
+        expect(params.length).toEqual(1);
+        const param = params[0];
+        expect(param.cacheKey).toBe(url);
+        expect(param.primaryKey).toBeUndefined();
+        expect(param.restId).toBeUndefined();
+        expect(param.route).toEqual({ path: routePath });
+      });
+    });
+
+    describe('Multi level nesting of route paths', () => {
+      it(`URL with restId`, () => {
+        const url = 'api/posts/123/comments/456';
+        const routePath = 'api/posts/:postId/comments/:commentId';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: true,
+          lastPrimaryKey: 'anyKey',
+          routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
+        };
+
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
+        expect(params.length).toEqual(2);
+        const param1 = params[0];
+        expect(param1.cacheKey).toBe('api/posts');
+        expect(param1.primaryKey).toBe('postId');
+        expect(param1.restId).toBe('123');
+        expect(param1.route).toEqual({ path: 'api/posts/:postId' });
+        const param2 = params[1];
+        expect(param2.cacheKey).toBe('api/posts/123/comments');
+        expect(param2.primaryKey).toBe('commentId');
+        expect(param2.restId).toBe('456');
+        expect(param2.route).toEqual({ path: 'comments/:commentId' });
+      });
+
+      it(`URL without restId`, () => {
+        const url = 'api/posts/123/comments';
+        const routePath = 'api/posts/:postId/comments';
+        const routeDryMatch: RouteDryMatch = {
+          splitedUrl: url.split('/'),
+          splitedRoute: routePath.split('/'),
+          hasLastRestId: false,
+          lastPrimaryKey: 'commentId',
+          routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
+        };
+
+        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        expect(!!params).toBeTruthy('getChainParams() returns params');
+        expect(params.length).toEqual(2);
+        const param1 = params[0];
+        expect(param1.cacheKey).toBe('api/posts');
+        expect(param1.primaryKey).toBe('postId');
+        expect(param1.restId).toBe('123');
+        expect(param1.route).toEqual({ path: 'api/posts/:postId' });
+        const param2 = params[1];
+        expect(param2.cacheKey).toBe('api/posts/123/comments');
+        expect(param2.primaryKey).toBe('commentId');
+        expect(param2.restId).toBeUndefined();
+        expect(param2.route).toEqual({ path: 'comments/:commentId' });
+      });
+    });
+  });
+
+  describe('sendResponse()', () => {
+    it('should returns result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const params: GetDataParam[] = [{ cacheKey: 'api/posts', route: { path: '', callbackData, callbackResponse } }];
-      const res = httpBackendService.getResponse('GET', params);
-      expect(res).toBeDefined();
-      expect(Array.isArray(res)).toBe(true);
-      expect(res).toEqual(callbackData());
-    });
+      const chainParam: ChainParam[] = [
+        { cacheKey: 'api/posts', primaryKey: '', route: { path: '', callbackData, callbackResponse } },
+      ];
+      const req = new HttpRequest<any>('GET', 'any/url/here');
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
+      expect(res instanceof Observable).toBe(true);
+      let result: HttpResponse<any> = null;
+      res.subscribe(r => (result = r));
+      expect(result).toBeNull();
 
-    it('should searched item with given primaryKey and restId inside result of calling callbackData()', () => {
+      tick(httpBackendService.config.delay);
+
+      expect(result instanceof HttpResponse).toBe(true);
+      expect(Array.isArray(result.body)).toBe(true);
+      expect(result.body).toEqual(callbackData());
+    }));
+
+    it('should returns searched item with given primaryKey and restId inside result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ somePrimaryKey: 23, some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const params: GetDataParam[] = [
+      const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
@@ -550,16 +688,24 @@ describe('HttpBackendService', () => {
           route: { path: '', callbackData, callbackResponse },
         },
       ];
-      const res = httpBackendService.getResponse('GET', params);
-      expect(res).toBeDefined();
-      expect(Array.isArray(res)).toBe(true);
-      expect(res).toEqual(callbackData());
-    });
+      const req = new HttpRequest<any>('GET', 'any/url/here');
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
+      expect(res instanceof Observable).toBe(true);
+      let result: HttpResponse<any> = null;
+      res.subscribe(r => (result = r));
+      expect(result).toBeNull();
 
-    it('should returns undefined when search inside result of calling callbackData()', () => {
+      tick(httpBackendService.config.delay);
+
+      expect(result instanceof HttpResponse).toBe(true);
+      expect(Array.isArray(result.body)).toBe(true);
+      expect(result.body).toEqual(callbackData());
+    }));
+
+    it('should returns undefined when search inside result of calling callbackData()', fakeAsync(() => {
       const callbackData = () => [{ some: 1 }];
       const callbackResponse = clonedItems => clonedItems;
-      const params: GetDataParam[] = [
+      const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
@@ -567,8 +713,108 @@ describe('HttpBackendService', () => {
           route: { path: '', callbackData, callbackResponse },
         },
       ];
-      const res = httpBackendService.getResponse('GET', params);
-      expect(res).toBeUndefined();
+      const req = new HttpRequest<any>('GET', 'any/url/here');
+      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
+      expect(res instanceof Observable).toBe(true);
+      let result: HttpResponse<any> = null;
+      res.subscribe(r => fail, err => (result = err));
+      expect(result instanceof HttpErrorResponse).toBe(true);
+      expect(result.status).toBe(Status.NOT_FOUND);
+    }));
+  });
+
+  describe('response()', () => {});
+
+  describe('changeItem()', () => {});
+
+  describe('genId()', () => {
+    it('should returns 1 as new id', () => {
+      const newId = httpBackendService.genId([], 'id');
+      expect(newId).toBe(1);
+    });
+
+    it('should ignore string id and returns 1 as new id', () => {
+      const collection = [{ id: 'one' }];
+      const newId = httpBackendService.genId(collection, 'id');
+      expect(newId).toBe(1);
+    });
+
+    it('should returns 10 as new id', () => {
+      const collection = [{ id: 9 }];
+      const newId = httpBackendService.genId(collection, 'id');
+      expect(newId).toBe(10);
+    });
+
+    it('should ignore string id and returns 100 as new id', () => {
+      const collection = [{ id: 'one' }, { id: 99 }];
+      const newId = httpBackendService.genId(collection, 'id');
+      expect(newId).toBe(100);
+    });
+  });
+
+  describe('post()', () => {
+    it('case 1: reqBody == null', () => {
+      const req = new HttpRequest<any>('POST', 'any/url/here', null);
+      const update: ResponseOptions = httpBackendService.post(
+        req,
+        new HttpHeaders(),
+        { primaryKey: 'postId', route: {} as any, cacheKey: '' },
+        []
+      );
+      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = update;
+      expect(status).toBe(Status.CREATED);
+      expect(resBody).toEqual({ postId: 1 });
+      expect(headers.has('Location')).toBe(true, 'has header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
+    });
+
+    it(`case 2: reqBody have some object`, () => {
+      const reqBody = { other: 'some value here' };
+      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
+      const update: ResponseOptions = httpBackendService.post(
+        req,
+        new HttpHeaders(),
+        { primaryKey: 'postId', route: {} as any, cacheKey: '' },
+        []
+      );
+      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = update;
+      expect(status).toBe(Status.CREATED);
+      expect(resBody).toEqual({ postId: 1, ...reqBody });
+      expect(headers.has('Location')).toBe(true, 'has header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
+    });
+
+    it(`case 3: POST on URI with restId`, () => {
+      const reqBody = { postId: 123, other: 'some value here' };
+      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
+      const reqHeaders: HttpHeaders = new HttpHeaders();
+      const chainParam: ChainParam = { primaryKey: 'postId', restId: '456', route: {} as any, cacheKey: '' };
+      const writeableData: ObjectAny[] = [{ postId: 123 }];
+      const update = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
+
+      expect(update instanceof HttpErrorResponse).toBe(true, 'update Errored');
+      const { status, headers } = update;
+      expect(status).toBe(Status.METHOD_NOT_ALLOWED);
+      expect(headers.has('Content-Type')).toBe(true, 'has header "Content-Type"');
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+    });
+
+    it(`case 4: reqBody updates existing ID`, () => {
+      const reqBody = { postId: 123, other: 'some value here' };
+      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
+      const reqHeaders: HttpHeaders = new HttpHeaders();
+      const chainParam: ChainParam = { primaryKey: 'postId', route: {} as any, cacheKey: '' };
+      const writeableData: ObjectAny[] = [{ postId: 123 }];
+      const update: ResponseOptions = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
+
+      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = update;
+      expect(status).toBe(Status.NO_CONTENT);
+      expect(resBody).toBeUndefined('should resBody to be undefined');
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });
   });
 });

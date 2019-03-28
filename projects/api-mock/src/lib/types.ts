@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
+import { HttpHeaders } from '@angular/common/http';
+import { Status } from './http-status-codes';
 
 export abstract class ApiMockService {
   abstract getRouteGroups(): ApiMockRouteGroup[];
@@ -11,7 +13,7 @@ export abstract class ApiMockService {
 @Injectable()
 export class ApiMockConfig {
   /**
-   * - Do you need to delete previous console logs?
+   * - Do you need to clear previous console logs?
    *
    * Clears logs between previous route `NavigationStart` and current `NavigationStart` events.
    */
@@ -27,30 +29,33 @@ export class ApiMockConfig {
    */
   delay? = 500;
   /**
-   * - `true` - 404 code.
-   * - `false` - (default) 204 code - when object-to-delete not found.
+   * - `true` - (default) 404 code - if item with that ID not found.
+   * - `false` - 204 code.
    *
    * Tip:
    * > **204 No Content**
    *
    * > The server successfully processed the request and is not returning any content.
    */
-  delete404? = false;
+  deleteNotFound404? = true;
   /**
    * - `true` - should pass unrecognized request URL through to original backend.
    * - `false` - (default) return 404 code.
    */
   passThruUnknownUrl? = false;
   /**
-   * - `true` - 204 code (default) - should NOT return the item after a POST.
+   * - `true` - (default) 204 code - should NOT return the item after a `POST`.
    * - `false` - 200 code - return the item.
    *
    * Tip:
+   * > **204 No Content**
+   *
+   * > The server successfully processed the request and is not returning any content.
    */
-  post204? = true;
+  postReturn204? = true;
   /**
-   * - `true` - should NOT update existing item with POST.
-   * - `false` - (default) OK to update.
+   * - `true` - 409 code - should NOT update existing item with `POST`.
+   * - `false` - (default) 200 code - OK to update.
    *
    * Tip:
    * > **409 Conflict**
@@ -58,9 +63,9 @@ export class ApiMockConfig {
    * > Indicates that the request could not be processed because of conflict in the current
    * > state of the resource, such as an edit conflict between multiple simultaneous updates.
    */
-  post409? = false;
+  postUpdate409? = false;
   /**
-   * - `true` - 204 code (default) - should NOT return the item after a POST.
+   * - `true` - (default) 204 code - should NOT return the item after a `PUT`.
    * - `false` - 200 code - return the item.
    *
    * Tip:
@@ -68,12 +73,12 @@ export class ApiMockConfig {
    *
    * > The server successfully processed the request and is not returning any content.
    */
-  put204? = true;
+  putReturn204? = true;
   /**
-   * - `true` - create new item if PUT item with that ID not found.
-   * - `false` - (default) should return 404 code.
+   * - `true` - (default) 404 code - if `PUT` item with that ID not found.
+   * - `false` - create new item.
    */
-  put404? = false;
+  putNotFound404? = true;
 
   constructor(apiMockConfig?: ApiMockConfig) {
     Object.assign(this, apiMockConfig || {});
@@ -89,14 +94,21 @@ export interface ObjectAny {
 
 export type CallbackAny = (...params: any[]) => any;
 
-export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+/**
+ * For more info, see [HTTP Request methods](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods)
+ */
+export type HttpMethod = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'OPTIONS' | 'CONNECT' | 'PATCH';
 
 export type ApiMockCallbackData<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
   items?: I,
   itemId?: string,
   httpMethod?: HttpMethod,
   parents?: P,
-  queryParams?: Params
+  queryParams?: Params,
+  /**
+   * Request body.
+   */
+  reqBody?: any
 ) => ObjectAny[];
 
 export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
@@ -104,17 +116,25 @@ export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P exten
   itemId?: string,
   httpMethod?: HttpMethod,
   parents?: P,
-  queryParams?: Params
+  queryParams?: Params,
+  /**
+   * Request body.
+   */
+  reqBody?: any,
+  /**
+   * Response body.
+   */
+  resBody?: any
 ) => any;
 
 export interface ApiMockRoute {
   path: string;
-  callbackData: ApiMockCallbackData;
+  callbackData?: ApiMockCallbackData;
   /**
    * Properties for list items, that returns from `callbackData()`.
    */
   propertiesForList?: ObjectAny;
-  callbackResponse: ApiMockCallbackResponse;
+  callbackResponse?: ApiMockCallbackResponse;
 }
 
 export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
@@ -130,14 +150,15 @@ export type PartialRoutes = Array<{ path: string; length: number; index: number 
 export class RouteDryMatch {
   splitedUrl: string[];
   splitedRoute: string[];
-  hasLastRestId: boolean;
   routes: ApiMockRouteGroup;
+  hasLastRestId: boolean;
+  lastPrimaryKey?: string;
 }
 
-export interface GetDataParam {
+export interface ChainParam {
   cacheKey: string;
   route: ApiMockRouteRoot | ApiMockRoute;
-  primaryKey?: string;
+  primaryKey: string;
   restId?: string;
 }
 
@@ -152,9 +173,27 @@ export class MockData {
    */
   writeableData: ObjectAny[];
   /**
-   * Array of composed objects with properties as getters (only read properties).
+   * Array of composed objects with properties as getters (readonly properties).
    *
-   * - If HTTP-request have `GET` method without restId, we return this array.
+   * - If HTTP-request have `GET` method without restId, we return this array,
+   * where items may have reduce version of REST resource.
    */
-  onlyreadData: ObjectAny[];
+  readonlyData: ObjectAny[];
+}
+
+/**
+ * Http Response Options.
+ */
+export interface ResponseOptions {
+  headers: HttpHeaders;
+  status: number;
+  body?: any;
+  statusText?: string;
+  url?: string;
+}
+
+export interface LogHttpResOpts {
+  status: Status;
+  body: any;
+  headers?: ObjectAny[];
 }

@@ -1,3 +1,5 @@
+import { Injectable } from '@angular/core';
+import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
 import {
   HttpBackend,
   HttpErrorResponse,
@@ -6,8 +8,8 @@ import {
   HttpResponse,
   HttpXhrBackend,
   XhrFactory,
+  HttpHeaders,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
 
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
@@ -21,126 +23,127 @@ import {
   ApiMockRouteRoot,
   PartialRoutes,
   RouteDryMatch,
-  GetDataParam,
+  ChainParam,
   HttpMethod,
   ObjectAny,
+  ResponseOptions,
+  LogHttpResOpts,
+  MockData,
 } from './types';
-import { Status } from './http-status-codes';
-import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
+import { Status, getStatusText } from './http-status-codes';
 
 @Injectable()
 export class HttpBackendService implements HttpBackend {
-  private cachedData: CacheData = {};
-  private routeGroups: ApiMockRouteGroup[] = [];
+  protected isInited: boolean;
+  protected cachedData: CacheData = {};
+  protected routeGroups: ApiMockRouteGroup[] = [];
   /**
-   * Root route paths with host, but without restId. Has result transformation:
+   * Root route paths with host, but without restId. Has result of transformation:
    * - `part1/part2/:paramName` -> `part1/part2`
    * - or `https://example.com/part1/part2/:paramName` -> `https://example.com/part1/part2`
    *
    * Array of paths revert sorted by length.
    */
-  private rootRoutes: PartialRoutes;
+  protected rootRoutes: PartialRoutes;
 
   constructor(
-    private apiMockService: ApiMockService,
-    private apiMockConfig: ApiMockConfig,
-    private xhrFactory: XhrFactory,
-    private router: Router
-  ) {
-    try {
-      this.apiMockConfig = new ApiMockConfig(apiMockConfig);
-      this.init();
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
-    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
-    const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
-
-    if (routeGroupIndex == -1 && this.apiMockConfig.passThruUnknownUrl) {
-      return this.passThruBackend(req);
-    } else if (routeGroupIndex == -1) {
-      return this.make404Error(req);
-    }
-
-    let body: any;
-    const urlTree = this.router.parseUrl(req.urlWithParams);
-    const queryParams = urlTree.queryParams;
-    let params: GetDataParam[] | void;
-    try {
-      const dryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
-      if (dryMatch) {
-        const { splitedUrl, splitedRoute, hasLastRestId, routes } = dryMatch;
-        params = this.getReponseParams(splitedUrl, splitedRoute, hasLastRestId, routes);
-        if (params) {
-          body = this.getResponse(req.method as HttpMethod, params, queryParams);
-        }
-      }
-      if ((!dryMatch || !params) && this.apiMockConfig.passThruUnknownUrl) {
-        return this.passThruBackend(req);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-
-    if (!body) {
-      return this.make404Error(req);
-    }
-
-    if (this.apiMockConfig.showLog) {
-      this.showApiMockLog(req, queryParams, body);
-    }
-
-    const responseConfig = { status: Status.OK, url: req.urlWithParams, body };
-    return of(new HttpResponse<any>(responseConfig)).pipe(delay(this.apiMockConfig.delay));
-  }
-
-  protected showApiMockLog(req: HttpRequest<any>, queryParams: ObjectAny, body: any) {
-    const headers = req.headers.keys().map(header => {
-      let values: string | string[] = req.headers.getAll(header);
-      values = values.length == 1 ? values[0] : values;
-      return { [header]: values };
-    });
-
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-      body: req.body,
-      queryParams,
-      headers,
-    });
-
-    console.log(`%cres:`, 'color: blue;', body);
-  }
-
-  protected passThruBackend(req: HttpRequest<any>) {
-    try {
-      return new HttpXhrBackend(this.xhrFactory).handle(req);
-    } catch (ex) {
-      ex.message = 'Cannot create passThru404 backend; ' + (ex.message || '');
-      throw ex;
-    }
-  }
+    protected apiMockService: ApiMockService,
+    protected config: ApiMockConfig,
+    protected xhrFactory: XhrFactory,
+    protected router: Router
+  ) {}
 
   protected init() {
     const routeGroups = this.apiMockService.getRouteGroups();
     this.routeGroups = this.checkRouteGroups(routeGroups);
     this.rootRoutes = this.getRootPaths(this.routeGroups);
 
-    let loadedApp = false;
-    if (this.apiMockConfig.showLog && this.apiMockConfig.clearPrevLog) {
+    let isLoadedApp = false;
+    if (this.config.showLog && this.config.clearPrevLog) {
       this.router.events.subscribe(event => {
-        if (loadedApp && event instanceof NavigationStart) {
+        if (isLoadedApp && event instanceof NavigationStart) {
           console.clear();
         } else if (event instanceof NavigationEnd) {
-          loadedApp = true;
+          isLoadedApp = true;
         }
       });
     }
   }
 
-  protected clone(data: any) {
-    return JSON.parse(JSON.stringify(data));
+  protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
+    routeGroups.forEach(routeGroup => {
+      routeGroup.forEach((route, i) => {
+        const isLastRoute = i + 1 == routeGroup.length;
+        const path = route.path;
+        const host = (route as any).host;
+
+        // Nested routes should to have route.callbackData and primary keys.
+        if (!isLastRoute && (!route.callbackData || !/^(?:[\w-]+\/)+:\w+$/.test(path))) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detected wrong multi level route with path "${fullPath}".
+With multi level route you should to use a primary key in nested route path,
+for example "api/posts/:postId -> comments", where ":postId" is a primary key of collection "api/posts".
+Also you should to have corresponding route.callbackData.`
+          );
+        }
+
+        // route.callbackData should to have corresponding a primary key, and vice versa.
+        if (
+          (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) ||
+          (/^(?:[\w-]+\/)+:\w+$/.test(path) && !route.callbackData)
+        ) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detected wrong route with path "${fullPath}".
+If you have route.callbackData, you should to have corresponding a primary key, and vice versa.`
+          );
+        }
+
+        // route.callbackData should to have corresponding a primary key.
+        if (!/.+\w$/.test(path)) {
+          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+          throw new Error(
+            `ApiMockModule detected wrong route with path "${fullPath}".
+route.path should not to have trailing slash.`
+          );
+        }
+
+        if (route.callbackData && typeof route.callbackData != 'function') {
+          throw new Error(`Route callbackData with path "${path}" is not a function`);
+        }
+        if (route.callbackResponse && typeof route.callbackResponse != 'function') {
+          throw new Error(`Route callbackResponse with path "${path}" is not a function`);
+        }
+
+        // Checking a path.host
+        if (host && !/^https?:\/\/(?:[^\/]+\.)+[^\/]+$/.test(host)) {
+          throw new Error(
+            `ApiMockModule detected wrong host "${host}".
+            Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
+            for example "https://example.com" (without a trailing slash)`
+          );
+        }
+      });
+    });
+
+    const incomingRoutes = routeGroups.map(getRootPath);
+    const existingRoutes = this.routeGroups.map(getRootPath);
+
+    incomingRoutes.forEach(incomingRoute => {
+      if (existingRoutes.includes(incomingRoute)) {
+        throw new Error(`ApiMockModule detected duplicate route with path: "${incomingRoute}"`);
+      }
+      existingRoutes.push(incomingRoute);
+    });
+
+    return routeGroups;
+
+    function getRootPath(route: ApiMockRouteRoot[]) {
+      const host = route[0].host || '';
+      const rootPath = route[0].path.split(':')[0];
+      return `${host}/${rootPath}`;
+    }
   }
 
   protected getRootPaths(routeGroups: ApiMockRouteGroup[]): PartialRoutes {
@@ -157,70 +160,46 @@ export class HttpBackendService implements HttpBackend {
     return rootRoutes.sort((a, b) => b.length - a.length);
   }
 
-  protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
-    routeGroups.forEach(routeGroup => {
-      routeGroup.forEach(route => {
-        const path = route.path;
-        const host = (route as any).host;
-        if (host && !/^https?:\/\/[^\/]+$/.test(host)) {
-          throw new Error(
-            `ApiMockModule detect wrong host "${host}".
-            Every host should match regexp "^https?:\/\/[^\/]+$",
-            for example "https://example.com" (without a trailing slash)`
-          );
-        }
-        if (!/^(?:[\w-]+\/)+:\w+$/.test(path)) {
-          throw new Error(
-            `ApiMockModule detect wrong route with path "${path}".
-            Every path should match regexp "^([a-zA-Z0-9_-]+\/)+:[a-zA-Z0-9_]+$",
-            for example "posts/:postId", where "postId" is field name of primary key of collection "posts"`
-          );
-        }
-        if (typeof route.callbackData != 'function') {
-          throw new Error(`Route callbackData with path "${path}" is not a function`);
-        }
-        if (typeof route.callbackResponse != 'function') {
-          throw new Error(`Route callbackResponse with path "${path}" is not a function`);
-        }
-      });
-    });
-
-    const incomingRoutes = routeGroups.map(getRootPath);
-    const existingRoutes = this.routeGroups.map(getRootPath);
-
-    incomingRoutes.forEach(incomingRoute => {
-      if (existingRoutes.includes(incomingRoute)) {
-        throw new Error(`ApiMockModule detect duplicate route with path: "${incomingRoute}"`);
-      }
-      existingRoutes.push(incomingRoute);
-    });
-
-    return routeGroups;
-
-    function getRootPath(route: ApiMockRouteRoot[]) {
-      const host = route[0].host || '';
-      const rootPath = route[0].path.split(':')[0];
-      return `${host}/${rootPath}`;
+  handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+    try {
+      return this.handleReq(req);
+    } catch (err) {
+      this.logErrorResponse(req, 'Error 500: Internal Server Error;', err);
+      const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, err.message);
+      return throwError(internalErr);
     }
-  }
-
-  protected make404Error(req: HttpRequest<any>) {
-    if (this.apiMockConfig.showLog) {
-      console.log(`%c${req.method} ${req.url}: Error 404: The page not found`, 'color: brown;');
-    }
-    return throwError(
-      new HttpErrorResponse({
-        status: Status.NOT_FOUND,
-        url: req.urlWithParams,
-        statusText: 'page not found',
-        error: 'page not found',
-      })
-    );
   }
 
   /**
-   * @param url URL with host.
+   * Handles requests.
    */
+  protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+    if (!this.isInited) {
+      // Merge with default configs.
+      this.config = new ApiMockConfig(this.config);
+
+      this.init();
+      this.isInited = true;
+    }
+
+    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
+    const routeGroupIndex = this.findRouteGroupIndex(this.rootRoutes, normalizedUrl);
+
+    if (routeGroupIndex == -1) {
+      return this.send404Error(req);
+    }
+
+    const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routeGroups[routeGroupIndex]);
+
+    if (routeDryMatch) {
+      const chainParams = this.getChainParams(routeDryMatch);
+      if (chainParams) {
+        return this.sendResponse(req, chainParams);
+      }
+    }
+    return this.send404Error(req);
+  }
+
   protected findRouteGroupIndex(rootRoutes: PartialRoutes, url: string): number {
     for (const rootRoute of rootRoutes) {
       // We have `rootRoute.length + 1` to avoid such case:
@@ -235,18 +214,26 @@ export class HttpBackendService implements HttpBackend {
   }
 
   /**
-   * @param normalizedUrl If we have URL without host, removed slash from the start.
+   * This method should accepts an URL that matched to a route path by a root segment, for example:
+   * - `root-segment/segment` and `root-segment/:routeId`
+   * - `root-segment/segment` and `root-segment/other/:routeId`.
+   *
+   * Then it splites them by `/` and compares length of `splitedUrl` with length of `splitedRoute` and if
+   * they are equal, returns that route with some metadata.
+   *
+   * @param normalizedUrl If we have URL without host, here should be url with removed slash from the start.
    * @param routeGroup Route group from `this.routes` that matched to a URL by root path (`route[0].path`).
    */
   protected getRouteDryMatch(normalizedUrl: string, routeGroup: ApiMockRouteGroup): RouteDryMatch | void {
+    const splitedUrl = normalizedUrl.split('/');
     /**
      * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
      */
-    const splitedUrl = normalizedUrl.split('/');
     const countPartOfUrl = splitedUrl.length;
-    let pathOfRoute = routeGroup[0].host || '';
-    let hasLastRestId = true;
     const routes: ApiMockRouteGroup = [] as any;
+    let pathOfRoute = routeGroup[0].host || '';
+    let hasLastRestId: boolean;
+    let lastPrimaryKey: string;
 
     for (const route of routeGroup) {
       routes.push(route);
@@ -263,38 +250,45 @@ export class HttpBackendService implements HttpBackend {
         // URL not matched to defined route path.
         break;
       } else if (countPartOfUrl == countPartOfRoute - 1) {
-        // At the end of the URL removed `:restId`, e.g. `['posts', '123']` -> `['posts']`
-        splitedRoute.pop();
-        hasLastRestId = false;
+        const lastElement = splitedRoute.pop();
+        if (lastElement.charAt(0) == ':') {
+          lastPrimaryKey = lastElement.slice(1);
+        } else {
+          // URL not matched to defined route path.
+          break;
+        }
       } else {
         // countPartOfUrl == countPartOfRoute
+        const lastElement = splitedRoute[splitedRoute.length - 1];
+        if (lastElement.charAt(0) == ':') {
+          hasLastRestId = true;
+          lastPrimaryKey = lastElement.slice(1);
+        }
       }
-      return { splitedUrl, splitedRoute, hasLastRestId, routes };
+      return { splitedUrl, splitedRoute, hasLastRestId, lastPrimaryKey, routes };
     }
   }
 
   /**
-   * Taken result of dry matching an URL to a route,
+   * Takes result of dry matching an URL to a route path,
    * so length of `splitedUrl` is always must to be equal to length of `splitedRoute`.
    *
-   * This function:
-   * - checks that concated `splitedUrl` is matched to concated `splitedRoute`;
-   *
-   * @param splitedUrl Result spliting of an URL by slash.
-   * @param splitedRoute Result spliting of concated a route paths by slash.
-   * @param hasLastRestId Whethe URL has last restId, e.g. `posts/123` or `posts/123/comments/456`.
-   * @param routes Part or full of routes group, that have path matched to an URL.
+   * This method checks that concated `splitedUrl` is matched to concated `splitedRoute`;
    */
-  protected getReponseParams(
-    splitedUrl: string[],
-    splitedRoute: string[],
-    hasLastRestId: boolean,
-    routes: ApiMockRouteGroup
-  ): GetDataParam[] | void {
-    const params: GetDataParam[] = [];
+  protected getChainParams({
+    splitedUrl,
+    splitedRoute,
+    hasLastRestId,
+    lastPrimaryKey,
+    routes,
+  }: RouteDryMatch): ChainParam[] | void {
+    const chainParams: ChainParam[] = [];
     const partsOfUrl: string[] = [];
     const partsOfRoute: string[] = [];
 
+    /**
+     * Here `splitedRoute` like this: `['posts', ':postId', 'comments', ':commentId']`.
+     */
     splitedRoute.forEach((part, i) => {
       if (part.charAt(0) == ':') {
         const restId = splitedUrl[i];
@@ -304,32 +298,32 @@ export class HttpBackendService implements HttpBackend {
          * but not `posts/123` or `posts/123/comments/456`.
          */
         const cacheKey = splitedUrl.slice(0, i).join('/');
-        const route = routes[params.length];
-        params.push({ cacheKey, primaryKey, restId, route });
+        const route = routes[chainParams.length];
+        chainParams.push({ cacheKey, primaryKey, restId, route });
       } else {
         /**
          * Have result of transformations like this:
-         * - `posts/123` -> `posts`
-         * - or `posts/123/comments/456` -> `posts/comments`.
+         * - `['posts', '123']` -> `['posts']`
+         * - or `['posts', '123', 'comments', '456']` -> `['posts', 'comments']`.
          */
         partsOfUrl.push(splitedUrl[i]);
         /**
          * Have result of transformations like this:
-         * - `posts/:postId` -> `posts`
-         * - or `posts/:postId/comments/:commentId` -> `posts/comments`.
+         * - `['posts', ':postId']` -> `['posts']`
+         * - or `['posts', ':postId', 'comments', ':commentId']` -> `['posts', 'comments']`.
          */
         partsOfRoute.push(part);
       }
     });
 
-    const lastRoute = routes[routes.length - 1];
     if (!hasLastRestId) {
-      params.push({ cacheKey: splitedUrl.join('/'), route: lastRoute });
+      const lastRoute = routes[routes.length - 1];
+      chainParams.push({ cacheKey: splitedUrl.join('/'), primaryKey: lastPrimaryKey, route: lastRoute });
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
       // Signature of a route path is matched to an URL.
-      return params;
+      return chainParams;
     }
   }
 
@@ -338,72 +332,441 @@ export class HttpBackendService implements HttpBackend {
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
-  protected getResponse(httpMethod: HttpMethod, params: GetDataParam[], queryParams?: Params): any | void {
-    const parents: ObjectAny[] = [];
+  protected sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]): Observable<HttpResponse<any>> {
+    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+    const httpMethod = req.method as HttpMethod;
+    /** Last chain param */
+    const chainParam = chainParams[chainParams.length - 1];
+    const parents = this.getParents(req, chainParams);
 
-    for (let i = 0; i < params.length; i++) {
-      const isLastIteration = i + 1 == params.length;
-      const param = params[i];
-      if (!this.cachedData[param.cacheKey]) {
-        const writeableData = param.route.callbackData([], param.restId, 'GET', parents, queryParams);
-        this.cachedData[param.cacheKey] = { writeableData, onlyreadData: [] };
-        this.setOnlyreadData(param, writeableData);
+    if (parents instanceof HttpErrorResponse) {
+      return throwError(parents);
+    }
+
+    let responseOptions = {} as ResponseOptions;
+
+    if (chainParam.route.callbackData) {
+      const mockData = this.cacheGetData(parents, chainParam, queryParams, req.body);
+      responseOptions = this.callRequestMethod(req, chainParam, mockData);
+
+      if (responseOptions instanceof HttpErrorResponse) {
+        return throwError(responseOptions);
       }
 
-      const mockData = this.cachedData[param.cacheKey];
       if (httpMethod != 'GET') {
-        const writeableData = param.route.callbackData(
+        const writeableData = chainParam.route.callbackData(
           mockData.writeableData,
-          param.restId,
+          chainParam.restId,
           httpMethod,
           parents,
-          queryParams
+          queryParams,
+          req.body
         );
 
-        mockData.writeableData = writeableData;
-        this.setOnlyreadData(param, writeableData);
-      }
-
-      if (param.restId) {
-        const primaryKey = param.primaryKey;
-        const restId = param.restId;
-        const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey].toString() == restId);
-
-        if (!item) {
-          if (this.apiMockConfig.showLog) {
-            const message = `Item not found with primary key "${primaryKey}" and ID "${restId}", searched in:`;
-            console.log('%c' + message, 'color: brown', mockData.writeableData);
-          }
-          return;
-        }
-
-        parents.push(isLastIteration ? [item] : item);
-      } else {
-        // No restId at the end of an URL.
-        parents.push(mockData.onlyreadData);
+        this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
+        this.setReadonlyData(chainParam, writeableData);
       }
     }
 
-    const items = parents.pop() as ObjectAny[];
-    const lastParam = params[params.length - 1];
-    const lastRestId = lastParam.restId || '';
+    const items = responseOptions.body !== undefined ? responseOptions.body : [];
+    return this.response(req, chainParam, parents, queryParams, responseOptions, items);
+  }
 
-    const clonedParents = this.clone(parents);
-    const clonedItems = this.clone(items);
-    return lastParam.route.callbackResponse(clonedItems, lastRestId, httpMethod, clonedParents, queryParams);
+  protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
+    if (!this.cachedData[chainParam.cacheKey]) {
+      const writeableData = chainParam.route.callbackData([], chainParam.restId, 'GET', parents, queryParams, body);
+      if (!Array.isArray(writeableData)) {
+        throw new TypeError('route.callbackData() should returns an array');
+      }
+      this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
+      this.setReadonlyData(chainParam, writeableData);
+    }
+
+    return this.cachedData[chainParam.cacheKey];
+  }
+
+  protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
+    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+    const parents: ObjectAny[] = [];
+
+    // for() without last chainParam.
+    for (let i = 0; i < chainParams.length - 1; i++) {
+      const chainParam = chainParams[i];
+
+      const mockData = this.cacheGetData(parents, chainParam, queryParams, req.body);
+      const primaryKey = chainParam.primaryKey;
+      const restId = chainParam.restId;
+      const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
+
+      if (!item) {
+        const message = `Error 404: Not found; item.${primaryKey}=${restId} not found, searched in:`;
+        this.logErrorResponse(req, message, mockData.writeableData);
+
+        return this.makeError(req, Status.NOT_FOUND, 'item not found');
+      }
+
+      parents.push(item);
+    }
+
+    return parents;
+  }
+
+  protected callRequestMethod(
+    req: HttpRequest<any>,
+    chainParam: ChainParam,
+    mockData: MockData
+  ): ResponseOptions | HttpErrorResponse {
+    const httpMethod = req.method as HttpMethod;
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+    switch (httpMethod) {
+      case 'GET':
+        return this.get(req, headers, chainParam, mockData);
+      case 'POST':
+        return this.post(req, headers, chainParam, mockData.writeableData);
+      case 'PUT':
+        return this.put(req, headers, chainParam, mockData.writeableData);
+      case 'PATCH':
+        return this.patch(req, headers, chainParam, mockData.writeableData);
+      case 'DELETE':
+        return this.delete(req, headers, chainParam, mockData.writeableData);
+      default:
+        const errMsg = 'Error 405: Method not allowed';
+        this.logErrorResponse(req, errMsg);
+        return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
+    }
+  }
+
+  protected get(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    chainParam: ChainParam,
+    mockData: MockData
+  ): ResponseOptions | HttpErrorResponse {
+    const primaryKey = chainParam.primaryKey;
+    const restId = chainParam.restId;
+    let body: ObjectAny[] = [];
+
+    if (restId !== undefined) {
+      const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
+
+      if (!item) {
+        const message = `Error 404: Not found; item.${primaryKey}=${restId} not found, searched in:`;
+        this.logErrorResponse(req, message, mockData.writeableData);
+
+        return this.makeError(req, Status.NOT_FOUND, 'item not found');
+      }
+      body = [item];
+    } else {
+      body = mockData.readonlyData;
+    }
+
+    return { status: Status.OK, headers, body };
+  }
+
+  protected post(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    chainParam: ChainParam,
+    writeableData: ObjectAny[]
+  ): ResponseOptions | HttpErrorResponse {
+    const item: ObjectAny = this.clone(req.body || {});
+    const { primaryKey, restId } = chainParam;
+    const resourceUrl = restId
+      ? req.url
+          .split('/')
+          .slice(0, -1)
+          .join('/')
+      : req.url;
+
+    if (restId != undefined) {
+      const errMsg = `Error 405: Method not allowed; POST forbidder on this URI, try on "${resourceUrl}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
+    }
+
+    if (item[primaryKey] === undefined) {
+      item[primaryKey] = this.genId(writeableData, primaryKey);
+    }
+
+    const id = item[primaryKey];
+    const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == id);
+
+    if (itemIndex == -1) {
+      writeableData.push(item);
+      const clonedHeaders = headers.set('Location', `${resourceUrl}/${id}`);
+      return { headers: clonedHeaders, body: item, status: Status.CREATED };
+    } else if (this.config.postUpdate409) {
+      const errMsg = `Error 409: Conflict; item.${primaryKey}=${id} exists and may not be updated with POST; use PUT instead.`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.CONFLICT, errMsg);
+    } else {
+      writeableData[itemIndex] = item;
+      return this.config.postReturn204
+        ? { headers, status: Status.NO_CONTENT } // successful; no content
+        : { headers, body: item, status: Status.OK }; // successful; return entity
+    }
+  }
+
+  protected put(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    chainParam: ChainParam,
+    writeableData: ObjectAny[]
+  ): ResponseOptions | HttpErrorResponse {
+    const item: ObjectAny = this.clone(req.body || {});
+    const { primaryKey, restId } = chainParam;
+
+    if (restId == undefined) {
+      const errMsg = `Error 405: Method not allowed; PUT forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
+    }
+
+    if (item[primaryKey] == undefined) {
+      const errMsg = `Error 404: Not found; missing ${primaryKey} field`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    }
+
+    if (restId != item[primaryKey]) {
+      const errMsg =
+        `Error 400: Bad request; request with resource ID ` +
+        `"${restId}" does not match item.${primaryKey}=${item[primaryKey]}`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
+    }
+
+    const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == restId);
+
+    if (itemIndex != -1) {
+      writeableData[itemIndex] = item;
+      return this.config.putReturn204
+        ? { headers, status: Status.NO_CONTENT } // successful; no content
+        : { headers, body: item, status: Status.OK }; // successful; return entity
+    } else if (this.config.putNotFound404) {
+      const errMsg =
+        `Error 404: Not found; item.${primaryKey}=${restId} ` +
+        `not found and may not be created with PUT; use POST instead.`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    } else {
+      // create new item for id that not found
+      writeableData.push(item);
+      return { headers, body: item, status: Status.CREATED };
+    }
+  }
+
+  protected patch(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    chainParam: ChainParam,
+    writeableData: ObjectAny[]
+  ): ResponseOptions | HttpErrorResponse {
+    const item: ObjectAny = this.clone(req.body || {});
+    const { primaryKey, restId } = chainParam;
+
+    if (restId == undefined) {
+      const errMsg = `Error 405: Method not allowed; PATCH forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
+    }
+
+    const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == restId);
+
+    if (itemIndex == -1) {
+      let errMsg = 'Error 404: Not found; ';
+      errMsg += restId ? `item.${primaryKey}=${restId} not found` : `missing "${primaryKey}" field`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    }
+
+    if (item[primaryKey] != undefined && restId != item[primaryKey]) {
+      const errMsg =
+        `Error 400: Bad request; ` +
+        `request with resource ID "${restId}" does not match item.${primaryKey}=${item[primaryKey]}`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
+    }
+
+    Object.assign(writeableData[itemIndex], item);
+    return { headers, status: Status.NO_CONTENT };
+  }
+
+  protected delete(
+    req: HttpRequest<any>,
+    headers: HttpHeaders,
+    chainParam: ChainParam,
+    writeableData: ObjectAny[]
+  ): ResponseOptions | HttpErrorResponse {
+    const { primaryKey, restId: id } = chainParam;
+    let itemIndex = -1;
+    if (id != undefined) {
+      itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
+    }
+
+    if (id == undefined || (itemIndex == -1 && this.config.deleteNotFound404)) {
+      let errMsg = 'Error 404: Not found; ';
+      errMsg += id ? `item.${primaryKey}=${id} not found` : `missing "${primaryKey}" field`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.NOT_FOUND, errMsg);
+    }
+
+    if (itemIndex != -1) {
+      writeableData.splice(itemIndex, 1);
+    }
+
+    return { headers, status: Status.NO_CONTENT };
+  }
+
+  protected response(
+    req: HttpRequest<any>,
+    chainParam: ChainParam,
+    parents: ObjectAny[],
+    queryParams: Params,
+    responseOptions: ResponseOptions = {} as any,
+    items: ObjectAny[]
+  ): Observable<HttpResponse<any>> {
+    const restId = chainParam.restId || '';
+    const httpMethod = req.method as HttpMethod;
+    const clonedItems: ObjectAny[] = this.clone(items);
+    /**
+     * Response or value of a body for response.
+     */
+    let resOrBody = clonedItems;
+
+    if (chainParam.route.callbackResponse) {
+      resOrBody = chainParam.route.callbackResponse(
+        clonedItems,
+        restId,
+        httpMethod,
+        this.clone(parents),
+        queryParams,
+        this.clone(req.body)
+      );
+    }
+
+    let observable: Observable<HttpResponse<any>>;
+
+    if (resOrBody instanceof HttpErrorResponse) {
+      this.logErrorResponse(req, resOrBody);
+      observable = throwError(resOrBody);
+    } else if (resOrBody instanceof HttpResponse) {
+      observable = of(resOrBody);
+    } else {
+      const logHttpResOpts = {} as LogHttpResOpts;
+
+      if (httpMethod == 'GET') {
+        logHttpResOpts.body = resOrBody;
+        logHttpResOpts.status = Status.OK;
+        observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: resOrBody }));
+      } else {
+        logHttpResOpts.status = responseOptions.status || Status.OK;
+        logHttpResOpts.headers = responseOptions.headers ? this.getHeaders(responseOptions.headers) : [];
+        logHttpResOpts.body = resOrBody;
+        responseOptions.body = resOrBody;
+        observable = of(new HttpResponse(responseOptions));
+      }
+      this.logSuccessResponse(req, queryParams, logHttpResOpts);
+    }
+
+    return observable.pipe(delay(this.config.delay));
   }
 
   /**
-   * Setting onlyread data to `this.cachedData[cacheKey].onlyreadData`
+   * Generator of the next available id for item in this collection.
+   *
+   * @param writeableData - collection of items
+   * @param primaryKey - a primaryKey of the collection
    */
-  protected setOnlyreadData(param: GetDataParam, writeableData: ObjectAny[]) {
-    let onlyreadData: ObjectAny[];
-    const pickObj = param.route.propertiesForList;
-    if (pickObj) {
-      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
-    } else {
-      onlyreadData = writeableData.map(d => pickAllPropertiesAsGetters(d));
+  protected genId(writeableData: ObjectAny[], primaryKey: string): number {
+    const maxId = writeableData.reduce((prevId: number, item: ObjectAny) => {
+      const currId = typeof item[primaryKey] == 'number' ? item[primaryKey] : prevId;
+      return Math.max(prevId, currId);
+    }, 0);
+
+    return maxId + 1;
+  }
+
+  protected send404Error(req: HttpRequest<any>) {
+    if (this.config.passThruUnknownUrl) {
+      return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
-    this.cachedData[param.cacheKey].onlyreadData = onlyreadData;
+
+    const errMsg = 'Error 404: Not found; page not found';
+    this.logErrorResponse(req, errMsg);
+    const err = this.makeError(req, Status.NOT_FOUND, errMsg);
+
+    return throwError(err);
+  }
+
+  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: LogHttpResOpts) {
+    if (!this.config.showLog) {
+      return;
+    }
+
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+      body: req.body,
+      queryParams,
+      headers: this.getHeaders(req.headers),
+    });
+
+    console.log(`%cres:`, 'color: blue;', httpResOpts);
+  }
+
+  protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
+    if (!this.config.showLog) {
+      return;
+    }
+
+    let queryParams: ObjectAny = {};
+    let headers: ObjectAny = {};
+    try {
+      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+      headers = this.getHeaders(req.headers);
+    } catch {}
+
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+      body: req.body,
+      queryParams,
+      headers,
+    });
+    console.log('%cres:', 'color: brown;', ...consoleArgs);
+  }
+
+  protected getHeaders(headers: HttpHeaders) {
+    return headers.keys().map(header => {
+      let values: string | string[] = headers.getAll(header);
+      values = values.length == 1 ? values[0] : values;
+      return { [header]: values };
+    });
+  }
+
+  protected clone(data: any) {
+    return JSON.parse(JSON.stringify(data));
+  }
+
+  protected makeError(req: HttpRequest<any>, status: Status, errMsg: string) {
+    return new HttpErrorResponse({
+      url: req.urlWithParams,
+      status,
+      statusText: getStatusText(status),
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      error: errMsg,
+    });
+  }
+
+  /**
+   * Setting readonly data to `this.cachedData[cacheKey].readonlyData`
+   */
+  protected setReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
+    let readonlyData: ObjectAny[];
+    const pickObj = chainParam.route.propertiesForList;
+    if (pickObj) {
+      readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
+    } else {
+      readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(d));
+    }
+    this.cachedData[chainParam.cacheKey].readonlyData = readonlyData;
   }
 }

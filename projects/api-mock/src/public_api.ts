@@ -16,4 +16,5 @@ export {
   ApiMockCallbackResponse,
   ObjectAny,
   CallbackAny,
+  HttpMethod,
 } from './lib/types';
