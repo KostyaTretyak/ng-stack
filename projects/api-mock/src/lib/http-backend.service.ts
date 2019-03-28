@@ -27,7 +27,7 @@ import {
   HttpMethod,
   ObjectAny,
   ResponseOptions,
-  LogHttpResOpts,
+  ResponseOptionsLog,
   MockData,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
@@ -339,6 +339,9 @@ route.path should not to have trailing slash.`
     const chainParam = chainParams[chainParams.length - 1];
     const parents = this.getParents(req, chainParams);
 
+    /**
+     * Here we may to have "Error 404: item not found".
+     */
     if (parents instanceof HttpErrorResponse) {
       return throwError(parents);
     }
@@ -368,8 +371,13 @@ route.path should not to have trailing slash.`
       }
     }
 
-    const items = responseOptions.body !== undefined ? responseOptions.body : [];
-    return this.response(req, chainParam, parents, queryParams, responseOptions, items);
+    /** The body should be always an array. */
+    let body: any[] = [];
+    const anyBody: any = responseOptions.body;
+    if (anyBody !== undefined) {
+      body = Array.isArray(anyBody) ? anyBody : [anyBody];
+    }
+    return this.response(req, chainParam, parents, queryParams, responseOptions, body);
   }
 
   protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
@@ -625,19 +633,19 @@ route.path should not to have trailing slash.`
     parents: ObjectAny[],
     queryParams: Params,
     responseOptions: ResponseOptions = {} as any,
-    items: ObjectAny[]
+    body: any[]
   ): Observable<HttpResponse<any>> {
     const restId = chainParam.restId || '';
     const httpMethod = req.method as HttpMethod;
-    const clonedItems: ObjectAny[] = this.clone(items);
+    const clonedBody: any[] = this.clone(body);
     /**
      * Response or value of a body for response.
      */
-    let resOrBody = clonedItems;
+    let resOrBody = clonedBody;
 
     if (chainParam.route.callbackResponse) {
       resOrBody = chainParam.route.callbackResponse(
-        clonedItems,
+        clonedBody,
         restId,
         httpMethod,
         this.clone(parents),
@@ -654,20 +662,23 @@ route.path should not to have trailing slash.`
     } else if (resOrBody instanceof HttpResponse) {
       observable = of(resOrBody);
     } else {
-      const logHttpResOpts = {} as LogHttpResOpts;
+      responseOptions.status = responseOptions.status || Status.OK;
+      responseOptions.body = resOrBody;
+      observable = of(new HttpResponse(responseOptions));
 
-      if (httpMethod == 'GET') {
-        logHttpResOpts.body = resOrBody;
-        logHttpResOpts.status = Status.OK;
-        observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: resOrBody }));
-      } else {
-        logHttpResOpts.status = responseOptions.status || Status.OK;
-        logHttpResOpts.headers = responseOptions.headers ? this.getHeaders(responseOptions.headers) : [];
-        logHttpResOpts.body = resOrBody;
-        responseOptions.body = resOrBody;
-        observable = of(new HttpResponse(responseOptions));
+      let headers: ObjectAny[] = [];
+      if (responseOptions.headers instanceof HttpHeaders) {
+        headers = this.getHeaders(responseOptions.headers);
+      } else if (responseOptions.headers) {
+        headers = responseOptions.headers;
       }
-      this.logSuccessResponse(req, queryParams, logHttpResOpts);
+
+      const resLog: ResponseOptionsLog = {
+        status: responseOptions.status,
+        headers,
+        body: resOrBody,
+      };
+      this.logSuccessResponse(req, queryParams, resLog);
     }
 
     return observable.pipe(delay(this.config.delay));
@@ -700,17 +711,17 @@ route.path should not to have trailing slash.`
     return throwError(err);
   }
 
-  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: LogHttpResOpts) {
+  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: ResponseOptionsLog) {
     if (!this.config.showLog) {
       return;
     }
 
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
+    const reqLog = {
       body: req.body,
       queryParams,
       headers: this.getHeaders(req.headers),
-    });
-
+    };
+    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', reqLog);
     console.log(`%cres:`, 'color: blue;', httpResOpts);
   }
 

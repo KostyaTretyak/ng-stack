@@ -192,7 +192,7 @@ export interface ResponseOptions {
   url?: string;
 }
 
-export interface LogHttpResOpts {
+export interface ResponseOptionsLog {
   status: Status;
   body: any;
   headers?: ObjectAny[];
