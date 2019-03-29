@@ -54,6 +54,8 @@ export class HttpBackendService implements HttpBackend {
   ) {}
 
   protected init() {
+    // Merge with default configs.
+    this.config = new ApiMockConfig(this.config);
     const routeGroups = this.apiMockService.getRouteGroups();
     this.routeGroups = this.checkRouteGroups(routeGroups);
     this.rootRoutes = this.getRootPaths(this.routeGroups);
@@ -68,6 +70,8 @@ export class HttpBackendService implements HttpBackend {
         }
       });
     }
+
+    this.isInited = true;
   }
 
   protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
@@ -175,11 +179,7 @@ route.path should not to have trailing slash.`
    */
   protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (!this.isInited) {
-      // Merge with default configs.
-      this.config = new ApiMockConfig(this.config);
-
       this.init();
-      this.isInited = true;
     }
 
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
@@ -666,19 +666,19 @@ route.path should not to have trailing slash.`
       responseOptions.body = resOrBody;
       observable = of(new HttpResponse(responseOptions));
 
-      let headers: ObjectAny[] = [];
+      let logHeaders: ObjectAny = {};
       if (responseOptions.headers instanceof HttpHeaders) {
-        headers = this.getHeaders(responseOptions.headers);
+        logHeaders = this.getHeaders(responseOptions.headers);
       } else if (responseOptions.headers) {
-        headers = responseOptions.headers;
+        logHeaders = responseOptions.headers;
       }
 
       const resLog: ResponseOptionsLog = {
+        headers: logHeaders,
         status: responseOptions.status,
-        headers,
         body: resOrBody,
       };
-      this.logSuccessResponse(req, queryParams, resLog);
+      this.logSuccessResponse(req, resLog);
     }
 
     return observable.pipe(delay(this.config.delay));
@@ -711,18 +711,46 @@ route.path should not to have trailing slash.`
     return throwError(err);
   }
 
-  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: ResponseOptionsLog) {
+  protected logRequest(req: HttpRequest<any>) {
+    let queryParams: ObjectAny = {};
+    let logHeaders: ObjectAny = {};
+    try {
+      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+      logHeaders = this.getHeaders(req.headers);
+    } catch (err) {
+      logHeaders = { parse: err.message || 'error' };
+      queryParams = { parse: err.message || 'error' };
+    }
+
+    let reqLog: any = '';
+    const log = {
+      headers: logHeaders,
+      queryParams,
+      body: req.body,
+    };
+    if (!log.headers.length) {
+      delete log.headers;
+    }
+    if (!Object.keys(log.queryParams).length) {
+      delete log.queryParams;
+    }
+    if (req.method == 'GET') {
+      delete log.body;
+    }
+    if (Object.keys(log).length) {
+      reqLog = log;
+    }
+
+    console.log(`%creq: ${req.method} ${req.url}`, 'color: green;', reqLog);
+  }
+
+  protected logSuccessResponse(req: HttpRequest<any>, httpResOpts: ResponseOptionsLog) {
     if (!this.config.showLog) {
       return;
     }
 
-    const reqLog = {
-      body: req.body,
-      queryParams,
-      headers: this.getHeaders(req.headers),
-    };
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', reqLog);
-    console.log(`%cres:`, 'color: blue;', httpResOpts);
+    this.logRequest(req);
+    console.log('%cres:', `color: blue;`, httpResOpts);
   }
 
   protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
@@ -730,27 +758,18 @@ route.path should not to have trailing slash.`
       return;
     }
 
-    let queryParams: ObjectAny = {};
-    let headers: ObjectAny = {};
-    try {
-      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
-      headers = this.getHeaders(req.headers);
-    } catch {}
-
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-      body: req.body,
-      queryParams,
-      headers,
-    });
-    console.log('%cres:', 'color: brown;', ...consoleArgs);
+    this.logRequest(req);
+    console.log('%cres:', `color: brown;`, ...consoleArgs);
   }
 
   protected getHeaders(headers: HttpHeaders) {
-    return headers.keys().map(header => {
+    const logHeaders: ObjectAny = {};
+    headers.keys().forEach(header => {
       let values: string | string[] = headers.getAll(header);
       values = values.length == 1 ? values[0] : values;
-      return { [header]: values };
+      logHeaders[header] = values;
     });
+    return logHeaders;
   }
 
   protected clone(data: any) {

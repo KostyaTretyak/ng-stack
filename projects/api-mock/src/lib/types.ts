@@ -195,5 +195,5 @@ export interface ResponseOptions {
 export interface ResponseOptionsLog {
   status: Status;
   body: any;
-  headers?: ObjectAny[];
+  headers?: ObjectAny;
 }
