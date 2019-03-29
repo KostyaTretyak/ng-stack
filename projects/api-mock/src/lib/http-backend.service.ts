@@ -712,14 +712,14 @@ route.path should not to have trailing slash.`
   }
 
   protected logRequest(req: HttpRequest<any>) {
-    let queryParams: ObjectAny = {};
     let logHeaders: ObjectAny = {};
+    let queryParams: ObjectAny = {};
     try {
-      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
       logHeaders = this.getHeaders(req.headers);
+      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
     } catch (err) {
-      logHeaders = { parse: err.message || 'error' };
-      queryParams = { parse: err.message || 'error' };
+      logHeaders = { parseError: err.message || 'error' };
+      queryParams = { parseError: err.message || 'error' };
     }
 
     let reqLog: any = '';
