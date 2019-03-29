@@ -744,13 +744,23 @@ route.path should not to have trailing slash.`
     console.log(`%creq: ${req.method} ${req.url}`, 'color: green;', reqLog);
   }
 
-  protected logSuccessResponse(req: HttpRequest<any>, httpResOpts: ResponseOptionsLog) {
+  protected logResponse(res: ResponseOptionsLog) {
+    if (!Object.keys(res.headers).length) {
+      delete res.headers;
+    }
+    if (!Object.keys(res.body).length) {
+      delete res.body;
+    }
+    console.log('%cres:', `color: blue;`, res);
+  }
+
+  protected logSuccessResponse(req: HttpRequest<any>, res: ResponseOptionsLog) {
     if (!this.config.showLog) {
       return;
     }
 
     this.logRequest(req);
-    console.log('%cres:', `color: blue;`, httpResOpts);
+    this.logResponse(res);
   }
 
   protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
