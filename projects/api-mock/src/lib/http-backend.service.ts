@@ -728,7 +728,7 @@ route.path should not to have trailing slash.`
       queryParams,
       body: req.body,
     };
-    if (!log.headers.length) {
+    if (!Object.keys(log.headers).length) {
       delete log.headers;
     }
     if (!Object.keys(log.queryParams).length) {
