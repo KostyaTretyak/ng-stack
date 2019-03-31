@@ -367,7 +367,10 @@ route.path should not to have trailing slash.`
         );
 
         this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
-        this.setReadonlyData(chainParam, writeableData);
+        this.bindReadonlyData(chainParam, writeableData);
+        if (this.config.cacheFromLocalStorage) {
+          this.setToLocalStorage(chainParam.cacheKey);
+        }
       }
     }
 
@@ -381,16 +384,56 @@ route.path should not to have trailing slash.`
   }
 
   protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
+    if (this.config.cacheFromLocalStorage) {
+      this.getFromLocalStorage(chainParam);
+    }
+
     if (!this.cachedData[chainParam.cacheKey]) {
       const writeableData = chainParam.route.callbackData([], chainParam.restId, 'GET', parents, queryParams, body);
       if (!Array.isArray(writeableData)) {
         throw new TypeError('route.callbackData() should returns an array');
       }
       this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
-      this.setReadonlyData(chainParam, writeableData);
+      this.bindReadonlyData(chainParam, writeableData);
+
+      if (this.config.cacheFromLocalStorage) {
+        this.setToLocalStorage(chainParam.cacheKey);
+      }
     }
 
     return this.cachedData[chainParam.cacheKey];
+  }
+
+  protected getFromLocalStorage(chainParam: ChainParam): void {
+    try {
+      const cachedData: CacheData = JSON.parse(localStorage.getItem(this.config.localStorageKey));
+      const cacheKey = chainParam.cacheKey;
+      if (cachedData && cachedData[cacheKey]) {
+        const mockData = (this.cachedData[cacheKey] = cachedData[cacheKey]);
+        this.bindReadonlyData(chainParam, mockData.writeableData);
+      }
+    } catch (err) {
+      localStorage.removeItem(this.config.localStorageKey);
+      if (this.config.showLog) {
+        console.log(err);
+        console.log(`%cRemoved localStorage data with key "${this.config.localStorageKey}"`, `color: brown;`);
+      }
+    }
+  }
+
+  protected setToLocalStorage(cacheKey: string): void {
+    try {
+      const cachedData = JSON.parse(localStorage.getItem(this.config.localStorageKey)) || {};
+      cachedData[cacheKey] = this.clone(this.cachedData[cacheKey]);
+      delete cachedData[cacheKey].readonlyData;
+      localStorage.setItem(this.config.localStorageKey, JSON.stringify(cachedData));
+    } catch (err) {
+      localStorage.removeItem(this.config.localStorageKey);
+      if (this.config.showLog) {
+        console.log(err);
+        console.log(`%cRemoved localStorage data with key "${this.config.localStorageKey}"`, `color: brown;`);
+      }
+    }
   }
 
   protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
@@ -799,7 +842,7 @@ route.path should not to have trailing slash.`
   /**
    * Setting readonly data to `this.cachedData[cacheKey].readonlyData`
    */
-  protected setReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
+  protected bindReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
     let readonlyData: ObjectAny[];
     const pickObj = chainParam.route.propertiesForList;
     if (pickObj) {

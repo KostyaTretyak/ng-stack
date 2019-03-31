@@ -19,6 +19,11 @@ export class ApiMockConfig {
    */
   clearPrevLog? = false;
   showLog? = true;
+  cacheFromLocalStorage? = false;
+  /**
+   * By default `apiMockCachedData`.
+   */
+  localStorageKey? = 'apiMockCachedData';
   /**
    * - `true` - Search match should be case insensitive.
    * - `false` - (default).
@@ -155,6 +160,10 @@ export class RouteDryMatch {
   lastPrimaryKey?: string;
 }
 
+/**
+ * If we have URL `api/posts/123/comments/456`,
+ * we have two "chain params" for `api/posts` and for `api/posts/123/comments`.
+ */
 export interface ChainParam {
   cacheKey: string;
   route: ApiMockRouteRoot | ApiMockRoute;
