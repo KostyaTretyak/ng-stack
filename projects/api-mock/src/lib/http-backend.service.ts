@@ -747,7 +747,7 @@ route.path should not to have trailing slash.`
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
 
-    const errMsg = 'Error 404: Not found; page not found';
+    const errMsg = 'Error 404: Not found; resource not found';
     this.logErrorResponse(req, errMsg);
     const err = this.makeError(req, Status.NOT_FOUND, errMsg);
 
