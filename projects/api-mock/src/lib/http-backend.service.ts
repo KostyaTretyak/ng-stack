@@ -384,7 +384,7 @@ route.path should not to have trailing slash.`
   }
 
   protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
-    if (this.config.cacheFromLocalStorage) {
+    if (this.config.cacheFromLocalStorage && !chainParam.route.refreshLocalStorage) {
       this.getFromLocalStorage(chainParam);
     }
 

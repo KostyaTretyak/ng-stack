@@ -140,6 +140,7 @@ export interface ApiMockRoute {
    */
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;
+  refreshLocalStorage?: boolean;
 }
 
 export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
