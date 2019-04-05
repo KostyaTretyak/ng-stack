@@ -758,12 +758,13 @@ route.path should not to have trailing slash.`
   protected logRequest(req: HttpRequest<any>) {
     let logHeaders: ObjectAny = {};
     let queryParams: ObjectAny = {};
-    let body: any = {};
+    let body: any;
     try {
       logHeaders = this.getHeaders(req.headers);
       queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
       if (isFormData(req.body)) {
-        req.body.forEach((value, key) => (body[key] = value));
+        body = [];
+        req.body.forEach((value, key) => body.push({ [key]: value }));
       } else {
         body = req.body;
       }
