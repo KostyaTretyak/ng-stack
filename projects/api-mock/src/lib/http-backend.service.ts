@@ -29,6 +29,7 @@ import {
   ResponseOptions,
   ResponseOptionsLog,
   MockData,
+  isFormData,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -757,9 +758,15 @@ route.path should not to have trailing slash.`
   protected logRequest(req: HttpRequest<any>) {
     let logHeaders: ObjectAny = {};
     let queryParams: ObjectAny = {};
+    let body: any = {};
     try {
       logHeaders = this.getHeaders(req.headers);
       queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+      if (isFormData(req.body)) {
+        req.body.forEach((value, key) => (body[key] = value));
+      } else {
+        body = req.body;
+      }
     } catch (err) {
       logHeaders = { parseError: err.message || 'error' };
       queryParams = { parseError: err.message || 'error' };
@@ -769,7 +776,7 @@ route.path should not to have trailing slash.`
     const log = {
       headers: logHeaders,
       queryParams,
-      body: req.body,
+      body,
     };
     if (!Object.keys(log.headers).length) {
       delete log.headers;

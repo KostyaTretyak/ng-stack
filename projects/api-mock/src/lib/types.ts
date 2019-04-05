@@ -207,3 +207,7 @@ export interface ResponseOptionsLog {
   body: any;
   headers?: ObjectAny;
 }
+
+export function isFormData(formData: FormData): formData is FormData {
+  return FormData !== undefined && formData instanceof FormData;
+}
