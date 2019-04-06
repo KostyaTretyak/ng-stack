@@ -3,7 +3,7 @@
 
 ### Features
 
-- **directive:** added support for `input[type="file"]` ([#25](https://github.com/KostyaTretyak/ng-stack/pull/25)).
+- **new directive:** added support for `input[type="file"]` ([#25](https://github.com/KostyaTretyak/ng-stack/pull/25)).
 
 
 <a name="1.0.0-beta.6"></a>

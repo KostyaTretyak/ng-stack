@@ -8,6 +8,7 @@
   - [Using form model](#using-form-model)
   - [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls)
   - [Typed Validations](#typed-validations)
+  - [Support input[type="file"]](#support-input-with-type-"file")
 - [How does it works](#how-does-it-works)
 - [Changes API](#changes-api)
 
@@ -221,6 +222,70 @@ class ValidatorsModel {
   fileMaxSize: { requiredSize: number; actualSize: number; file: File };
 }
 ```
+
+### Support input with type "file"
+
+Since version 1.1.0, `@ng-stack/forms` supports `input[type="file"]`.
+
+#### Form value as FormData
+
+By default, if we have `input[type="file"]`, the module setting instance of `FormData` to `formControl.value`.
+
+Example:
+
+```ts
+import { HttpClient } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
+
+import { FormControl, Validators } from '@ng-stack/forms';
+
+// You should to have your own AppConfig here
+import { AppConfig } from 'src/app-config';
+
+@Component({
+  template: `
+    <input type="file" accept=".jpg,.jpeg,.png" [formControl]="formControl" (change)="onFileChose()" />
+  `
+})
+export class MyComponent implements OnInit {
+  formControl: FormControl<FormData>;
+
+  constructor(private httpClient: HttpClient, private appConfig: AppConfig) {}
+
+  ngOnInit() {
+    const validator = Validators.fileMaxSize(this.appConfig.maxAvaSize);
+    this.formControl = new FormControl(null, validator);
+  }
+
+  onFileChose() {
+    const action = 'upload an avatar';
+    const duration = 6000;
+    const validErr = this.formControl.getError('fileMaxSize');
+
+    if (validErr) {
+      const requiredSize = Math.round(validErr.requiredSize / 1024);
+      const actualSize = Math.round(validErr.actualSize / 1024);
+      const msg = `The file should not exceed ${requiredSize} kB (you upload ${actualSize} kB)`;
+      this.showMsg(msg, action, duration);
+      return;
+    }
+
+    // Value of formControl here is instance of FormData and it's OK to directly upload this value.
+    const formData = this.formControl.value;
+
+    this.httpClient.patch('api/users/250/avatars/1', formData).subscribe(() => {
+      const msg = 'Avatar uploaded successfully';
+      this.showMsg(msg, action, duration);
+    });
+  }
+
+  private showMsg(msg: string, action: string, duration?: number) {
+    // Some logic here.
+  }
+}
+```
+
+See this [example on stackblitz](https://stackblitz.com/edit/angular-input-file).
 
 #### Known issues
 
