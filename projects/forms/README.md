@@ -8,7 +8,7 @@
   - [Using form model](#using-form-model)
   - [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls)
   - [Typed Validations](#typed-validations)
-  - [Support input[type="file"]](#support-input-with-type-"file")
+  - [Support input[type="file"]](#support-input-with-type-file)
 - [How does it works](#how-does-it-works)
 - [Changes API](#changes-api)
 
