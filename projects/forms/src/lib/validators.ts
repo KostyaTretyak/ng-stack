@@ -251,7 +251,7 @@ export class Validators extends NativeValidators {
   /**
    * Minimal number of files.
    */
-  static fileMinLength(
+  static filesMinLength(
     minLength: number
   ): ValidatorFn<{
     filesMinLength: { requiredLength: number; actualLength: number };
@@ -283,7 +283,7 @@ export class Validators extends NativeValidators {
   /**
    * Maximal number of files.
    */
-  static fileMaxLength(
+  static filesMaxLength(
     maxLength: number
   ): ValidatorFn<{
     filesMaxLength: { requiredLength: number; actualLength: number };

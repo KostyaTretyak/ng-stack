@@ -1,3 +1,11 @@
+<a name="1.1.0-beta.2"></a>
+# [1.1.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.1.0-beta.2) (2019-04-06)
+
+### Bug Fixes
+
+- **Validators:** fixed filesMinLength and filesMaxLength methods names ([#29](https://github.com/KostyaTretyak/ng-stack/pull/29)).
+
+
 <a name="1.1.0-beta.1"></a>
 # [1.1.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.1.0-beta.1) (2019-04-06)
 
