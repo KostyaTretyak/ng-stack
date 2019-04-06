@@ -7,7 +7,7 @@
 
 
 <a name="1.1.0-beta.1"></a>
-# [1.1.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.1.0-beta.1) (2019-04-06)
+## [1.1.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.1.0-beta.1) (2019-04-06)
 
 ### Features
 
