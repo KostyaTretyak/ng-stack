@@ -2,9 +2,11 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { FormBuilder } from './form-builder';
+import { InputFileDirective } from './input-file.directive';
 
 @NgModule({
-  exports: [ReactiveFormsModule],
+  declarations: [InputFileDirective],
+  exports: [ReactiveFormsModule, InputFileDirective],
   providers: [FormBuilder],
 })
 export class NgStackFormsModule {}

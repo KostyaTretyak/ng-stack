@@ -171,4 +171,8 @@ export class ValidatorsModel {
   minLength: { minlength: { requiredLength: number; actualLength: number } };
   maxLength: { requiredLength: number; actualLength: number };
   pattern: { requiredPattern: string; actualValue: string };
+  fileRequired: { requiredSize: number; actualSize: number; file: File };
+  filesMinLength: { requiredLength: number; actualLength: number };
+  filesMaxLength: { requiredLength: number; actualLength: number };
+  fileMaxSize: { requiredSize: number; actualSize: number; file: File };
 }

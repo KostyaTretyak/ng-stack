@@ -200,7 +200,8 @@ control.getError('notExistingErrorCode'); // Error: Argument of type '"notExisti
 control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' does not exist...
 ```
 
-`ValidatorsModel` contains a list of properties extracted from `typeof Validators`, and expected returns types:
+`ValidatorsModel` contains a list of properties extracted from `typeof Validators`,
+additional validators for support `input[type="file"]`, and expected returns types:
 
 ```ts
 class ValidatorsModel {
@@ -212,6 +213,12 @@ class ValidatorsModel {
   minLength: { minlength: { requiredLength: number; actualLength: number } };
   maxLength: { requiredLength: number; actualLength: number };
   pattern: { requiredPattern: string; actualValue: string };
+
+  // Additional validators for support `input[type="file"]`
+  fileRequired: { requiredSize: number; actualSize: number; file: File };
+  filesMinLength: { requiredLength: number; actualLength: number };
+  filesMaxLength: { requiredLength: number; actualLength: number };
+  fileMaxSize: { requiredSize: number; actualSize: number; file: File };
 }
 ```
 
