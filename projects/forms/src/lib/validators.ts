@@ -1,6 +1,10 @@
 import { Validators as NativeValidators, AbstractControl } from '@angular/forms';
-import { ValidatorFn, ValidationErrors, AsyncValidatorFn } from './types';
 
+import { ValidatorFn, ValidationErrors, AsyncValidatorFn } from './types';
+import { FormControl } from './form-control';
+
+// Next flag used because of this https://github.com/ng-packagr/ng-packagr/issues/696#issuecomment-373487183
+// @dynamic
 /**
  * Provides a set of built-in validators that can be used by form controls.
  *
@@ -27,7 +31,7 @@ export class Validators extends NativeValidators {
    *
    */
   static min(min: number) {
-    return NativeValidators.min(min) as ValidatorFn<{ min: { min: number; actual: number } }>;
+    return super.min(min) as ValidatorFn<{ min: { min: number; actual: number } }>;
   }
 
   /**
@@ -47,7 +51,7 @@ export class Validators extends NativeValidators {
    *
    */
   static max(max: number) {
-    return NativeValidators.max(max) as ValidatorFn<{ max: { max: number; actual: number } }>;
+    return super.max(max) as ValidatorFn<{ max: { max: number; actual: number } }>;
   }
 
   /**
@@ -66,7 +70,7 @@ export class Validators extends NativeValidators {
    *
    */
   static required(control: AbstractControl) {
-    return NativeValidators.required(control) as ValidationErrors<{ required: true }> | null;
+    return super.required(control) as ValidationErrors<{ required: true }> | null;
   }
 
   /**
@@ -85,7 +89,7 @@ export class Validators extends NativeValidators {
    * set to `true` if the validation check fails, otherwise `null`.
    */
   static requiredTrue(control: AbstractControl) {
-    return NativeValidators.requiredTrue(control) as ValidationErrors<{ required: true }> | null;
+    return super.requiredTrue(control) as ValidationErrors<{ required: true }> | null;
   }
 
   /**
@@ -104,7 +108,7 @@ export class Validators extends NativeValidators {
    *
    */
   static email(control: AbstractControl) {
-    return NativeValidators.email(control) as ValidationErrors<{ email: true }> | null;
+    return super.email(control) as ValidationErrors<{ email: true }> | null;
   }
 
   /**
@@ -128,7 +132,7 @@ export class Validators extends NativeValidators {
    * `minlength` if the validation check fails, otherwise `null`.
    */
   static minLength(minLength: number) {
-    return NativeValidators.minLength(minLength) as ValidatorFn<{
+    return super.minLength(minLength) as ValidatorFn<{
       minlength: { requiredLength: number; actualLength: number };
     }>;
   }
@@ -154,7 +158,7 @@ export class Validators extends NativeValidators {
    * `maxlength` property if the validation check fails, otherwise `null`.
    */
   static maxLength(maxLength: number) {
-    return NativeValidators.maxLength(maxLength) as ValidatorFn<{
+    return super.maxLength(maxLength) as ValidatorFn<{
       maxlength: { requiredLength: number; actualLength: number };
     }>;
   }
@@ -184,7 +188,7 @@ export class Validators extends NativeValidators {
    * `pattern` property if the validation check fails, otherwise `null`.
    */
   static pattern(pattern: string | RegExp) {
-    return NativeValidators.pattern(pattern) as ValidatorFn<{
+    return super.pattern(pattern) as ValidatorFn<{
       pattern: { requiredPattern: string; actualValue: string };
     }>;
   }
@@ -206,7 +210,7 @@ export class Validators extends NativeValidators {
   static compose(validators: null): null;
   static compose<T extends object = any>(validators: (ValidatorFn | null | undefined)[]): ValidatorFn<T> | null;
   static compose<T extends object = any>(validators: (ValidatorFn | null | undefined)[] | null): ValidatorFn<T> | null {
-    return NativeValidators.compose(validators) as ValidatorFn<T> | null;
+    return super.compose(validators) as ValidatorFn<T> | null;
   }
 
   /**
@@ -217,6 +221,128 @@ export class Validators extends NativeValidators {
    * merged error objects of the async validators if the validation check fails, otherwise `null`.
    */
   static composeAsync<T extends object = any>(validators: (AsyncValidatorFn<T> | null)[]) {
-    return NativeValidators.composeAsync(validators) as AsyncValidatorFn<T> | null;
+    return super.composeAsync(validators) as AsyncValidatorFn<T> | null;
+  }
+
+  /**
+   * At least one file should be.
+   */
+  static fileRequired(control: FormControl<FileList | FormData>): ValidationErrors<{ fileRequired: true }> | null {
+    const value = control.value;
+    if (!value) {
+      return { fileRequired: true };
+    }
+
+    if (value instanceof FileList) {
+      if (!value.length) {
+        return { fileRequired: true };
+      }
+    } else {
+      const files: File[] = [];
+      value.forEach((file: File) => files.push(file));
+      if (!files.length) {
+        return { fileRequired: true };
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Minimal number of files.
+   */
+  static fileMinLength(
+    minLength: number
+  ): ValidatorFn<{
+    filesMinLength: { requiredLength: number; actualLength: number };
+  }> {
+    return (control: FormControl<FileList | FormData>) => {
+      const value = control.value;
+      if (!value) {
+        return { filesMinLength: { requiredLength: minLength, actualLength: 0 } };
+      }
+
+      if (value instanceof FileList) {
+        const length = Array.from(value).length;
+        if (length < minLength) {
+          return { filesMinLength: { requiredLength: minLength, actualLength: length } };
+        }
+      } else {
+        const files: File[] = [];
+        value.forEach((file: File) => files.push(file));
+        const length = files.length;
+        if (length < minLength) {
+          return { filesMinLength: { requiredLength: minLength, actualLength: length } };
+        }
+      }
+
+      return null;
+    };
+  }
+
+  /**
+   * Maximal number of files.
+   */
+  static fileMaxLength(
+    maxLength: number
+  ): ValidatorFn<{
+    filesMaxLength: { requiredLength: number; actualLength: number };
+  }> {
+    return (control: FormControl<FileList | FormData>) => {
+      const value = control.value;
+      if (!value) {
+        return { filesMaxLength: { requiredLength: maxLength, actualLength: 0 } };
+      }
+
+      if (value instanceof FileList) {
+        const length = Array.from(value).length;
+        if (length > maxLength) {
+          return { filesMaxLength: { requiredLength: maxLength, actualLength: length } };
+        }
+      } else {
+        const files: File[] = [];
+        value.forEach((file: File) => files.push(file));
+        const length = files.length;
+        if (length > maxLength) {
+          return { filesMaxLength: { requiredLength: maxLength, actualLength: length } };
+        }
+      }
+
+      return null;
+    };
+  }
+
+  /**
+   * Maximal size of a file.
+   */
+  static fileMaxSize(
+    maxSize: number
+  ): ValidatorFn<{
+    fileMaxSize: { requiredSize: number; actualSize: number; file: File };
+  }> {
+    return (control: FormControl<FileList | FormData>) => {
+      const value = control.value;
+      if (!value) {
+        return null;
+      }
+
+      if (value instanceof FileList) {
+        for (const file of Array.from(value)) {
+          if (file.size > maxSize) {
+            return { fileMaxSize: { requiredSize: maxSize, actualSize: file.size, file } };
+          }
+        }
+      } else {
+        const files: File[] = [];
+        value.forEach((file: File) => files.push(file));
+        for (const file of files) {
+          if (file.size > maxSize) {
+            return { fileMaxSize: { requiredSize: maxSize, actualSize: file.size, file } };
+          }
+        }
+      }
+
+      return null;
+    };
   }
 }
