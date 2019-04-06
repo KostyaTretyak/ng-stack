@@ -53,7 +53,7 @@ export class InputFileDirective implements ControlValueAccessor {
    */
   writeValue(fileList: FileList): void {
     if (fileList && !(fileList instanceof FileList)) {
-      throw new TypeError('Value for input[type="file"] must be instanceof FileList');
+      throw new TypeError('Value for input[type="file"] must be an instance of FileList');
     }
     this.renderer.setProperty(this.elementRef.nativeElement, 'files', fileList);
   }
