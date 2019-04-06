@@ -19,6 +19,11 @@ export class ApiMockConfig {
    */
   clearPrevLog? = false;
   showLog? = true;
+  cacheFromLocalStorage? = false;
+  /**
+   * By default `apiMockCachedData`.
+   */
+  localStorageKey? = 'apiMockCachedData';
   /**
    * - `true` - Search match should be case insensitive.
    * - `false` - (default).
@@ -135,6 +140,7 @@ export interface ApiMockRoute {
    */
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;
+  refreshLocalStorage?: boolean;
 }
 
 export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
@@ -155,6 +161,10 @@ export class RouteDryMatch {
   lastPrimaryKey?: string;
 }
 
+/**
+ * If we have URL `api/posts/123/comments/456`,
+ * we have two "chain params" for `api/posts` and for `api/posts/123/comments`.
+ */
 export interface ChainParam {
   cacheKey: string;
   route: ApiMockRouteRoot | ApiMockRoute;
@@ -192,8 +202,12 @@ export interface ResponseOptions {
   url?: string;
 }
 
-export interface LogHttpResOpts {
+export interface ResponseOptionsLog {
   status: Status;
   body: any;
-  headers?: ObjectAny[];
+  headers?: ObjectAny;
+}
+
+export function isFormData(formData: FormData): formData is FormData {
+  return FormData !== undefined && formData instanceof FormData;
 }

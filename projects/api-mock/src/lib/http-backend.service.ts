@@ -27,8 +27,9 @@ import {
   HttpMethod,
   ObjectAny,
   ResponseOptions,
-  LogHttpResOpts,
+  ResponseOptionsLog,
   MockData,
+  isFormData,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -54,6 +55,8 @@ export class HttpBackendService implements HttpBackend {
   ) {}
 
   protected init() {
+    // Merge with default configs.
+    this.config = new ApiMockConfig(this.config);
     const routeGroups = this.apiMockService.getRouteGroups();
     this.routeGroups = this.checkRouteGroups(routeGroups);
     this.rootRoutes = this.getRootPaths(this.routeGroups);
@@ -68,6 +71,8 @@ export class HttpBackendService implements HttpBackend {
         }
       });
     }
+
+    this.isInited = true;
   }
 
   protected checkRouteGroups(routeGroups: ApiMockRouteGroup[]) {
@@ -175,11 +180,7 @@ route.path should not to have trailing slash.`
    */
   protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
     if (!this.isInited) {
-      // Merge with default configs.
-      this.config = new ApiMockConfig(this.config);
-
       this.init();
-      this.isInited = true;
     }
 
     const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
@@ -339,6 +340,9 @@ route.path should not to have trailing slash.`
     const chainParam = chainParams[chainParams.length - 1];
     const parents = this.getParents(req, chainParams);
 
+    /**
+     * Here we may to have "Error 404: item not found".
+     */
     if (parents instanceof HttpErrorResponse) {
       return throwError(parents);
     }
@@ -364,25 +368,73 @@ route.path should not to have trailing slash.`
         );
 
         this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
-        this.setReadonlyData(chainParam, writeableData);
+        this.bindReadonlyData(chainParam, writeableData);
+        if (this.config.cacheFromLocalStorage) {
+          this.setToLocalStorage(chainParam.cacheKey);
+        }
       }
     }
 
-    const items = responseOptions.body !== undefined ? responseOptions.body : [];
-    return this.response(req, chainParam, parents, queryParams, responseOptions, items);
+    /** The body should be always an array. */
+    let body: any[] = [];
+    const anyBody: any = responseOptions.body;
+    if (anyBody !== undefined) {
+      body = Array.isArray(anyBody) ? anyBody : [anyBody];
+    }
+    return this.response(req, chainParam, parents, queryParams, responseOptions, body);
   }
 
   protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
+    if (this.config.cacheFromLocalStorage && !chainParam.route.refreshLocalStorage) {
+      this.getFromLocalStorage(chainParam);
+    }
+
     if (!this.cachedData[chainParam.cacheKey]) {
       const writeableData = chainParam.route.callbackData([], chainParam.restId, 'GET', parents, queryParams, body);
       if (!Array.isArray(writeableData)) {
         throw new TypeError('route.callbackData() should returns an array');
       }
       this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
-      this.setReadonlyData(chainParam, writeableData);
+      this.bindReadonlyData(chainParam, writeableData);
+
+      if (this.config.cacheFromLocalStorage) {
+        this.setToLocalStorage(chainParam.cacheKey);
+      }
     }
 
     return this.cachedData[chainParam.cacheKey];
+  }
+
+  protected getFromLocalStorage(chainParam: ChainParam): void {
+    try {
+      const cachedData: CacheData = JSON.parse(localStorage.getItem(this.config.localStorageKey));
+      const cacheKey = chainParam.cacheKey;
+      if (cachedData && cachedData[cacheKey]) {
+        const mockData = (this.cachedData[cacheKey] = cachedData[cacheKey]);
+        this.bindReadonlyData(chainParam, mockData.writeableData);
+      }
+    } catch (err) {
+      localStorage.removeItem(this.config.localStorageKey);
+      if (this.config.showLog) {
+        console.log(err);
+        console.log(`%cRemoved localStorage data with key "${this.config.localStorageKey}"`, `color: brown;`);
+      }
+    }
+  }
+
+  protected setToLocalStorage(cacheKey: string): void {
+    try {
+      const cachedData = JSON.parse(localStorage.getItem(this.config.localStorageKey)) || {};
+      cachedData[cacheKey] = this.clone(this.cachedData[cacheKey]);
+      delete cachedData[cacheKey].readonlyData;
+      localStorage.setItem(this.config.localStorageKey, JSON.stringify(cachedData));
+    } catch (err) {
+      localStorage.removeItem(this.config.localStorageKey);
+      if (this.config.showLog) {
+        console.log(err);
+        console.log(`%cRemoved localStorage data with key "${this.config.localStorageKey}"`, `color: brown;`);
+      }
+    }
   }
 
   protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
@@ -625,19 +677,19 @@ route.path should not to have trailing slash.`
     parents: ObjectAny[],
     queryParams: Params,
     responseOptions: ResponseOptions = {} as any,
-    items: ObjectAny[]
+    body: any[]
   ): Observable<HttpResponse<any>> {
     const restId = chainParam.restId || '';
     const httpMethod = req.method as HttpMethod;
-    const clonedItems: ObjectAny[] = this.clone(items);
+    const clonedBody: any[] = this.clone(body);
     /**
      * Response or value of a body for response.
      */
-    let resOrBody = clonedItems;
+    let resOrBody = clonedBody;
 
     if (chainParam.route.callbackResponse) {
       resOrBody = chainParam.route.callbackResponse(
-        clonedItems,
+        clonedBody,
         restId,
         httpMethod,
         this.clone(parents),
@@ -654,20 +706,23 @@ route.path should not to have trailing slash.`
     } else if (resOrBody instanceof HttpResponse) {
       observable = of(resOrBody);
     } else {
-      const logHttpResOpts = {} as LogHttpResOpts;
+      responseOptions.status = responseOptions.status || Status.OK;
+      responseOptions.body = resOrBody;
+      observable = of(new HttpResponse(responseOptions));
 
-      if (httpMethod == 'GET') {
-        logHttpResOpts.body = resOrBody;
-        logHttpResOpts.status = Status.OK;
-        observable = of(new HttpResponse<any>({ status: Status.OK, url: req.urlWithParams, body: resOrBody }));
-      } else {
-        logHttpResOpts.status = responseOptions.status || Status.OK;
-        logHttpResOpts.headers = responseOptions.headers ? this.getHeaders(responseOptions.headers) : [];
-        logHttpResOpts.body = resOrBody;
-        responseOptions.body = resOrBody;
-        observable = of(new HttpResponse(responseOptions));
+      let logHeaders: ObjectAny = {};
+      if (responseOptions.headers instanceof HttpHeaders) {
+        logHeaders = this.getHeaders(responseOptions.headers);
+      } else if (responseOptions.headers) {
+        logHeaders = responseOptions.headers;
       }
-      this.logSuccessResponse(req, queryParams, logHttpResOpts);
+
+      const resLog: ResponseOptionsLog = {
+        headers: logHeaders,
+        status: responseOptions.status,
+        body: resOrBody,
+      };
+      this.logSuccessResponse(req, resLog);
     }
 
     return observable.pipe(delay(this.config.delay));
@@ -693,25 +748,70 @@ route.path should not to have trailing slash.`
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
 
-    const errMsg = 'Error 404: Not found; page not found';
+    const errMsg = 'Error 404: Not found; resource not found';
     this.logErrorResponse(req, errMsg);
     const err = this.makeError(req, Status.NOT_FOUND, errMsg);
 
     return throwError(err);
   }
 
-  protected logSuccessResponse(req: HttpRequest<any>, queryParams: Params, httpResOpts: LogHttpResOpts) {
+  protected logRequest(req: HttpRequest<any>) {
+    let logHeaders: ObjectAny = {};
+    let queryParams: ObjectAny = {};
+    let body: any;
+    try {
+      logHeaders = this.getHeaders(req.headers);
+      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+      if (isFormData(req.body)) {
+        body = [];
+        req.body.forEach((value, key) => body.push({ [key]: value }));
+      } else {
+        body = req.body;
+      }
+    } catch (err) {
+      logHeaders = { parseError: err.message || 'error' };
+      queryParams = { parseError: err.message || 'error' };
+    }
+
+    let reqLog: any = '';
+    const log = {
+      headers: logHeaders,
+      queryParams,
+      body,
+    };
+    if (!Object.keys(log.headers).length) {
+      delete log.headers;
+    }
+    if (!Object.keys(log.queryParams).length) {
+      delete log.queryParams;
+    }
+    if (req.method == 'GET') {
+      delete log.body;
+    }
+    if (Object.keys(log).length) {
+      reqLog = log;
+    }
+
+    console.log(`%creq: ${req.method} ${req.url}`, 'color: green;', reqLog);
+  }
+
+  protected logResponse(res: ResponseOptionsLog) {
+    if (!Object.keys(res.headers).length) {
+      delete res.headers;
+    }
+    if (!Object.keys(res.body).length) {
+      delete res.body;
+    }
+    console.log('%cres:', `color: blue;`, res);
+  }
+
+  protected logSuccessResponse(req: HttpRequest<any>, res: ResponseOptionsLog) {
     if (!this.config.showLog) {
       return;
     }
 
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-      body: req.body,
-      queryParams,
-      headers: this.getHeaders(req.headers),
-    });
-
-    console.log(`%cres:`, 'color: blue;', httpResOpts);
+    this.logRequest(req);
+    this.logResponse(res);
   }
 
   protected logErrorResponse(req: HttpRequest<any>, ...consoleArgs: any[]) {
@@ -719,27 +819,18 @@ route.path should not to have trailing slash.`
       return;
     }
 
-    let queryParams: ObjectAny = {};
-    let headers: ObjectAny = {};
-    try {
-      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
-      headers = this.getHeaders(req.headers);
-    } catch {}
-
-    console.log(`%creq: ${req.method} ${req.url}:`, 'color: green;', {
-      body: req.body,
-      queryParams,
-      headers,
-    });
-    console.log('%cres:', 'color: brown;', ...consoleArgs);
+    this.logRequest(req);
+    console.log('%cres:', `color: brown;`, ...consoleArgs);
   }
 
   protected getHeaders(headers: HttpHeaders) {
-    return headers.keys().map(header => {
+    const logHeaders: ObjectAny = {};
+    headers.keys().forEach(header => {
       let values: string | string[] = headers.getAll(header);
       values = values.length == 1 ? values[0] : values;
-      return { [header]: values };
+      logHeaders[header] = values;
     });
+    return logHeaders;
   }
 
   protected clone(data: any) {
@@ -759,7 +850,7 @@ route.path should not to have trailing slash.`
   /**
    * Setting readonly data to `this.cachedData[cacheKey].readonlyData`
    */
-  protected setReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
+  protected bindReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
     let readonlyData: ObjectAny[];
     const pickObj = chainParam.route.propertiesForList;
     if (pickObj) {
