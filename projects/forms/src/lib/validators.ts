@@ -226,23 +226,19 @@ export class Validators extends NativeValidators {
 
   /**
    * At least one file should be.
+   *
+   * **Note**: use this validator when `formControl.value` is an instance of `FormData` only.
    */
-  static fileRequired(control: FormControl<FileList | FormData>): ValidationErrors<{ fileRequired: true }> | null {
-    const value = control.value;
-    if (!value) {
+  static fileRequired(formControl: FormControl<FormData>): ValidationErrors<{ fileRequired: true }> | null {
+    const value = formControl.value;
+    if (!(value instanceof FormData)) {
       return { fileRequired: true };
     }
 
-    if (value instanceof FileList) {
-      if (!value.length) {
-        return { fileRequired: true };
-      }
-    } else {
-      const files: File[] = [];
-      value.forEach((file: File) => files.push(file));
-      if (!files.length) {
-        return { fileRequired: true };
-      }
+    let file: File;
+    value.forEach((f: File) => (file = f));
+    if (!file) {
+      return { fileRequired: true };
     }
 
     return null;
@@ -250,30 +246,30 @@ export class Validators extends NativeValidators {
 
   /**
    * Minimal number of files.
+   *
+   * **Note**: use this validator when `formControl.value` is an instance of `FormData` only.
    */
   static filesMinLength(
     minLength: number
   ): ValidatorFn<{
     filesMinLength: { requiredLength: number; actualLength: number };
   }> {
-    return (control: FormControl<FileList | FormData>) => {
-      const value = control.value;
-      if (!value) {
+    return (formControl: FormControl<FormData>) => {
+      if (minLength < 1) {
+        return null;
+      }
+
+      const value = formControl.value;
+
+      if (!(value instanceof FormData)) {
         return { filesMinLength: { requiredLength: minLength, actualLength: 0 } };
       }
 
-      if (value instanceof FileList) {
-        const length = Array.from(value).length;
-        if (length < minLength) {
-          return { filesMinLength: { requiredLength: minLength, actualLength: length } };
-        }
-      } else {
-        const files: File[] = [];
-        value.forEach((file: File) => files.push(file));
-        const length = files.length;
-        if (length < minLength) {
-          return { filesMinLength: { requiredLength: minLength, actualLength: length } };
-        }
+      const files: File[] = [];
+      value.forEach((file: File) => files.push(file));
+      const len = files.length;
+      if (len < minLength) {
+        return { filesMinLength: { requiredLength: minLength, actualLength: len } };
       }
 
       return null;
@@ -282,30 +278,26 @@ export class Validators extends NativeValidators {
 
   /**
    * Maximal number of files.
+   *
+   * **Note**: use this validator when `formControl.value` is an instance of `FormData` only.
    */
   static filesMaxLength(
     maxLength: number
   ): ValidatorFn<{
     filesMaxLength: { requiredLength: number; actualLength: number };
   }> {
-    return (control: FormControl<FileList | FormData>) => {
-      const value = control.value;
-      if (!value) {
+    return (formControl: FormControl<FormData>) => {
+      const value = formControl.value;
+
+      if ((maxLength < 1 && value) || !(value instanceof FormData)) {
         return { filesMaxLength: { requiredLength: maxLength, actualLength: 0 } };
       }
 
-      if (value instanceof FileList) {
-        const length = Array.from(value).length;
-        if (length > maxLength) {
-          return { filesMaxLength: { requiredLength: maxLength, actualLength: length } };
-        }
-      } else {
-        const files: File[] = [];
-        value.forEach((file: File) => files.push(file));
-        const length = files.length;
-        if (length > maxLength) {
-          return { filesMaxLength: { requiredLength: maxLength, actualLength: length } };
-        }
+      const files: File[] = [];
+      value.forEach((file: File) => files.push(file));
+      const len = files.length;
+      if (len > maxLength) {
+        return { filesMaxLength: { requiredLength: maxLength, actualLength: len } };
       }
 
       return null;
@@ -314,31 +306,23 @@ export class Validators extends NativeValidators {
 
   /**
    * Maximal size of a file.
+   *
+   * **Note**: use this validator when `formControl.value` is an instance of `FormData` only.
    */
   static fileMaxSize(
     maxSize: number
   ): ValidatorFn<{
     fileMaxSize: { requiredSize: number; actualSize: number; file: File };
   }> {
-    return (control: FormControl<FileList | FormData>) => {
-      const value = control.value;
-      if (!value) {
+    return (formControl: FormControl<FormData>) => {
+      if (!formControl.value) {
         return null;
       }
-
-      if (value instanceof FileList) {
-        for (const file of Array.from(value)) {
-          if (file.size > maxSize) {
-            return { fileMaxSize: { requiredSize: maxSize, actualSize: file.size, file } };
-          }
-        }
-      } else {
-        const files: File[] = [];
-        value.forEach((file: File) => files.push(file));
-        for (const file of files) {
-          if (file.size > maxSize) {
-            return { fileMaxSize: { requiredSize: maxSize, actualSize: file.size, file } };
-          }
+      const files: File[] = [];
+      formControl.value.forEach((file: File) => files.push(file));
+      for (const file of files) {
+        if (file.size > maxSize) {
+          return { fileMaxSize: { requiredSize: maxSize, actualSize: file.size, file } };
         }
       }
 

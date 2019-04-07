@@ -1,5 +1,14 @@
+<a name="1.2.0-beta.1"></a>
+# [1.2.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.2.0-beta.1) (2019-04-07)
+
+### Features and BREAKING CHANGES
+
+- **input[type=file] directive:** added new @Output `selectedFiles` event,
+and removed @Input() `valueAsFileList` ([#32](https://github.com/KostyaTretyak/ng-stack/pull/32)).
+
+
 <a name="1.1.0-beta.2"></a>
-# [1.1.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.1.0-beta.2) (2019-04-06)
+## [1.1.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.1.0-beta.2) (2019-04-06)
 
 ### Bug Fixes
 
