@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
+import { Injectable, Optional } from '@angular/core';
+import { Router, Params, NavigationStart, NavigationEnd, DefaultUrlSerializer } from '@angular/router';
 import {
   HttpBackend,
   HttpErrorResponse,
@@ -51,7 +51,7 @@ export class HttpBackendService implements HttpBackend {
     protected apiMockService: ApiMockService,
     protected config: ApiMockConfig,
     protected xhrFactory: XhrFactory,
-    protected router: Router
+    @Optional() protected router: Router
   ) {}
 
   protected init() {
@@ -62,7 +62,7 @@ export class HttpBackendService implements HttpBackend {
     this.rootRoutes = this.getRootPaths(this.routeGroups);
 
     let isLoadedApp = false;
-    if (this.config.showLog && this.config.clearPrevLog) {
+    if (this.config.showLog && this.config.clearPrevLog && this.router) {
       this.router.events.subscribe(event => {
         if (isLoadedApp && event instanceof NavigationStart) {
           console.clear();
@@ -328,13 +328,17 @@ route.path should not to have trailing slash.`
     }
   }
 
+  protected parseUrl(url: string) {
+    return new DefaultUrlSerializer().parse(url);
+  }
+
   /**
    * This function:
    * - calls `callbackData()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
   protected sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]): Observable<HttpResponse<any>> {
-    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+    const queryParams = this.parseUrl(req.urlWithParams).queryParams;
     const httpMethod = req.method as HttpMethod;
     /** Last chain param */
     const chainParam = chainParams[chainParams.length - 1];
@@ -438,7 +442,7 @@ route.path should not to have trailing slash.`
   }
 
   protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
-    const queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+    const queryParams = this.parseUrl(req.urlWithParams).queryParams;
     const parents: ObjectAny[] = [];
 
     // for() without last chainParam.
@@ -761,7 +765,7 @@ route.path should not to have trailing slash.`
     let body: any;
     try {
       logHeaders = this.getHeaders(req.headers);
-      queryParams = this.router.parseUrl(req.urlWithParams).queryParams;
+      queryParams = this.parseUrl(req.urlWithParams).queryParams;
       if (isFormData(req.body)) {
         body = [];
         req.body.forEach((value, key) => body.push({ [key]: value }));
