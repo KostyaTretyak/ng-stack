@@ -1,15 +1,18 @@
-import { Directive, ElementRef, Renderer2, HostListener, forwardRef, Input } from '@angular/core';
+import { Directive, ElementRef, Renderer2, HostListener, forwardRef, Input, Output, EventEmitter } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Directive({
-  selector: 'input[type="file"]',
+  selector: `
+  input[type=file][ngModel],
+  input[type=file][formControl],
+  input[type=file][formControlName]`,
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputFileDirective), multi: true }],
 })
 export class InputFileDirective implements ControlValueAccessor {
-  private onChange: (value: FileList | FormData) => void;
-  private onTouched: () => void;
-  @Input() valueAsFileList: boolean | string;
   @Input() multiple: boolean | string;
+  @Output() selectedFiles = new EventEmitter<File[]>();
+  private onChange = (value: FileList | FormData) => {};
+  private onTouched = () => {};
 
   constructor(private elementRef: ElementRef, private renderer: Renderer2) {}
 
@@ -17,31 +20,22 @@ export class InputFileDirective implements ControlValueAccessor {
    * Callback function that should be called when
    * the control's value changes in the UI.
    */
-  @HostListener('change')
-  callOnChange() {
-    if (typeof this.onTouched == 'function') {
-      this.onTouched();
+  @HostListener('change', ['$event'])
+  callOnChange(event: any) {
+    this.onTouched();
+    const files = Array.from<File>(this.elementRef.nativeElement.files);
+    const formData = new FormData();
+    const formInputName = this.elementRef.nativeElement.name || 'fileUpload';
+
+    if (this.multiple !== undefined && this.multiple !== false && this.multiple !== 'false') {
+      files.forEach(file => formData.append(formInputName + '[]', file));
+    } else {
+      formData.append(formInputName, files[0]);
     }
 
-    if (typeof this.onChange == 'function') {
-      if (this.valueAsFileList !== undefined && this.valueAsFileList !== false && this.valueAsFileList !== 'false') {
-        this.onChange(this.elementRef.nativeElement.files);
-      } else {
-        const formData = new FormData();
-        const files = Array.from<File>(this.elementRef.nativeElement.files);
-        const formInputName = this.elementRef.nativeElement.name || 'fileUpload';
-
-        if (this.multiple !== undefined && this.multiple !== false && this.multiple !== 'false') {
-          files.forEach(file => {
-            formData.append(formInputName + '[]', file);
-          });
-        } else {
-          formData.append(formInputName, files[0]);
-        }
-
-        this.onChange(formData);
-      }
-    }
+    this.onChange(formData);
+    this.selectedFiles.next(files);
+    event.target.value = null;
   }
 
   /**
@@ -53,7 +47,7 @@ export class InputFileDirective implements ControlValueAccessor {
    */
   writeValue(fileList: FileList): void {
     if (fileList && !(fileList instanceof FileList)) {
-      throw new TypeError('Value for input[type="file"] must be an instance of FileList');
+      throw new TypeError('Value for input[type=file] must be an instance of FileList');
     }
     this.renderer.setProperty(this.elementRef.nativeElement, 'files', fileList);
   }
