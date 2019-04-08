@@ -270,7 +270,7 @@ onSelectedFiles(files: File[]) {
 // ...
 ```
 
-Instance of `formControl.value` you can validate with four methods:
+`formControl.value` you can validate with four methods:
 
 ```ts
 import { Validators, FormControl } from '@ng-stack/forms';
