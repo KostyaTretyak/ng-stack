@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { NgStackFormsModule } from '@ng-stack/forms';
 
 import { FormsRoutingModule } from './forms-routing.module';
-import { FormsComponent } from './pages/forms.component';
+import { FormsComponent } from './pages/forms/forms.component';
 
 @NgModule({
   declarations: [FormsComponent],

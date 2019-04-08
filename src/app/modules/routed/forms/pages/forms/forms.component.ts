@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
-import { FormGroup, FormControl, FormArray, FormBuilder } from '@ng-stack/forms';
+import { FormGroup, FormControl, FormBuilder } from '@ng-stack/forms';
 
-import { UserForm } from '../models/user-form';
+import { UserForm } from '../../models/user-form';
 
 @Component({
   selector: 'app-forms',
@@ -68,7 +68,5 @@ export class FormsComponent implements OnInit {
         fb.group({ item1: 'value4' }),
       ]),
     });
-
-    console.log(this.addresses.value);
   }
 }

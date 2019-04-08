@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { FormsComponent } from './pages/forms.component';
+import { FormsComponent } from './pages/forms/forms.component';
 
 // Parent route: '/forms'
 const routes: Routes = [{ path: '', pathMatch: 'full', component: FormsComponent }];
