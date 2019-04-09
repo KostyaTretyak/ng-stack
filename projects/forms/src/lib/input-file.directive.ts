@@ -26,7 +26,7 @@ export class InputFileDirective implements ControlValueAccessor {
     const files = Array.from<File>(this.elementRef.nativeElement.files);
     const formData = new FormData();
 
-    let formInputName = this.elementRef.nativeElement.name || 'fileUpload';
+    let formInputName = this.elementRef.nativeElement.name || 'uploadFile';
     if (this.multiple !== undefined && this.multiple !== false && this.multiple !== 'false') {
       formInputName += '[]';
     }
