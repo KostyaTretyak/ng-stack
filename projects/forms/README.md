@@ -250,21 +250,21 @@ Since version 1.1.0, `@ng-stack/forms` supports `input[type=file]`.
 #### Form value as FormData
 
 If you have `input[type=file]`, the module set instance of `FormData` to `formControl.value`,
-and output event `selectedFiles` with type `File[]`:
+and output event `select` with type `File[]`:
 
 For example, if you have this component template:
 
 ```html
-<input type="file" (selectedFiles)="onSelectedFiles($event)" [formControl]="formControl">
+<input type="file" (select)="onSelect($event)" [formControl]="formControl">
 ```
 
-In your component class, you can get selected files from `selectedFiles` output event:
+In your component class, you can get selected files from `select` output event:
 
 ```ts
 // ...
 
-onSelectedFiles(files: File[]) {
-  console.log('selectedFiles:', files);
+onSelect(files: File[]) {
+  console.log('selected files:', files);
 }
 
 // ...

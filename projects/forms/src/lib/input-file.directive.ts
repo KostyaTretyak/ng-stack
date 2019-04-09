@@ -10,7 +10,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 })
 export class InputFileDirective implements ControlValueAccessor {
   @Input() multiple: boolean | string;
-  @Output() selectedFiles = new EventEmitter<File[]>();
+  @Output() select = new EventEmitter<File[]>();
   private onChange = (value: FileList | FormData) => {};
   private onTouched = () => {};
 
@@ -25,16 +25,15 @@ export class InputFileDirective implements ControlValueAccessor {
     this.onTouched();
     const files = Array.from<File>(this.elementRef.nativeElement.files);
     const formData = new FormData();
-    const formInputName = this.elementRef.nativeElement.name || 'fileUpload';
 
+    let formInputName = this.elementRef.nativeElement.name || 'uploadFile';
     if (this.multiple !== undefined && this.multiple !== false && this.multiple !== 'false') {
-      files.forEach(file => formData.append(formInputName + '[]', file));
-    } else {
-      formData.append(formInputName, files[0]);
+      formInputName += '[]';
     }
+    files.forEach(file => formData.append(formInputName, file));
 
     this.onChange(formData);
-    this.selectedFiles.next(files);
+    this.select.next(files);
     event.target.value = null;
   }
 

@@ -46,15 +46,6 @@ describe('Validators', () => {
       const err = { filesMinLength: { requiredLength: minLength, actualLength } };
       expect(validator({ value: formData } as any)).toEqual(err);
     });
-
-    it('formConstrol.value is not an instance of FormData', () => {
-      const minLength = 2;
-      const actualLength = 0;
-
-      const validator = Validators.filesMinLength(minLength);
-      const err = { filesMinLength: { requiredLength: minLength, actualLength } };
-      expect(validator({ value: null } as any)).toEqual(err);
-    });
   });
 
   describe('filesMaxLength', () => {
@@ -80,15 +71,6 @@ describe('Validators', () => {
       const validator = Validators.filesMaxLength(maxLength);
       const err = { filesMaxLength: { requiredLength: maxLength, actualLength } };
       expect(validator({ value: formData } as any)).toEqual(err);
-    });
-
-    it('formConstrol.value is not an instance of FormData', () => {
-      const maxLength = 2;
-      const actualLength = 0;
-
-      const validator = Validators.filesMaxLength(maxLength);
-      const err = { filesMaxLength: { requiredLength: maxLength, actualLength } };
-      expect(validator({ value: null } as any)).toEqual(err);
     });
   });
 

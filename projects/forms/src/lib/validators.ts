@@ -230,18 +230,20 @@ export class Validators extends NativeValidators {
    * **Note**: use this validator when `formControl.value` is an instance of `FormData` only.
    */
   static fileRequired(formControl: FormControl<FormData>): ValidationErrors<{ fileRequired: true }> | null {
-    const value = formControl.value;
-    if (!(value instanceof FormData)) {
+    if (!(formControl.value instanceof FormData)) {
       return { fileRequired: true };
     }
 
-    let file: File;
-    value.forEach((f: File) => (file = f));
-    if (!file) {
-      return { fileRequired: true };
+    const files: File[] = [];
+    formControl.value.forEach((file: File) => files.push(file));
+
+    for (const file of files) {
+      if (file instanceof File) {
+        return null;
+      }
     }
 
-    return null;
+    return { fileRequired: true };
   }
 
   /**
@@ -255,13 +257,13 @@ export class Validators extends NativeValidators {
     filesMinLength: { requiredLength: number; actualLength: number };
   }> {
     return (formControl: FormControl<FormData>) => {
+      const value = formControl.value;
+
       if (minLength < 1) {
         return null;
       }
 
-      const value = formControl.value;
-
-      if (!(value instanceof FormData)) {
+      if (!value || !(value instanceof FormData)) {
         return { filesMinLength: { requiredLength: minLength, actualLength: 0 } };
       }
 
@@ -287,14 +289,12 @@ export class Validators extends NativeValidators {
     filesMaxLength: { requiredLength: number; actualLength: number };
   }> {
     return (formControl: FormControl<FormData>) => {
-      const value = formControl.value;
-
-      if ((maxLength < 1 && value) || !(value instanceof FormData)) {
-        return { filesMaxLength: { requiredLength: maxLength, actualLength: 0 } };
+      if (!(formControl.value instanceof FormData)) {
+        return null;
       }
 
       const files: File[] = [];
-      value.forEach((file: File) => files.push(file));
+      formControl.value.forEach((file: File) => files.push(file));
       const len = files.length;
       if (len > maxLength) {
         return { filesMaxLength: { requiredLength: maxLength, actualLength: len } };
@@ -315,13 +315,14 @@ export class Validators extends NativeValidators {
     fileMaxSize: { requiredSize: number; actualSize: number; file: File };
   }> {
     return (formControl: FormControl<FormData>) => {
-      if (!formControl.value) {
+      if (!(formControl.value instanceof FormData)) {
         return null;
       }
+
       const files: File[] = [];
       formControl.value.forEach((file: File) => files.push(file));
       for (const file of files) {
-        if (file.size > maxSize) {
+        if (file instanceof File && file.size > maxSize) {
           return { fileMaxSize: { requiredSize: maxSize, actualSize: file.size, file } };
         }
       }
