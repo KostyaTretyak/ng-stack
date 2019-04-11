@@ -247,9 +247,7 @@ See: [bug(forms): issue with interpreting of a validation model](https://github.
 
 Since version 1.1.0, `@ng-stack/forms` supports `input[type=file]`.
 
-#### Form value as FormData
-
-If you have `input[type=file]`, the module set instance of `FormData` to `formControl.value`,
+The module will be set instance of `FormData` to `formControl.value`,
 and output event `select` with type `File[]`:
 
 For example, if you have this component template:
@@ -270,7 +268,7 @@ onSelect(files: File[]) {
 // ...
 ```
 
-`formControl.value` you can validate with four methods:
+You can validate the `formControl` with four methods:
 
 ```ts
 import { Validators, FormControl } from '@ng-stack/forms';
