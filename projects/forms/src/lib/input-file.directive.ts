@@ -11,7 +11,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 export class InputFileDirective implements ControlValueAccessor {
   @Input() multiple: boolean | string;
   @Output() select = new EventEmitter<File[]>();
-  private onChange = (value: FileList | FormData) => {};
+  private onChange = (value: FormData) => {};
   private onTouched = () => {};
 
   constructor(private elementRef: ElementRef, private renderer: Renderer2) {}
