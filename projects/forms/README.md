@@ -51,10 +51,10 @@ Then you should be able just import and using classes from `@ng-stack/forms`.
 ```ts
 import { FormGroup, FormControl, FormArray } from '@ng-stack/forms';
 
-const formClontrol = new FormControl('some string');
-const value = formClontrol.value; // some string
+const formControl = new FormControl('some string');
+const value = formControl.value; // some string
 
-formClontrol.setValue(123); // Error: Argument of type '123' is not assignable...
+formControl.setValue(123); // Error: Argument of type '123' is not assignable...
 
 // Form model
 class Address {
@@ -110,7 +110,7 @@ const formGroup = new FormGroup<Address>({
 });
 ```
 
-As we can see, constructor of `FormGroup` accept form model `Address` for its generic and knows that
+As you can see, constructor of `FormGroup` accept form model `Address` for its generic and knows that
 property `street` have primitive type and should to have a value only with instance of `FormControl`.
 
 If some property of a form model have type that extends `object`, then an appropriate property in a form
@@ -146,7 +146,7 @@ const formGroup = new FormGroup<Address>({
 So, if your `FormGroup` knows about types of properties a form model, it inferring appropriate types of form controls
 for their values.
 
-And no need to do this in your components:
+And no need to do `as FormControl` or `as FormGroup` in your components:
 
 ```ts
 get userName() {
@@ -202,7 +202,7 @@ control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' do
 ```
 
 `ValidatorsModel` contains a list of properties extracted from `typeof Validators`,
-additional validators for support `input[type="file"]`, and expected returns types:
+additional validators for support `input[type=file]`, and expected returns types:
 
 ```ts
 class ValidatorsModel {
@@ -215,7 +215,7 @@ class ValidatorsModel {
   maxLength: { requiredLength: number; actualLength: number };
   pattern: { requiredPattern: string; actualValue: string };
 
-  // Additional validators for support `input[type="file"]`
+  // Additional validators for support `input[type=file]`
   fileRequired: { requiredSize: number; actualSize: number; file: File };
   filesMinLength: { requiredLength: number; actualLength: number };
   filesMaxLength: { requiredLength: number; actualLength: number };
@@ -304,7 +304,7 @@ and on [stackblitz](https://stackblitz.com/github/KostyaTretyak/example-input-fi
 
 In almost all cases, this module absolutely does not change the runtime behavior of native Angular methods.
 
-Classes are rewritten as follows:
+Classes are overrided as follows:
 
 ```ts
 import { FormGroup as NativeFormGroup } from '@angular/forms';
