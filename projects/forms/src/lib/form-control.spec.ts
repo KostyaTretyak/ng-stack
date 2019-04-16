@@ -34,7 +34,10 @@ describe('FormControl', () => {
     });
 
     it('setValue(), patchValue(), reset()', () => {
+      new FormControl().setValue(10);
+
       const control1 = new FormControl('');
+
       control1.setValue('');
       // control1.setValue(2);
       // control1.setValue([]);

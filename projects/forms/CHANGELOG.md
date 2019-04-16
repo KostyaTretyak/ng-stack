@@ -1,5 +1,13 @@
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.0) (2019-04-17)
+
+### Features
+
+- **types:** added support for union types ([#38](https://github.com/KostyaTretyak/ng-stack/pull/38)).
+
+
 <a name="1.2.1"></a>
-# [1.2.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.2.1) (2019-04-09)
+## [1.2.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.2.1) (2019-04-09)
 
 ### Features and BREAKING CHANGES
 

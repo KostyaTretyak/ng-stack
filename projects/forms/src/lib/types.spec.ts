@@ -33,5 +33,10 @@ xdescribe('checking types only', () => {
       let valueWithType: ControlType<string>;
       const formControl: FormControl<string> = valueWithType;
     });
+
+    type T1 = ControlType<any>;
+    type T2 = ControlType<true>;
+    type T3 = ControlType<'one' | 'two'>;
+    type T4 = ControlType<{ one: string; two: number }>;
   });
 });

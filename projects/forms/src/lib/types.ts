@@ -50,21 +50,42 @@ interface UniqToken {
   [sym]: never;
 }
 
+type IsAny<T> = T extends Extract<T, string & number & boolean & object & null & undefined> ? any : never;
+
 /**
  * This type is a conditional type that automatically detects
  * appropriate types for form controls by given type for its generic.
  */
-export type ControlType<T> = T extends (infer Item)[]
+export type ControlType<T> = [T] extends [IsAny<T>]
+  ? (FormGroup<any> | FormControl<any> | FormArray<any>)
+  : [T] extends [Array<infer Item>]
   ? T extends [infer ControlModel, UniqToken]
-    ? ControlModel extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
-      ? FormControl<boolean>
-      : FormControl<ControlModel>
+    ? FormControl<ControlModel>
     : FormArray<Item>
-  : T extends object
+  : [T] extends [object]
   ? FormGroup<T>
-  : T extends boolean
-  ? FormControl<boolean>
   : FormControl<T>;
+
+/**
+ * Form builder control config.
+ */
+export type FbControlConfig<T> = [T] extends [IsAny<T>]
+  ? (FormGroup<any> | FbControl<any> | FormArray<any>)
+  : [T] extends [Array<infer Item>]
+  ? T extends [infer ControlModel, UniqToken]
+    ? FbControl<ControlModel>
+    : FormArray<Item>
+  : [T] extends [object]
+  ? FormGroup<T>
+  : FbControl<T>;
+
+/**
+ * Form builder control.
+ */
+export type FbControl<T> =
+  | T
+  | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
+  | FormControl<T>;
 
 /**
  * The validation status of the control. There are four possible
@@ -105,29 +126,6 @@ export interface LegacyControlOptions {
   validator: ValidatorFn | ValidatorFn[] | null;
   asyncValidator: AsyncValidatorFn | AsyncValidatorFn[] | null;
 }
-
-/**
- * Form builder control config.
- */
-export type FbControlConfig<T> = T extends (infer Item)[]
-  ? T extends [infer ControlModel, UniqToken]
-    ? ControlModel extends boolean // See https://github.com/Microsoft/TypeScript/issues/30280
-      ? FbControl<boolean>
-      : FbControl<ControlModel>
-    : FormArray<Item>
-  : T extends object
-  ? FormGroup<T>
-  : T extends boolean
-  ? FbControl<boolean>
-  : FbControl<T>;
-
-/**
- * Form builder control.
- */
-export type FbControl<T> =
-  | T
-  | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
-  | FormControl<T>;
 
 /**
  * A function that receives a control and synchronously returns a map of
