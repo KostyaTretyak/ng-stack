@@ -6,6 +6,7 @@ import { tick, fakeAsync } from '@angular/core/testing';
 import { isString, isNumber, isObject, isArray } from './assert';
 
 // tslint:disable: one-variable-per-declaration
+// tslint:disable: no-unused-expression
 
 describe('FormGroup', () => {
   class Address {
@@ -25,6 +26,7 @@ describe('FormGroup', () => {
     someGroup: SomeGroup;
     someArray: number[];
     someBoolean: boolean;
+    otheUnionType: 'one' | 'two';
   }
 
   xdescribe('checking types only', () => {
@@ -48,17 +50,32 @@ describe('FormGroup', () => {
           new FormControl(1),
           new FormControl(2),
           new FormControl(3),
-          new FormControl(4),
-          new FormControl(5),
           // new FormControl('some string'),
           // new FormGroup({}),
         ]),
       });
 
-      const formControl: FormControl<boolean> = new FormControl(true);
+      const formControl = new FormControl(true);
+      const formControl1 = new FormControl('one');
 
       formGroup = new FormGroup<Profile>({
-        someBoolean: new FormControl(true),
+        someBoolean: formControl,
+        // otheUnionType: formControl1,
+      });
+
+      enum SomeEnum {
+        first = 'one',
+        second = 'two',
+      }
+
+      interface MyInterface {
+        fieldOne: string;
+        fieldTwo: SomeEnum;
+      }
+
+      const formGroup1 = new FormGroup<MyInterface>({
+        fieldOne: new FormControl(),
+        fieldTwo: new FormControl(SomeEnum.first),
       });
     });
 
@@ -118,6 +135,13 @@ describe('FormGroup', () => {
 
     it('setValue()', () => {
       formGroup.setValue(new Profile());
+
+      new FormControl().setValue(123);
+      formGroup.get('firstName').setValue('some string');
+      // new FormGroup<{ firstName: string }>(null).get('firstName').setValue(123);
+      // formGroup.get('firstName').setValue(123);
+      // formGroup.get('someNumber').setValue([`it's wrong value`]);
+      // formGroup.get('firstName').setValue({});
       // formGroup.setValue({ firstName: '' });
       // formGroup.setValue(new Address());
     });
@@ -125,6 +149,8 @@ describe('FormGroup', () => {
     it('patchValue()', () => {
       formGroup.patchValue(new Profile());
       formGroup.patchValue({ firstName: '' });
+      formGroup.get('firstName').patchValue('some string');
+      // formGroup.get('firstName').patchValue(123);
       // formGroup.patchValue({ firstName: 123 });
       // formGroup.patchValue(new Address());
     });

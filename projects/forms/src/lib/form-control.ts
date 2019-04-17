@@ -64,7 +64,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    *
    */
   setValue(
-    value: Required<T>,
+    value: T,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
@@ -85,7 +85,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    * See also: `setValue` for options
    */
   patchValue(
-    value: Required<T>,
+    value: T,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
@@ -115,7 +115,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    *
    */
   reset(
-    formState: Required<T> | { value: Required<T>; disabled: boolean } = null,
+    formState: T | { value: T; disabled: boolean } = null,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;

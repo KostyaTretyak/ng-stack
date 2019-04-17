@@ -255,7 +255,7 @@ console.log(this.form.get('first').status);  // 'DISABLED'
 this.form.get('person').get('name');
 ```
    */
-  get<K extends StringKeys<T>>(controlName: K) {
+  get<K extends StringKeys<T>>(controlName: K): ControlType<T[K]> | null {
     return super.get(controlName) as ControlType<T[K]> | null;
   }
 
