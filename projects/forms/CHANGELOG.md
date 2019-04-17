@@ -3,7 +3,7 @@
 
 ### Features
 
-- **types:** added support for union types ([#38](https://github.com/KostyaTretyak/ng-stack/pull/38)).
+- **types:** added support for union types ([#39](https://github.com/KostyaTretyak/ng-stack/pull/39)).
 
 
 <a name="1.2.1"></a>
