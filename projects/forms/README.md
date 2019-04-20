@@ -202,7 +202,7 @@ control.errors.notExistingErrorCode // Error: Property 'notExistingErrorCode' do
 ```
 
 `ValidatorsModel` contains a list of properties extracted from `typeof Validators`,
-additional validators for support `input[type=file]`, and expected returns types:
+additional validators to support `input[type=file]`, and expected returns types:
 
 ```ts
 class ValidatorsModel {
@@ -215,7 +215,7 @@ class ValidatorsModel {
   maxLength: { requiredLength: number; actualLength: number };
   pattern: { requiredPattern: string; actualValue: string };
 
-  // Additional validators for support `input[type=file]`
+  // Additional validators to support `input[type=file]`
   fileRequired: { requiredSize: number; actualSize: number; file: File };
   filesMinLength: { requiredLength: number; actualLength: number };
   filesMaxLength: { requiredLength: number; actualLength: number };
@@ -318,7 +318,7 @@ export class FormGroup extends NativeFormGroup {
 
 The following section describes the changes that have occurred. All of the following restrictions apply only because of the need to more clearly control the data entered by developers.
 
-## Changes API
+## API Changes
 
 ### get()
 
