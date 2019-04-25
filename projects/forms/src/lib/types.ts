@@ -50,13 +50,13 @@ interface UniqToken {
   [sym]: never;
 }
 
-type IsAny<T> = T extends Extract<T, string & number & boolean & object & null & undefined> ? any : never;
+type ExtractAny<T> = T extends Extract<T, string & number & boolean & object & null & undefined> ? any : never;
 
 /**
  * This type is a conditional type that automatically detects
  * appropriate types for form controls by given type for its generic.
  */
-export type ControlType<T> = [T] extends [IsAny<T>]
+export type ControlType<T> = [T] extends [ExtractAny<T>]
   ? (FormGroup<any> | FormControl<any> | FormArray<any>)
   : [T] extends [Array<infer Item>]
   ? T extends [infer ControlModel, UniqToken]
@@ -69,7 +69,7 @@ export type ControlType<T> = [T] extends [IsAny<T>]
 /**
  * Form builder control config.
  */
-export type FbControlConfig<T> = [T] extends [IsAny<T>]
+export type FbControlConfig<T> = [T] extends [ExtractAny<T>]
   ? (FormGroup<any> | FbControl<any> | FormArray<any>)
   : [T] extends [Array<infer Item>]
   ? T extends [infer ControlModel, UniqToken]
