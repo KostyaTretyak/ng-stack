@@ -13,12 +13,12 @@ import {
   ControlType,
 } from './types';
 
-export class FormGroup<T extends object = any, E extends object = ValidatorsModel> extends NativeFormGroup {
+export class FormGroup<T extends object = any, V extends object = ValidatorsModel> extends NativeFormGroup {
   readonly value: T;
   readonly valueChanges: Observable<T>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
-  readonly errors: ValidationErrors<E> | null;
+  readonly errors: ValidationErrors<V> | null;
 
   /**
    * Creates a new `FormGroup` instance.
@@ -35,7 +35,7 @@ export class FormGroup<T extends object = any, E extends object = ValidatorsMode
    * @todo Chechout how to respect optional and require properties modifyers for the controls.
    */
   constructor(
-    public controls: { [P in keyof T]?: ControlType<T[P]> },
+    public controls: { [P in keyof T]?: ControlType<T[P], V> },
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
@@ -51,8 +51,11 @@ export class FormGroup<T extends object = any, E extends object = ValidatorsMode
    * @param name The control name to register in the collection
    * @param control Provides the control for the given name
    */
-  registerControl<K extends StringKeys<T>>(name: K, control: ControlType<T[K]>) {
-    return super.registerControl(name, control) as ControlType<T[K]>;
+  registerControl<K extends StringKeys<T>, CV extends object = ValidatorsModel>(
+    name: K,
+    control: ControlType<T[K], CV>
+  ) {
+    return super.registerControl(name, control) as ControlType<T[K], CV>;
   }
 
   /**
@@ -63,7 +66,7 @@ export class FormGroup<T extends object = any, E extends object = ValidatorsMode
    * @param name The control name to add to the collection
    * @param control Provides the control for the given name
    */
-  addControl<K extends StringKeys<T>>(name: K, control: ControlType<T[K]>) {
+  addControl<K extends StringKeys<T>, CV extends object = ValidatorsModel>(name: K, control: ControlType<T[K], CV>) {
     return super.addControl(name, control);
   }
 
@@ -82,7 +85,7 @@ export class FormGroup<T extends object = any, E extends object = ValidatorsMode
    * @param name The control name to replace in the collection
    * @param control Provides the control for the given name
    */
-  setControl<K extends StringKeys<T>>(name: K, control: ControlType<T[K]>) {
+  setControl<K extends StringKeys<T>, CV extends object = ValidatorsModel>(name: K, control: ControlType<T[K], CV>) {
     return super.setControl(name, control);
   }
 
@@ -255,8 +258,8 @@ console.log(this.form.get('first').status);  // 'DISABLED'
 this.form.get('person').get('name');
 ```
    */
-  get<K extends StringKeys<T>>(controlName: K): ControlType<T[K]> | null {
-    return super.get(controlName) as ControlType<T[K]> | null;
+  get<K extends StringKeys<T>, CV extends object = ValidatorsModel>(controlName: K): ControlType<T[K], CV> | null {
+    return super.get(controlName) as ControlType<T[K], CV> | null;
   }
 
   /**
@@ -326,8 +329,8 @@ form.get('address').getError('someErrorCode', 'street');
    * @returns error data for that particular error. If the control or error is not present,
    * null is returned.
    */
-  getError<P extends StringKeys<E>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
-    return super.getError(errorCode, controlName) as E[P] | null;
+  getError<P extends StringKeys<V>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
+    return super.getError(errorCode, controlName) as V[P] | null;
   }
 
   /**
@@ -358,7 +361,7 @@ form.get('address').hasError('someErrorCode', 'street');
    *
    * If the control is not present, false is returned.
    */
-  hasError<P extends StringKeys<E>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
+  hasError<P extends StringKeys<V>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
     return super.hasError(errorCode, controlName);
   }
 }

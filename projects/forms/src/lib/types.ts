@@ -50,42 +50,42 @@ interface UniqToken {
   [sym]: never;
 }
 
-type IsAny<T> = T extends Extract<T, string & number & boolean & object & null & undefined> ? any : never;
+type ExtractAny<T> = T extends Extract<T, string & number & boolean & object & null & undefined> ? any : never;
 
 /**
  * This type is a conditional type that automatically detects
  * appropriate types for form controls by given type for its generic.
  */
-export type ControlType<T> = [T] extends [IsAny<T>]
-  ? (FormGroup<any> | FormControl<any> | FormArray<any>)
+export type ControlType<T, V extends object> = [T] extends [ExtractAny<T>]
+  ? (FormGroup<any, V> | FormControl<any, V> | FormArray<any, V>)
   : [T] extends [Array<infer Item>]
   ? T extends [infer ControlModel, UniqToken]
-    ? FormControl<ControlModel>
-    : FormArray<Item>
+    ? FormControl<ControlModel, V>
+    : FormArray<Item, V>
   : [T] extends [object]
-  ? FormGroup<T>
-  : FormControl<T>;
+  ? FormGroup<T, V>
+  : FormControl<T, V>;
 
 /**
  * Form builder control config.
  */
-export type FbControlConfig<T> = [T] extends [IsAny<T>]
-  ? (FormGroup<any> | FbControl<any> | FormArray<any>)
+export type FbControlConfig<T, V extends object> = [T] extends [ExtractAny<T>]
+  ? (FormGroup<any, V> | FbControl<any, V> | FormArray<any, V>)
   : [T] extends [Array<infer Item>]
   ? T extends [infer ControlModel, UniqToken]
-    ? FbControl<ControlModel>
-    : FormArray<Item>
+    ? FbControl<ControlModel, V>
+    : FormArray<Item, V>
   : [T] extends [object]
-  ? FormGroup<T>
-  : FbControl<T>;
+  ? FormGroup<T, V>
+  : FbControl<T, V>;
 
 /**
  * Form builder control.
  */
-export type FbControl<T> =
+export type FbControl<T, V extends object> =
   | T
   | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
-  | FormControl<T>;
+  | FormControl<T, V>;
 
 /**
  * The validation status of the control. There are four possible
