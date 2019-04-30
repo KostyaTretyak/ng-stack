@@ -13,12 +13,12 @@ import {
   StringKeys,
 } from './types';
 
-export class FormArray<Item = any, E extends object = ValidatorsModel> extends NativeFormArray {
+export class FormArray<Item = any, V extends object = ValidatorsModel> extends NativeFormArray {
   readonly value: Item[];
   readonly valueChanges: Observable<Item[]>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
-  readonly errors: ValidationErrors<E> | null;
+  readonly errors: ValidationErrors<V> | null;
 
   /**
    * Creates a new `FormArray` instance.
@@ -34,7 +34,7 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
    *
    */
   constructor(
-    public controls: ControlType<Item>[],
+    public controls: ControlType<Item, V>[],
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
@@ -47,7 +47,7 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
    * @param index Index in the array to retrieve the control
    */
   at(index: number) {
-    return super.at(index) as ControlType<Item>;
+    return super.at(index) as ControlType<Item, V>;
   }
 
   /**
@@ -55,7 +55,7 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
    *
    * @param control Form control to be inserted
    */
-  push(control: ControlType<Item>) {
+  push(control: ControlType<Item, V>) {
     return super.push(control);
   }
 
@@ -65,7 +65,7 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
    * @param index Index in the array to insert the control
    * @param control Form control to be inserted
    */
-  insert(index: number, control: ControlType<Item>) {
+  insert(index: number, control: ControlType<Item, V>) {
     return super.insert(index, control);
   }
 
@@ -75,7 +75,7 @@ export class FormArray<Item = any, E extends object = ValidatorsModel> extends N
    * @param index Index in the array to replace the control
    * @param control The Control control to replace the existing control
    */
-  setControl(index: number, control: ControlType<Item>) {
+  setControl(index: number, control: ControlType<Item, V>) {
     return super.setControl(index, control);
   }
 
@@ -283,8 +283,8 @@ form.get('address').getError('someErrorCode', 'street');
    * @returns error data for that particular error. If the control or error is not present,
    * null is returned.
    */
-  getError<P extends StringKeys<E>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
-    return super.getError(errorCode, controlName) as E[P] | null;
+  getError<P extends StringKeys<V>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+    return super.getError(errorCode, controlName) as V[P] | null;
   }
 
   /**
@@ -315,7 +315,7 @@ form.get('address').hasError('someErrorCode', 'street');
    *
    * If the control is not present, false is returned.
    */
-  hasError<P extends StringKeys<E>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+  hasError<P extends StringKeys<V>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
     return super.hasError(errorCode, controlName);
   }
 }

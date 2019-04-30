@@ -12,12 +12,12 @@ import {
   ValidatorsModel,
 } from './types';
 
-export class FormControl<T = any, E extends object = ValidatorsModel> extends NativeFormControl {
+export class FormControl<T = any, V extends object = ValidatorsModel> extends NativeFormControl {
   readonly value: T;
   readonly valueChanges: Observable<T>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
-  readonly errors: ValidationErrors<E> | null;
+  readonly errors: ValidationErrors<V> | null;
 
   /**
    * Creates a new `FormControl` instance.
@@ -180,8 +180,8 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    * @returns error data for that particular error. If an error is not present,
    * null is returned.
    */
-  getError<K extends StringKeys<E> = any>(errorCode: K) {
-    return super.getError(errorCode) as E[K] | null;
+  getError<K extends StringKeys<V> = any>(errorCode: K) {
+    return super.getError(errorCode) as V[K] | null;
   }
 
   /**
@@ -193,7 +193,7 @@ export class FormControl<T = any, E extends object = ValidatorsModel> extends Na
    *
    * If an error is not present, false is returned.
    */
-  hasError<K extends StringKeys<E> = any>(errorCode: K) {
+  hasError<K extends StringKeys<V> = any>(errorCode: K) {
     return super.hasError(errorCode);
   }
 }

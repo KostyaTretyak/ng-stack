@@ -1,5 +1,12 @@
+<a name="1.3.1"></a>
+# [1.3.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.1) (2019-05-01)
+
+### Bug Fixes
+
+- **validation model:** fixed issues with nested validation models ([#44](https://github.com/KostyaTretyak/ng-stack/pull/44)).
+
 <a name="1.3.0"></a>
-# [1.3.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.0) (2019-04-17)
+## [1.3.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.0) (2019-04-17)
 
 ### Features
 

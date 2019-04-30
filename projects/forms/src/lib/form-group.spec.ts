@@ -196,6 +196,29 @@ describe('FormGroup', () => {
       // formGroup.hasError('required', 'notExistingKey');
       // formGroup.hasError('notExistingErrorCode', 'address');
     });
+
+    it('nesting validation model', () => {
+      interface FormGroupModel {
+        control: string;
+      }
+
+      interface ValidModel1 {
+        wrongPassword?: { returnedValue: boolean };
+        wrongEmail?: { returnedValue: boolean };
+      }
+
+      interface ValidModel2 {
+        wrongPassword?: { returnedValue: boolean };
+        otherKey?: { returnedValue: boolean };
+      }
+
+      const form = new FormGroup<FormGroupModel, ValidModel1>({
+        control: new FormControl<string, ValidModel2>('some value'),
+      });
+
+      const formError = form.getError('wrongEmail');
+      const controlError = form.get('control').getError('email'); // Without errror, but it's wrong.
+    });
   });
 
   describe(`checking runtime work`, () => {
