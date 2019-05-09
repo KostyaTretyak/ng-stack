@@ -62,6 +62,13 @@ describe('FormBuilder', () => {
       });
 
       formGroup1.get('otherArray').setValue(['string value', 2, 'three']);
+
+      fb.array([
+        fb.group({ item1: 'value1' }),
+        fb.group({ item1: 'value2' }),
+        fb.group({ item1: 'value3' }),
+        fb.group({ item1: 'value4' }),
+      ]);
     });
 
     it('nesting validation model', () => {

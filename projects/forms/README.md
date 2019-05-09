@@ -117,25 +117,19 @@ If some property of a form model have type that extends `object`, then an approp
 should to have a value with instance of `FormGroup`. So for an array - instance of `FormArray`.
 
 But maybe you want for `FormControl` to accept an object in its constructor, instead of a primitive value.
-What to do in this case? For this purpose a special type `Control<T>` was intended.
+What to do in this case? At this time, it is not supported. You need to use `any` type instead.
 
 For example:
 
 ```ts
-import { FormControl, Control, FormGroup } from '@ng-stack/forms';
+import { FormControl, FormGroup } from '@ng-stack/forms';
 
 // Form model
 class Address {
   city: string;
   street: string;
   zip: string;
-  other: Control<Other>; // Here should be FormControl, instead of a FormGroup
-}
-
-// Form model
-class Other {
-  prop1: string;
-  prop2: number;
+  other: any; // Here you want set FormControl<someObject>, instead of a FormGroup<someObject>
 }
 
 const formGroup = new FormGroup<Address>({

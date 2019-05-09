@@ -11,57 +11,16 @@ import { FormControl } from './form-control';
  */
 export type StringKeys<T> = Extract<keyof T, string>;
 
-/**
- * This type marks a property of a form model as property
- * which is intended for an instance of `FormControl`.
- * 
- * If a property of your form model have a primitive type,
- * for it, the instance of `FormControl` will be automatically assigned.
- * But if the property have a type that extends `object` - you need `Control<T>`.
- * 
- * ### Example:
-```ts
-import { FormControl, Control, FormGroup } from '@ng-stack/forms';
-
-// Form model
-class Address {
-  city: string;
-  street: string;
-  zip: string;
-  other: Control<Other>; // Here should be FormControl, instead of FormGroup
-}
-
-// Form model
-class Other {
-  prop1: string;
-  prop2: number;
-}
-
-const formGroup = new FormGroup<Address>({
-  other: new FormControl({ prop1: 'value for prop1', prop2: 123 }), // OK
-});
-```
- */
-export type Control<T extends object> = [T, UniqToken];
-
-const sym = Symbol();
-
-interface UniqToken {
-  [sym]: never;
-}
-
 type ExtractAny<T> = T extends Extract<T, string & number & boolean & object & null & undefined> ? any : never;
 
 /**
  * This type is a conditional type that automatically detects
  * appropriate types for form controls by given type for its generic.
  */
-export type ControlType<T, V extends object> = [T] extends [ExtractAny<T>]
+export type ControlType<T, V extends object = ValidatorsModel> = [T] extends [ExtractAny<T>]
   ? (FormGroup<any, V> | FormControl<any, V> | FormArray<any, V>)
   : [T] extends [Array<infer Item>]
-  ? T extends [infer ControlModel, UniqToken]
-    ? FormControl<ControlModel, V>
-    : FormArray<Item, V>
+  ? FormArray<Item, V>
   : [T] extends [object]
   ? FormGroup<T, V>
   : FormControl<T, V>;
@@ -69,12 +28,10 @@ export type ControlType<T, V extends object> = [T] extends [ExtractAny<T>]
 /**
  * Form builder control config.
  */
-export type FbControlConfig<T, V extends object> = [T] extends [ExtractAny<T>]
+export type FbControlConfig<T, V extends object = ValidatorsModel> = [T] extends [ExtractAny<T>]
   ? (FormGroup<any, V> | FbControl<any, V> | FormArray<any, V>)
   : [T] extends [Array<infer Item>]
-  ? T extends [infer ControlModel, UniqToken]
-    ? FbControl<ControlModel, V>
-    : FormArray<Item, V>
+  ? FormArray<Item, V>
   : [T] extends [object]
   ? FormGroup<T, V>
   : FbControl<T, V>;
@@ -82,7 +39,7 @@ export type FbControlConfig<T, V extends object> = [T] extends [ExtractAny<T>]
 /**
  * Form builder control.
  */
-export type FbControl<T, V extends object> =
+export type FbControl<T, V extends object = ValidatorsModel> =
   | T
   | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
   | FormControl<T, V>;

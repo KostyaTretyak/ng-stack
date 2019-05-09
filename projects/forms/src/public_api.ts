@@ -9,7 +9,6 @@ export { FormGroup } from './lib/form-group';
 export { Validators } from './lib/validators';
 export { InputFileDirective } from './lib/input-file.directive';
 export {
-  Control,
   Status,
   ValidatorFn,
   AsyncValidatorFn,
