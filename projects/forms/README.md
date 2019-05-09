@@ -10,7 +10,7 @@
   - [Typed Validations](#typed-validations)
   - [Support input[type="file"]](#support-input-with-type-file)
 - [How does it works](#how-does-it-works)
-- [Changes API](#changes-api)
+- [Changes API](#api-changes)
 
 ## Install
 
