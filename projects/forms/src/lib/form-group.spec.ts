@@ -1,7 +1,6 @@
 import { FormGroup } from './form-group';
 import { FormArray } from './form-array';
 import { FormControl } from './form-control';
-import { Control } from './types';
 import { tick, fakeAsync } from '@angular/core/testing';
 import { isString, isNumber, isObject, isArray } from './assert';
 
@@ -21,7 +20,7 @@ describe('FormGroup', () => {
 
   class Profile {
     firstName: string;
-    address: Control<Address>;
+    address: any;
     someNumber: number;
     someGroup: SomeGroup;
     someArray: number[];
@@ -83,7 +82,6 @@ describe('FormGroup', () => {
       isObject(formGroup.value);
       isString(formGroup.value.firstName);
       // isString(formGroup.value.other);
-      isArray(formGroup.value.address);
       isString(formGroup.value.address[0].city);
       isNumber(formGroup.value.address[0].numFlat);
       isArray(formGroup.value.someArray);
@@ -181,7 +179,7 @@ describe('FormGroup', () => {
 
       const formControl1: FormControl<string> = formGroup.get('firstName');
       // const formControl2: FormControl<number> = formGroup.get('firstName');
-      const formControl3: FormControl<Address> = formGroup.get('address');
+      const formControl3 = formGroup.get('address') as FormControl<any>;
       const formControl4: FormGroup<SomeGroup> = formGroup.get('someGroup');
     });
 
@@ -217,7 +215,7 @@ describe('FormGroup', () => {
       });
 
       const formError = form.getError('wrongEmail');
-      const controlError = form.get('control').getError('email'); // Without errror, but it's wrong.
+      const controlError = form.get('control').getError('email'); // Without error, but it's wrong.
     });
   });
 
