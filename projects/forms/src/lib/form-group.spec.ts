@@ -97,8 +97,8 @@ describe('FormGroup', () => {
       // formGroup.registerControl('address', new FormGroup(new Address()));
       // formGroup.registerControl('address', new FormControl('some string');
       // formGroup.registerControl('address', new FormControl(123);
-      isObject(control2.value);
-      isString(control2.value.city);
+      // isObject(control2.value);
+      // isString(control2.value.city);
       isNumber(control2.value.numFlat);
     });
 
@@ -173,7 +173,7 @@ describe('FormGroup', () => {
     it('get()', () => {
       isString(formGroup.get('firstName').value);
       // formGroup.get('notExistingKey');
-      isObject(formGroup.get('address').value);
+      // isObject(formGroup.get('address').value);
       isObject(formGroup.get('someGroup').value);
       isArray(formGroup.get('someArray').value);
 

@@ -118,13 +118,12 @@ const formArray = new FormArray<any, ValidatorsModel>([]);
 ```
  */
 export class ValidatorsModel {
-  min: { min: { min: number; actual: number } };
-  max: { max: { max: number; actual: number } };
-  required: { required: true };
-  requiredTrue: { required: true };
-  email: { email: true };
-  minLength: { minlength: { requiredLength: number; actualLength: number } };
-  maxLength: { requiredLength: number; actualLength: number };
+  min: { min: number; actual: number };
+  max: { max: number; actual: number };
+  required: true;
+  email: true;
+  minlength: { requiredLength: number; actualLength: number };
+  maxlength: { requiredLength: number; actualLength: number };
   pattern: { requiredPattern: string; actualValue: string };
   fileRequired: { requiredSize: number; actualSize: number; file: File };
   filesMinLength: { requiredLength: number; actualLength: number };

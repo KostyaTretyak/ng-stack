@@ -1,5 +1,12 @@
+<a name="1.3.3"></a>
+# [1.3.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.3) (2019-07-23)
+
+### Bug Fixes
+
+- **validation model:** Fixed default `ValidatorsModel`. ([#53](https://github.com/KostyaTretyak/ng-stack/pull/53)).
+
 <a name="1.3.2"></a>
-# [1.3.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.2) (2019-05-09)
+## [1.3.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.2) (2019-05-09)
 
 ### Bug Fixes and BREAKING CHANGES
 
