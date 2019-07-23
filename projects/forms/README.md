@@ -200,14 +200,12 @@ additional validators to support `input[type=file]`, and expected returns types:
 
 ```ts
 class ValidatorsModel {
-  min: { min: { min: number; actual: number } };
-  max: { max: { max: number; actual: number } };
-  required: { required: true };
-  requiredTrue: { required: true };
-  email: { email: true };
-  minLength: { minlength: { requiredLength: number; actualLength: number } };
-  maxLength: { requiredLength: number; actualLength: number };
-  pattern: { requiredPattern: string; actualValue: string };
+  min: { min: number; actual: number };
+  max: { max: number; actual: number };
+  required: true;
+  email: true;
+  minlength: { requiredLength: number; actualLength: number };
+  maxlength: { requiredLength: number; actualLength: number };
 
   // Additional validators to support `input[type=file]`
   fileRequired: { requiredSize: number; actualSize: number; file: File };
