@@ -44,7 +44,7 @@ import { FormControl } from '@angular/forms';
 
 export class MyComponent implements OnInit {
   templateDrivenForm = 'This is contenteditable text for template-driven form';
-  myControl = new FormControl;
+  myControl = new FormControl();
 
   ngOnInit() {
     this.myControl.setValue(`This is contenteditable text for reactive form`);
