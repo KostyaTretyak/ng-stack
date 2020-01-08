@@ -1,5 +1,12 @@
+<a name="1.3.4"></a>
+# [1.3.4](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.4) (2020-01-08)
+
+### Fix peer dependencies
+
+- **install the library** Now peer dependencies included v8 of `@angular/core`.
+
 <a name="1.3.3"></a>
-# [1.3.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.3) (2019-07-23)
+## [1.3.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.3) (2019-07-23)
 
 ### Bug Fixes
 
