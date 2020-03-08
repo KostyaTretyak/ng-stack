@@ -43,7 +43,10 @@ describe('ApiBaseService', () => {
 
     testService = TestBed.get(TestService);
     httpTestingController = TestBed.get(HttpTestingController);
-    expectedData = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }];
+    expectedData = [
+      { id: 1, name: 'A' },
+      { id: 2, name: 'B' },
+    ];
   });
 
   afterEach(() => {
