@@ -59,8 +59,18 @@ export enum Status {
 
 const ref = 'https://tools.ietf.org/html/rfc';
 
+interface StatusCodeInfo {
+  [key: number]: {
+    code: number;
+    text: string;
+    description: string;
+    spec_title: string;
+    spec_href: string;
+  };
+}
+
 /*tslint:disable:quotemark max-line-length one-line */
-export const STATUS_CODE_INFO = {
+export const STATUS_CODE_INFO: StatusCodeInfo = {
   100: {
     code: 100,
     text: 'Continue',
