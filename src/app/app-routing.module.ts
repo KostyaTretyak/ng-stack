@@ -4,10 +4,10 @@ import { Routes, RouterModule } from '@angular/router';
 const routes: Routes = [
   {
     path: 'contenteditable',
-    loadChildren: 'src/app/modules/routed/contenteditable/contenteditable.module#ContenteditableModule',
+    loadChildren: () => import('src/app/modules/routed/contenteditable/contenteditable.module').then(m => m.ContenteditableModule),
   },
-  { path: 'forms', loadChildren: 'src/app/modules/routed/forms/forms.module#FormsModule' },
-  { path: 'api-mock', loadChildren: 'src/app/modules/routed/api-mock/api-mock.module#ApiMockModule' },
+  { path: 'forms', loadChildren: () => import('src/app/modules/routed/forms/forms.module').then(m => m.FormsModule) },
+  { path: 'api-mock', loadChildren: () => import('src/app/modules/routed/api-mock/api-mock.module').then(m => m.ApiMockModule) },
 ];
 
 @NgModule({
