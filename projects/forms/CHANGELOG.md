@@ -3,7 +3,7 @@
 
 ### Features
 
-- **support Control with an object model type** See [Automatically detect appropriate types for form controls](README.md#automatically-detect-appropriate-types-for-form-controls) (See https://github.com/KostyaTretyak/ng-stack/commit/faafda).
+- **support Control with an object model type** See [Automatically detect appropriate types for form controls](README.md#automatically-detect-appropriate-types-for-form-controls) (See [commit](https://github.com/KostyaTretyak/ng-stack/commit/faafda)).
 
 <a name="1.3.4"></a>
 ## [1.3.4](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.4) (2020-01-08)
