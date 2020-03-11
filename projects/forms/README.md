@@ -139,7 +139,7 @@ const form = fb.group<Person>({
   birthDate: new Date(1977, 6, 30),
 });
 
-const birthDate: Date = form.value.birthDate;
+const birthDate: Date = form.value.birthDate; // As you can see, `Control<Date>` type is compatible with `Date` type.
 ```
 
 So, if your `FormGroup` knows about types of properties a form model, it inferring appropriate types of form controls
