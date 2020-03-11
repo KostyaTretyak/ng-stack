@@ -52,8 +52,10 @@ describe('FormBuilder', () => {
         // otherArray: fb.array([new FormControl('one'), 2, 'three']),
         // Error --> Why? See https://github.com/Microsoft/TypeScript/issues/30207
 
-        otherArray: fb.array([new FormControl('one'), ['two', Validators.required], 'three']),
+        otherArray: fb.array<string>([new FormControl('one'), ['two', Validators.required], 'three']),
       });
+
+      const addresses: Address = formGroup1.value.addresses;
 
       const formGroup2 = fb.group<FormProps>({
         userEmail: [null, (control: AbstractControl) => ({ required: true, other: 1 })],

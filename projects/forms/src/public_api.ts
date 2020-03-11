@@ -15,4 +15,5 @@ export {
   ValidationErrors,
   AbstractControlOptions,
   ValidatorsModel,
+  Control,
 } from './lib/types';
