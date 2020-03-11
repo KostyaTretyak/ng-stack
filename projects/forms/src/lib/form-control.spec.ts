@@ -147,7 +147,11 @@ describe('FormControl', () => {
         const str = 'some string';
 
         // Mapping between param and expected
-        const map = new Map<any, any>([[str, str], [2, 2], [null, null]]);
+        const map = new Map<any, any>([
+          [str, str],
+          [2, 2],
+          [null, null],
+        ]);
 
         map.forEach((expected, param) => {
           let control: FormControl;
@@ -176,7 +180,10 @@ describe('FormControl', () => {
 
         // Mapping between param and expected
         const map = new Map<any, any>([
-          [{ prop1: 1, prop2: str }, { prop1: 1, prop2: str }],
+          [
+            { prop1: 1, prop2: str },
+            { prop1: 1, prop2: str },
+          ],
           [{ value: str, disabled: false }, str],
           [{ value: 2, disabled: false }, 2],
           [{ value: null, disabled: false }, null],

@@ -1,5 +1,12 @@
+<a name="1.4.0-beta"></a>
+# [1.4.0-beta](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.4.0-beta) (2020-03-11)
+
+### Features
+
+- **support Control with an object model type** See [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls).
+
 <a name="1.3.4"></a>
-# [1.3.4](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.4) (2020-01-08)
+## [1.3.4](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.3.4) (2020-01-08)
 
 ### Fix peer dependencies
 

@@ -7,6 +7,44 @@ import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
 
 /**
+ * This type marks a property of a form model as property
+ * which is intended for an instance of `FormControl`.
+ * 
+ * If a property of your form model have a primitive type,
+ * in appropriate form field the instance of `FormControl` will be automatically assigned.
+ * But if the property have a type that extends `object` - you need `Control<T>`.
+ * 
+ * ### Example:
+```ts
+import { FormBuilder, Control } from '@ng-stack/forms';
+
+const fb = new FormBuilder();
+
+// Form Model
+interface Person {
+  id: number;
+  name: string;
+  birthDate: Control<Date>; // Here should be FormControl, instead of a FormGroup
+}
+
+const form = fb.group<Person>({
+  id: 123,
+  name: 'John Smith',
+  birthDate: new Date(1977, 6, 30),
+});
+
+const birthDate: Date = form.value.birthDate;
+```
+ */
+export type Control<T extends object> = T & UniqToken;
+
+const sym = Symbol();
+
+interface UniqToken {
+  [sym]: never;
+}
+
+/**
  * Extract `keyof T` with string keys.
  */
 export type StringKeys<T> = Extract<keyof T, string>;
@@ -18,9 +56,11 @@ type ExtractAny<T> = T extends Extract<T, string & number & boolean & object & n
  * appropriate types for form controls by given type for its generic.
  */
 export type ControlType<T, V extends object = ValidatorsModel> = [T] extends [ExtractAny<T>]
-  ? (FormGroup<any, V> | FormControl<any, V> | FormArray<any, V>)
+  ? FormGroup<any, V> | FormControl<any, V> | FormArray<any, V>
   : [T] extends [Array<infer Item>]
   ? FormArray<Item, V>
+  : [T] extends [Control<infer ControlModel>]
+  ? FormControl<ControlModel, V>
   : [T] extends [object]
   ? FormGroup<T, V>
   : FormControl<T, V>;
@@ -29,9 +69,11 @@ export type ControlType<T, V extends object = ValidatorsModel> = [T] extends [Ex
  * Form builder control config.
  */
 export type FbControlConfig<T, V extends object = ValidatorsModel> = [T] extends [ExtractAny<T>]
-  ? (FormGroup<any, V> | FbControl<any, V> | FormArray<any, V>)
+  ? FormGroup<any, V> | FbControl<any, V> | FormArray<any, V>
   : [T] extends [Array<infer Item>]
   ? FormArray<Item, V>
+  : [T] extends [Control<infer ControlModel>]
+  ? FbControl<ControlModel, V>
   : [T] extends [object]
   ? FormGroup<T, V>
   : FbControl<T, V>;
