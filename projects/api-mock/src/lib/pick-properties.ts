@@ -4,7 +4,7 @@ export function pickProperties<T extends ObjectAny>(targetObject: T, ...sourceOb
   sourceObjects.forEach(sourceObj => {
     Object.keys(targetObject).forEach(prop => {
       if (sourceObj.hasOwnProperty(prop)) {
-        targetObject[prop] = sourceObj[prop];
+        (targetObject as any)[prop] = sourceObj[prop];
       }
     });
   });
