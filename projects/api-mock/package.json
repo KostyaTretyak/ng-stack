@@ -1,6 +1,6 @@
 {
   "name": "@ng-stack/api-mock",
-  "version": "0.0.0-alpha.15",
+  "version": "0.0.0-alpha.16",
   "repository": {
     "type": "git",
     "url": "https://github.com/KostyaTretyak/ng-stack/tree/master/projects/api-mock"
@@ -22,7 +22,7 @@
     "url": "https://github.com/KostyaTretyak/ng-stack/issues"
   },
   "peerDependencies": {
-    "@angular/core": ">=4.3.6 <8.0.0",
+    "@angular/core": ">=4.3.6 <10.0.0",
     "rxjs": ">=6.0.0"
   }
 }
