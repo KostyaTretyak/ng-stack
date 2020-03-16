@@ -6,7 +6,10 @@ import { ApiMockConfig, ApiMockService } from './types';
 
 @NgModule()
 export class ApiMockModule {
-  static forRoot(apiMockService: Type<ApiMockService>, apiMockConfig?: ApiMockConfig): ModuleWithProviders<ApiMockModule> {
+  static forRoot(
+    apiMockService: Type<ApiMockService>,
+    apiMockConfig?: ApiMockConfig
+  ): ModuleWithProviders<ApiMockModule> {
     return {
       ngModule: ApiMockModule,
       providers: [
