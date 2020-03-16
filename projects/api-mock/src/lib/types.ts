@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
 import { HttpHeaders } from '@angular/common/http';
 import { Status } from './http-status-codes';
+import { pickProperties } from './pick-properties';
 
 export abstract class ApiMockService {
   abstract getRouteGroups(): ApiMockRouteGroup[];
@@ -86,7 +87,7 @@ export class ApiMockConfig {
   putNotFound404? = true;
 
   constructor(apiMockConfig?: ApiMockConfig) {
-    Object.assign(this, apiMockConfig || {});
+    pickProperties(this, apiMockConfig as any);
   }
 }
 
