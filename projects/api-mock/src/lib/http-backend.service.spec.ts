@@ -106,7 +106,7 @@ describe('HttpBackendService', () => {
       const routes: ApiMockRouteGroup[] = [];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
       const result = httpBackendService.checkRouteGroups(routes);
-      expect(result).toEqual(routes);
+      expect(result).toEqual([]);
     });
 
     describe('param: route.path', () => {

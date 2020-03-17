@@ -1,6 +1,6 @@
-<a name="0.0.0-alpha.2"></a>
-# 0.0.0-alpha.2 (2019-02-10)
+<a name="0.0.0-beta.1"></a>
+# 0.0.0-beta.1 (2020-03-17)
 
 ### Features
 
-* **npm pack:** `@ng-stack/api-mock` use Angular-CLI v7 git mono repository and build npm pack with it.
+* **npm pack:** `@ng-stack/api-mock` use Angular-CLI v9 git mono repository and build npm pack with it.
