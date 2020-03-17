@@ -9,7 +9,7 @@ export abstract class ApiMockService {
 }
 
 /**
- * Interface for InMemoryBackend configuration options
+ * Interface for `HttpBackendService` configuration options.
  */
 @Injectable()
 export class ApiMockConfig {
@@ -87,7 +87,7 @@ export class ApiMockConfig {
   putNotFound404? = true;
 
   constructor(apiMockConfig?: ApiMockConfig) {
-    pickProperties(this, (apiMockConfig || {}) as any);
+    pickProperties(this, apiMockConfig as any);
   }
 }
 
