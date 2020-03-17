@@ -80,7 +80,7 @@ export class HttpBackendService implements HttpBackend {
       routeGroup.forEach((route, i) => {
         const isLastRoute = i + 1 == routeGroup.length;
         const path = route.path;
-        const host = (route as any).host;
+        const host = (route as ApiMockRouteRoot).host;
 
         // Nested routes should to have route.callbackData and primary keys.
         if (!isLastRoute && (!route.callbackData || !/^(?:[\w-]+\/)+:\w+$/.test(path))) {
