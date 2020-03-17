@@ -87,7 +87,7 @@ export class ApiMockConfig {
   putNotFound404? = true;
 
   constructor(apiMockConfig?: ApiMockConfig) {
-    pickProperties(this, apiMockConfig as any);
+    pickProperties(this, (apiMockConfig || {}) as any);
   }
 }
 

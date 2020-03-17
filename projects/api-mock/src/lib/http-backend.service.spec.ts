@@ -27,10 +27,10 @@ import { Status } from './http-status-codes';
 
 describe('HttpBackendService', () => {
   /**
-   * Make all properties this class with public data accessor.
+   * Make all properties this class with public data modifier.
    */
   @Injectable()
-  class HttpBackendService2 extends HttpBackendService {
+  class MockHttpBackendService extends HttpBackendService {
     config: ApiMockConfig;
 
     checkRouteGroups(routes: ApiMockRouteGroup[]) {
@@ -87,15 +87,15 @@ describe('HttpBackendService', () => {
     }
   }
 
-  let httpBackendService: HttpBackendService2;
+  let httpBackendService: MockHttpBackendService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, ApiMockModule.forRoot(MyApiMockService), RouterTestingModule],
-      providers: [HttpBackendService2],
+      providers: [MockHttpBackendService],
     });
 
-    httpBackendService = TestBed.get(HttpBackendService2);
+    httpBackendService = TestBed.inject(MockHttpBackendService);
 
     // Merge with default configs.
     httpBackendService.config = new ApiMockConfig(httpBackendService.config);
@@ -717,7 +717,10 @@ describe('HttpBackendService', () => {
       const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
-      res.subscribe(r => fail, err => (result = err));
+      res.subscribe(
+        r => fail,
+        err => (result = err)
+      );
       expect(result instanceof HttpErrorResponse).toBe(true);
       expect(result.status).toBe(Status.NOT_FOUND);
     }));
