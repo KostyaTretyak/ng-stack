@@ -35,7 +35,7 @@ export class FormGroup<T extends object = any, V extends object = ValidatorsMode
    * @todo Chechout how to respect optional and require properties modifyers for the controls.
    */
   constructor(
-    public controls: { [P in keyof T]?: ControlType<T[P], V> },
+    public controls: { [P in keyof T]: ControlType<T[P], V> },
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
