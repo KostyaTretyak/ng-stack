@@ -35,7 +35,7 @@ export class FormBuilder extends NativeFormBuilder {
    * - `asyncValidator`: A single async validator or array of async validator functions
    */
   group<T extends object = any, V extends object = ValidatorsModel>(
-    controlsConfig: { [P in keyof T]?: FbControlConfig<T[P], V> },
+    controlsConfig: { [P in keyof T]: FbControlConfig<T[P], V> },
     options: AbstractControlOptions | LegacyControlOptions | null = null
   ): FormGroup<T, V> {
     return super.group(controlsConfig, options) as FormGroup<T, V>;

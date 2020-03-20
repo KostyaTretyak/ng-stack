@@ -1,5 +1,34 @@
+<a name="2.0.0-beta.1"></a>
+# [2.0.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.1) (2020-03-20)
+
+### Features and BREAKING CHANGES
+
+- **support strict mode for `ng build`** Added support strict mode for `ng build`. (See [#45](https://github.com/KostyaTretyak/ng-stack/pull/45)).
+You cannot now partially pass fields in `FormBuilder` or `FormGroup` unless the form model has optional fields.
+
+For example:
+
+```ts
+import { FormBuilder } from '@ng-stack/forms';
+
+// Form model
+class Address {
+  city: string;
+  street: string; // If you make this field optional, the error will disappear.
+}
+
+const formBuilder = new FormBuilder();
+
+formBuilder.group<Address>({
+  city: 'Mykolaiv',
+});
+
+// Argument of type '{ city: string; }' is not assignable to parameter of type ...
+//  Property 'street' is missing in type '{ city: string; }' but required in type ...
+```
+
 <a name="1.4.0-beta"></a>
-# [1.4.0-beta](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.4.0-beta) (2020-03-11)
+## [1.4.0-beta](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%401.4.0-beta) (2020-03-11)
 
 ### Features
 
