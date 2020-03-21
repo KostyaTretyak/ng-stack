@@ -125,8 +125,8 @@ route.path should not to have trailing slash.`
         if (host && !/^https?:\/\/(?:[^\/]+\.)+[^\/]+$/.test(host)) {
           throw new Error(
             `ApiMockModule detected wrong host "${host}".
-            Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
-            for example "https://example.com" (without a trailing slash)`
+Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
+for example "https://example.com" (without a trailing slash)`
           );
         }
       });
@@ -135,6 +135,7 @@ route.path should not to have trailing slash.`
     const incomingRoutes = routeGroups.map(getRootPath);
     const existingRoutes = this.routeGroups.map(getRootPath);
 
+    // @todo Consider to allow the duplicates.
     incomingRoutes.forEach(incomingRoute => {
       if (existingRoutes.includes(incomingRoute)) {
         throw new Error(`ApiMockModule detected duplicate route with path: "${incomingRoute}"`);
@@ -219,7 +220,7 @@ route.path should not to have trailing slash.`
    * - `root-segment/segment` and `root-segment/:routeId`
    * - `root-segment/segment` and `root-segment/other/:routeId`.
    *
-   * Then it splites them by `/` and compares length of `splitedUrl` with length of `splitedRoute` and if
+   * Then this method splites them by `/` and compares number parts of `splitedUrl` with number parts of `splitedRoute` and if
    * they are equal, returns that route with some metadata.
    *
    * @param normalizedUrl If we have URL without host, here should be url with removed slash from the start.
