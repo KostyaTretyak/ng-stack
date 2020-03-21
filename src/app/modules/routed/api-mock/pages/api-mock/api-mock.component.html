@@ -1,3 +1,8 @@
 <p>
-  api-mock works!
+  Press <code>Ctrl+Shift+I</code> and see console
 </p>
+
+<p>Click on <span (click)="getSimple(2)" style="color: green;">getSimple()</span> to make and intercept the GET HTTP request</p>
+<p>Click on <span (click)="getError404()" style="color: brown;">getError404()</span> to make and pass the request along to a real the GET HTTP request.</p>
+<pre *ngIf="isLoading">loading...</pre>
+<pre>{{ simples$ | async | json }}</pre>

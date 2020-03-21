@@ -7,8 +7,9 @@ import { Environment } from 'src/app/types/mix';
 export const environment: Environment = {
   production: false,
   frontendHost: 'localhost',
-  runApiMock: true,
-  showLogApiMock: true,
+  apiMockRun: true,
+  apiMockShowLog: true,
+  apiMockPassThruUnknownUrl: true,
 };
 
 /*

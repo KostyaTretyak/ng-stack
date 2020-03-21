@@ -3,10 +3,11 @@ export interface Environment {
   frontendHost: string;
 
   // Intended for ApiMockModule
-  runApiMock?: boolean;
-  showLogApiMock?: boolean;
-  clearPrevLogApiMock?: boolean;
-  httpDelayApiMock?: number;
+  apiMockRun?: boolean;
+  apiMockShowLog?: boolean;
+  apiMockClearPrevLog?: boolean;
+  apiMockHttpDelay?: number;
+  apiMockPassThruUnknownUrl?: boolean;
 }
 
 export interface ObjectAny {
