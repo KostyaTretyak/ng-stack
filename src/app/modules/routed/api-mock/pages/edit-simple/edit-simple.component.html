@@ -1,0 +1,7 @@
+<div [formGroup]="form">
+  <div><textarea formControlName="body"></textarea></div>
+  <div>
+    <button (click)="save()">Save</button>
+    <span style="margin-left: 5px;">{{ message }}</span>
+  </div>
+</div>

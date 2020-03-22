@@ -10,6 +10,8 @@ export const environment: Environment = {
   apiMockRun: true,
   apiMockShowLog: true,
   apiMockPassThruUnknownUrl: true,
+  apiMockClearPrevLog: true,
+  apiMockHttpDelay: 1000,
 };
 
 /*

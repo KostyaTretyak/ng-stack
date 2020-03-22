@@ -66,7 +66,7 @@ export class PostsCommentsService implements ApiMockService {
   }
 
   /**
-   * Returns the data (list or one item) from `getPostsData()` callback.
+   * Returns the data (list or one item) from `changePostsData()` callback.
    */
   private getPostsResponse(): ApiMockCallbackResponse<Post[]> {
     return (clonedData, postId, httpMethod, parents, queryParams) => {
@@ -136,7 +136,7 @@ export class PostsCommentsService implements ApiMockService {
   }
 
   /**
-   * Returns the data (list or one item) from `getCommentsData()` callback.
+   * Returns the data (list or one item) from `changeCommentsData()` callback.
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsResponse(): ApiMockCallbackResponse<PostComment[], [Post]> {

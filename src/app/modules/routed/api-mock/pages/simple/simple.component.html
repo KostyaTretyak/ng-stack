@@ -1,0 +1,24 @@
+<p>
+  Press <code>Ctrl+Shift+I</code> and see console
+</p>
+
+<pre *ngIf="isLoading">loading...</pre>
+
+<table *ngIf="!isLoading">
+  <tr>
+    <th>id</th>
+    <th>body</th>
+    <th>action</th>
+  </tr>
+  <tr *ngFor="let simple of simples$ | async">
+    <td>{{ simple.id }}</td>
+    <td>{{ simple.body }}</td>
+    <td><a [routerLink]="['edit', simple.id]">edit</a></td>
+  </tr>
+  <tr *ngIf="isAdding" [formGroup]="form">
+    <td><div formControlName="id" contenteditable="true"></div></td>
+    <td><div formControlName="body" contenteditable="true"></div></td>
+    <td><button (click)="save()">save</button></td>
+  </tr>
+  <tr><button (click)="isAdding = true">add</button><span style="margin-left: 5px;">{{ message }}</span></tr>
+</table>
