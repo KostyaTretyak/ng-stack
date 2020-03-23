@@ -101,7 +101,7 @@ describe('HttpBackendService', () => {
     httpBackendService.config = new ApiMockConfig(httpBackendService.config);
   });
 
-  describe('checkRouteGroups()', () => {
+  fdescribe('checkRouteGroups()', () => {
     it('route with emty route group', () => {
       const routes: ApiMockRouteGroup[] = [];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
@@ -109,137 +109,101 @@ describe('HttpBackendService', () => {
       expect(result).toEqual([]);
     });
 
-    describe('param: route.path', () => {
-      it('path without slashes', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
-        const result = httpBackendService.checkRouteGroups(routeGroups);
-        expect(result).toEqual(routeGroups);
-      });
-
-      it('path with slashes and without primary keys', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/sessions' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
-        const result = httpBackendService.checkRouteGroups(routeGroups);
-        expect(result).toEqual(routeGroups);
-      });
-
-      it('route path with trailing slash', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/sessions/' }]];
-        const regexpMsg = /route.path should not to have trailing slash/;
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
-      });
-
-      it('multi level route paths, without primary keys', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }, { path: 'comments' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
-      });
+    it('multi level route paths, without primary keys', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts' }, { path: 'comments' }]];
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
     });
 
-    describe('param: route.path and route.callbackData', () => {
-      it('multi level route paths, without route.callbackData', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId' }, { path: 'comments' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
-      });
+    it('multi level route paths, without route.callbackData', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId' }, { path: 'comments' }]];
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
+    });
 
-      it('multi level route paths, with route.callbackData and a primary key', () => {
-        const routeGroups: ApiMockRouteGroup[] = [
-          [
-            // Multi level route paths, with callbackData
-            { path: 'api/posts/:postId', callbackData: () => [] },
-            { path: 'comments' },
-          ],
-        ];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
-        const result = httpBackendService.checkRouteGroups(routeGroups);
-        expect(result).toEqual(routeGroups);
-      });
+    const routesNotToThrow: [string, ApiMockRouteRoot | ApiMockRoute][] = [
+      ['path with empty path', { path: '' }],
+      ['path without slashes', { path: 'api' }],
+      ['path with slashes and without primary keys', { path: 'api/sessions' }],
+      ['with callbackData and with a primary key', { path: 'api/posts/:postId', callbackData: () => [] }],
+      ['http protocol', { host: 'http://example.com', path: 'api' }],
+      ['secure protocol', { host: 'https://example.com', path: 'api/sessions' }],
+      ['ua host', { host: 'https://example.com.ua', path: 'api' }],
+      ['cyrillic host', { host: 'https://приклад.укр', path: 'api' }],
+      ['xn host', { host: 'https://xn--80aikifvh.xn--j1amh', path: 'api' }],
+      [
+        'callbackResponse as a function',
+        {
+          path: 'api/posts/:postId',
+          callbackData: () => [],
+          callbackResponse: () => [],
+        },
+      ],
+      [
+        'callbackResponse as a function, without path primary key',
+        { path: 'api/pre-account/login', callbackResponse: () => [] },
+      ],
+    ];
 
-      it('with callbackData, but without a primary key', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts', callbackData: () => [] }]];
-        const regexpMsg = /If you have route.callbackData, you should/;
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
-      });
-
-      it('with a primary key, but without callbackData', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/pre-account/:login' }]];
-        const regexpMsg = /If you have route.callbackData, you should/;
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
-      });
-
-      it('with callbackData and with a primary key', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId', callbackData: () => [] }]];
+    routesNotToThrow.forEach(([msg, route]) => {
+      it(msg, () => {
+        const routeGroups: ApiMockRouteGroup[] = [[route]];
         expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
         const result = httpBackendService.checkRouteGroups(routeGroups);
         expect(result).toEqual(routeGroups);
       });
     });
 
-    describe('param: route.callbackData and route.callbackResponse', () => {
-      it('callbackData as an object', () => {
-        const routes: ApiMockRouteGroup[] = [[{ callbackData: {} as any, path: 'api/posts/:postId' }]];
-        expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
-      });
-
-      it('callbackData as a function', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ callbackData: () => [], path: 'api/posts/:postId' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
-        const result = httpBackendService.checkRouteGroups(routeGroups);
-        expect(result).toEqual(routeGroups);
-      });
-
-      it('callbackResponse as an object', () => {
-        const routes: ApiMockRouteGroup[] = [
-          [{ callbackResponse: {} as any, callbackData: () => [], path: 'api/posts/:postId' }],
-        ];
-        expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
-      });
-
-      it('callbackResponse as a function', () => {
-        const routeGroups: ApiMockRouteGroup[] = [
-          [{ callbackResponse: () => [], callbackData: () => [], path: 'api/posts/:postId' }],
-        ];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
-        const result = httpBackendService.checkRouteGroups(routeGroups);
-        expect(result).toEqual(routeGroups);
-      });
-
-      it('callbackResponse as a function, without path primary key', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ callbackResponse: () => [], path: 'api/pre-account/login' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
-        const result = httpBackendService.checkRouteGroups(routeGroups);
-        expect(result).toEqual(routeGroups);
-      });
+    it('multi level route paths, with route.callbackData and a primary key', () => {
+      const routeGroups: ApiMockRouteGroup[] = [
+        [{ path: 'api/posts/:postId', callbackData: () => [] }, { path: 'comments' }],
+      ];
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
+      const result = httpBackendService.checkRouteGroups(routeGroups);
+      expect(result).toEqual(routeGroups);
     });
 
-    describe('param: route.host', () => {
-      it('wrong host', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'fake host', path: 'api' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
-      });
+    it('route path with trailing slash', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/sessions/' }]];
+      const regexpMsg = /route.path should not to have trailing slash/;
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+    });
 
-      it('wrong host without HTTP protocol', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'example.com', path: 'api' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
-      });
+    it('with callbackData, but without a primary key', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts', callbackData: () => [] }]];
+      const regexpMsg = /If you have route.callbackData, you should/;
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+    });
 
-      it('wrong host with slash at the end', () => {
-        const routeGroups: ApiMockRouteGroup[] = [[{ host: 'http://example.com/', path: 'api' }]];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
-      });
+    it('with a primary key, but without callbackData', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/pre-account/:login' }]];
+      const regexpMsg = /If you have route.callbackData, you should/;
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+    });
 
-      it('right hosts', () => {
-        const routeGroups: ApiMockRouteGroup[] = [
-          [{ host: 'http://example.com', path: 'api' }],
-          [{ host: 'https://example.com', path: 'api' }],
-          [{ host: 'https://example.com.ua', path: 'api' }],
-          [{ host: 'https://приклад.укр', path: 'api' }],
-          [{ host: 'https://xn--80aikifvh.xn--j1amh', path: 'api' }],
-        ];
-        expect(() => httpBackendService.checkRouteGroups(routeGroups)).not.toThrow();
-        const result = httpBackendService.checkRouteGroups(routeGroups);
-        expect(result).toEqual(routeGroups);
-      });
+    it('callbackData as an object', () => {
+      const routes: ApiMockRouteGroup[] = [[{ callbackData: {} as any, path: 'api/posts/:postId' }]];
+      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
+    });
+
+    it('callbackResponse as an object', () => {
+      const routes: ApiMockRouteGroup[] = [
+        [{ callbackResponse: {} as any, callbackData: () => [], path: 'api/posts/:postId' }],
+      ];
+      expect(() => httpBackendService.checkRouteGroups(routes)).toThrowError(/is not a function/);
+    });
+
+    it('wrong host', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ host: 'fake host', path: 'api' }]];
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
+    });
+
+    it('wrong host without HTTP protocol', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ host: 'example.com', path: 'api' }]];
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
+    });
+
+    it('wrong host with slash at the end', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ host: 'http://example.com/', path: 'api' }]];
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong host/);
     });
   });
 
