@@ -81,23 +81,24 @@ export class HttpBackendService implements HttpBackend {
         const isLastRoute = i + 1 == routeGroup.length;
         const path = route.path;
         const host = (route as ApiMockRouteRoot).host;
+        /**
+         * URL with a primary key, like `one/two/:id`.
+         */
+        const pathWithPk = /^(?:[\w-]+\/)+:\w+$/;
 
         // Nested routes should to have route.callbackData and primary keys.
-        if (!isLastRoute && (!route.callbackData || !/^(?:[\w-]+\/)+:\w+$/.test(path))) {
+        if (!isLastRoute && (!route.callbackData || !pathWithPk.test(path))) {
           const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
             `ApiMockModule detected wrong multi level route with path "${fullPath}".
 With multi level route you should to use a primary key in nested route path,
-for example "api/posts/:postId -> comments", where ":postId" is a primary key of collection "api/posts".
+for example "api/posts/:postId/comments", where ":postId" is a primary key of collection "api/posts".
 Also you should to have corresponding route.callbackData.`
           );
         }
 
         // route.callbackData should to have corresponding a primary key, and vice versa.
-        if (
-          (route.callbackData && !/^(?:[\w-]+\/)+:\w+$/.test(path)) ||
-          (/^(?:[\w-]+\/)+:\w+$/.test(path) && !route.callbackData)
-        ) {
+        if ((route.callbackData && !pathWithPk.test(path)) || (pathWithPk.test(path) && !route.callbackData)) {
           const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
             `ApiMockModule detected wrong route with path "${fullPath}".
@@ -106,7 +107,7 @@ If you have route.callbackData, you should to have corresponding a primary key, 
         }
 
         // route.callbackData should to have corresponding a primary key.
-        if (!/.+\w$/.test(path)) {
+        if (path && !/.+\w$/.test(path)) {
           const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
             `ApiMockModule detected wrong route with path "${fullPath}".
