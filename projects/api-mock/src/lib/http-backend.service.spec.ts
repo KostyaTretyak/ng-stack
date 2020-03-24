@@ -79,6 +79,10 @@ describe('HttpBackendService', () => {
     post(req: HttpRequest<any>, headers: HttpHeaders, chainParam: ChainParam, writeableData: ObjectAny[]) {
       return super.post(req, headers, chainParam, writeableData);
     }
+
+    transformHeaders(headers: HttpHeaders) {
+      return super.transformHeaders(headers);
+    }
   }
 
   class MyApiMockService implements ApiMockService {
@@ -306,6 +310,23 @@ describe('HttpBackendService', () => {
       url = 'https://example4.com/api/login';
       routeIndex = httpBackendService.findRouteGroupIndex(rootRoutes, url);
       expect(routeIndex).toEqual(11);
+    });
+  });
+
+  describe('transformHeaders()', () => {
+    it(`object`, () => {
+      const obj = { 'Content-Type': 'application/json' };
+      const headers = new HttpHeaders(obj);
+      const result = httpBackendService.transformHeaders(headers);
+      expect(result).toEqual(obj);
+      console.log(headers.getAll('Content-Type'));
+    });
+
+    it(`array`, () => {
+      const obj = { other: ['one', 'two'] };
+      const headers = new HttpHeaders(obj);
+      const result = httpBackendService.transformHeaders(headers);
+      expect(result).toEqual(obj);
     });
   });
 

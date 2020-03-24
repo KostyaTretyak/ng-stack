@@ -61,8 +61,8 @@ export class HttpBackendService implements HttpBackend {
     this.routeGroups = this.checkRouteGroups(routeGroups);
     this.rootRoutes = this.getRootPaths(this.routeGroups);
 
-    let isLoadedApp = false;
     if (this.config.showLog && this.config.clearPrevLog && this.router) {
+      let isLoadedApp = false;
       this.router.events.subscribe(event => {
         if (isLoadedApp && event instanceof NavigationStart) {
           console.clear();
@@ -153,10 +153,9 @@ for example "https://example.com" (without a trailing slash)`
 
   protected getRootPaths(routeGroups: ApiMockRouteGroup[]): PartialRoutes {
     const rootRoutes = routeGroups.map((route, index) => {
-      // Transformation: `https://example.com/part1/part2/part3/:paramName` -> `https://example.com/part1/part2/part3`
+      // Transformation: `https://example.com/part1/part2/:paramName` -> `https://example.com/part1/part2`
       const part = route[0].path.split('/:')[0];
-      const host = route[0].host || '';
-      const path = host ? `${host}/${part}` : part;
+      const path = [route[0].host, part].filter(s => s).join('/');
       const length = path.length;
       return { path, length, index };
     });
@@ -716,7 +715,7 @@ for example "https://example.com" (without a trailing slash)`
 
       let logHeaders: ObjectAny = {};
       if (responseOptions.headers instanceof HttpHeaders) {
-        logHeaders = this.getHeaders(responseOptions.headers);
+        logHeaders = this.transformHeaders(responseOptions.headers);
       } else if (responseOptions.headers) {
         logHeaders = responseOptions.headers;
       }
@@ -752,7 +751,7 @@ for example "https://example.com" (without a trailing slash)`
       return new HttpXhrBackend(this.xhrFactory).handle(req);
     }
 
-    const errMsg = 'Error 404: Not found; resource not found';
+    const errMsg = 'Error 404: Not found';
     this.logErrorResponse(req, errMsg);
     const err = this.makeError(req, Status.NOT_FOUND, errMsg);
 
@@ -764,7 +763,7 @@ for example "https://example.com" (without a trailing slash)`
     let queryParams: ObjectAny = {};
     let body: any;
     try {
-      logHeaders = this.getHeaders(req.headers);
+      logHeaders = this.transformHeaders(req.headers);
       queryParams = this.parseUrl(req.urlWithParams).queryParams;
       if (isFormData(req.body)) {
         body = [];
@@ -827,7 +826,7 @@ for example "https://example.com" (without a trailing slash)`
     console.log('%cres:', `color: brown;`, ...consoleArgs);
   }
 
-  protected getHeaders(headers: HttpHeaders) {
+  protected transformHeaders(headers: HttpHeaders) {
     const logHeaders: ObjectAny = {};
     headers.keys().forEach(header => {
       let values: string | string[] = headers.getAll(header);
