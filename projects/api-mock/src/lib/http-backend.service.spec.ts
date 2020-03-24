@@ -83,6 +83,10 @@ describe('HttpBackendService', () => {
     transformHeaders(headers: HttpHeaders) {
       return super.transformHeaders(headers);
     }
+
+    logRequest(req: HttpRequest<any>) {
+      return super.logRequest(req);
+    }
   }
 
   class MyApiMockService implements ApiMockService {
@@ -319,7 +323,6 @@ describe('HttpBackendService', () => {
       const headers = new HttpHeaders(obj);
       const result = httpBackendService.transformHeaders(headers);
       expect(result).toEqual(obj);
-      console.log(headers.getAll('Content-Type'));
     });
 
     it(`array`, () => {
@@ -327,6 +330,33 @@ describe('HttpBackendService', () => {
       const headers = new HttpHeaders(obj);
       const result = httpBackendService.transformHeaders(headers);
       expect(result).toEqual(obj);
+    });
+  });
+
+  describe('logRequest()', () => {
+    it(`queryParams only`, () => {
+      const req = new HttpRequest<any>('GET', 'any/url/here?one=1&two=2&arr=3&arr=4');
+      const result = httpBackendService.logRequest(req);
+      expect(result).toEqual({ queryParams: { one: '1', two: '2', arr: ['3', '4'] } });
+    });
+
+    it(`headers only`, () => {
+      const req = new HttpRequest<any>('GET', 'any/url/here', { headers: new HttpHeaders({ one: '1', two: '2' }) });
+      const result = httpBackendService.logRequest(req);
+      expect(result).toEqual({ headers: { one: '1', two: '2' } });
+    });
+
+    it(`body only`, () => {
+      const req = new HttpRequest<any>('POST', 'any/url/here', { one: '1', two: '2' });
+      const result = httpBackendService.logRequest(req);
+      expect(result).toEqual({ body: { one: '1', two: '2' } });
+    });
+
+    it(`headers and queryParams only`, () => {
+      const headers = { headers: new HttpHeaders({ one: '1', two: '2' }) };
+      const req = new HttpRequest<any>('GET', 'any/url/here?one=1&two=2&arr=3&arr=4', headers);
+      const result = httpBackendService.logRequest(req);
+      expect(result).toEqual({ headers: { one: '1', two: '2' }, queryParams: { one: '1', two: '2', arr: ['3', '4'] } });
     });
   });
 

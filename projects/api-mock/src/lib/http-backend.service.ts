@@ -759,8 +759,8 @@ for example "https://example.com" (without a trailing slash)`
   }
 
   protected logRequest(req: HttpRequest<any>) {
-    let logHeaders: ObjectAny = {};
-    let queryParams: ObjectAny = {};
+    let logHeaders: ObjectAny;
+    let queryParams: ObjectAny;
     let body: any;
     try {
       logHeaders = this.transformHeaders(req.headers);
@@ -776,26 +776,25 @@ for example "https://example.com" (without a trailing slash)`
       queryParams = { parseError: err.message || 'error' };
     }
 
-    let reqLog: any = '';
-    const log = {
-      headers: logHeaders,
-      queryParams,
-      body,
+    const log = {} as {
+      headers?: ObjectAny;
+      queryParams?: ObjectAny;
+      body?: ObjectAny;
     };
-    if (!Object.keys(log.headers).length) {
-      delete log.headers;
+    if (JSON.stringify(logHeaders) != '{}') {
+      log.headers = logHeaders;
     }
-    if (!Object.keys(log.queryParams).length) {
-      delete log.queryParams;
+    if (JSON.stringify(queryParams) != '{}') {
+      log.queryParams = queryParams;
     }
-    if (req.method == 'GET') {
-      delete log.body;
-    }
-    if (Object.keys(log).length) {
-      reqLog = log;
+    if (body) {
+      log.body = body;
     }
 
-    console.log(`%creq: ${req.method} ${req.url}`, 'color: green;', reqLog);
+    console.log(`%creq: ${req.method} ${req.url}`, 'color: green;', log);
+
+    // returns for tests only
+    return log;
   }
 
   protected logResponse(res: ResponseOptionsLog) {
@@ -862,5 +861,21 @@ for example "https://example.com" (without a trailing slash)`
       readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(d));
     }
     this.cachedData[chainParam.cacheKey].readonlyData = readonlyData;
+  }
+
+  /**
+   * Determine whether the given HTTP method may include a body.
+   */
+  protected mightHaveBody(method: string): boolean {
+    switch (method) {
+      case 'DELETE':
+      case 'GET':
+      case 'HEAD':
+      case 'OPTIONS':
+      case 'JSONP':
+        return false;
+      default:
+        return true;
+    }
   }
 }
