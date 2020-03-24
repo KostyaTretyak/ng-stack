@@ -82,13 +82,13 @@ export class HttpBackendService implements HttpBackend {
         const path = route.path;
         const host = (route as ApiMockRouteRoot).host;
         /**
-         * URL with a primary key, like `one/two/:id`.
+         * Path with a primary key, like `one/two/:id`.
          */
         const pathWithPk = /^(?:[\w-]+\/)+:\w+$/;
+        const fullPath = routeGroup.map(r => r.path).join(' -> ');
 
         // Nested routes should to have route.callbackData and primary keys.
         if (!isLastRoute && (!route.callbackData || !pathWithPk.test(path))) {
-          const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
             `ApiMockModule detected wrong multi level route with path "${fullPath}".
 With multi level route you should to use a primary key in nested route path,
@@ -99,7 +99,6 @@ Also you should to have corresponding route.callbackData.`
 
         // route.callbackData should to have corresponding a primary key, and vice versa.
         if ((route.callbackData && !pathWithPk.test(path)) || (pathWithPk.test(path) && !route.callbackData)) {
-          const fullPath = routeGroup.map(r => r.path).join(' -> ');
           throw new Error(
             `ApiMockModule detected wrong route with path "${fullPath}".
 If you have route.callbackData, you should to have corresponding a primary key, and vice versa.`
@@ -107,8 +106,7 @@ If you have route.callbackData, you should to have corresponding a primary key, 
         }
 
         // route.callbackData should to have corresponding a primary key.
-        if (path && !/.+\w$/.test(path)) {
-          const fullPath = routeGroup.map(r => r.path).join(' -> ');
+        if (path && path.slice(-1) == '/') {
           throw new Error(
             `ApiMockModule detected wrong route with path "${fullPath}".
 route.path should not to have trailing slash.`

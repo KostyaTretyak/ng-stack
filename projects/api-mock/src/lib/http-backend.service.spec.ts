@@ -101,7 +101,7 @@ describe('HttpBackendService', () => {
     httpBackendService.config = new ApiMockConfig(httpBackendService.config);
   });
 
-  fdescribe('checkRouteGroups()', () => {
+  describe('checkRouteGroups()', () => {
     it('route with emty route group', () => {
       const routes: ApiMockRouteGroup[] = [];
       expect(() => httpBackendService.checkRouteGroups(routes)).not.toThrow();
@@ -117,6 +117,18 @@ describe('HttpBackendService', () => {
     it('multi level route paths, without route.callbackData', () => {
       const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts/:postId' }, { path: 'comments' }]];
       expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(/detected wrong multi level route/);
+    });
+
+    it('with callbackData, but without a primary key', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts', callbackData: () => [] }]];
+      const regexpMsg = /If you have route.callbackData, you should/;
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
+    });
+
+    it('with a primary key, but without callbackData', () => {
+      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/pre-account/:login' }]];
+      const regexpMsg = /If you have route.callbackData, you should/;
+      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
     });
 
     const routesNotToThrow: [string, ApiMockRouteRoot | ApiMockRoute][] = [
@@ -164,18 +176,6 @@ describe('HttpBackendService', () => {
     it('route path with trailing slash', () => {
       const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/sessions/' }]];
       const regexpMsg = /route.path should not to have trailing slash/;
-      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
-    });
-
-    it('with callbackData, but without a primary key', () => {
-      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/posts', callbackData: () => [] }]];
-      const regexpMsg = /If you have route.callbackData, you should/;
-      expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
-    });
-
-    it('with a primary key, but without callbackData', () => {
-      const routeGroups: ApiMockRouteGroup[] = [[{ path: 'api/pre-account/:login' }]];
-      const regexpMsg = /If you have route.callbackData, you should/;
       expect(() => httpBackendService.checkRouteGroups(routeGroups)).toThrowError(regexpMsg);
     });
 
