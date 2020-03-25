@@ -22,6 +22,7 @@ import {
   ApiMockRouteRoot,
   ApiMockRoute,
   MockData,
+  CacheData,
 } from './types';
 import { Status } from './http-status-codes';
 
@@ -32,6 +33,7 @@ describe('HttpBackendService', () => {
   @Injectable()
   class MockHttpBackendService extends HttpBackendService {
     config: ApiMockConfig;
+    cachedData: CacheData = {};
 
     checkRouteGroups(routes: ApiMockRouteGroup[]) {
       return super.checkRouteGroups(routes);
@@ -86,6 +88,10 @@ describe('HttpBackendService', () => {
 
     logRequest(req: HttpRequest<any>) {
       return super.logRequest(req);
+    }
+
+    bindReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
+      return super.bindReadonlyData(chainParam, writeableData);
     }
   }
 
@@ -670,6 +676,37 @@ describe('HttpBackendService', () => {
       });
     });
   });
+
+  describe('bindReadonlyData()', () => {
+    it(`body of readonlyData as getter`, () => {
+      const cacheKey = 'api/posts';
+      const chainParam: ChainParam = {
+        cacheKey,
+        primaryKey: 'any-primary-key',
+        route: { path: 'any-path' },
+      };
+
+      interface Example {
+        id: number;
+        body: string;
+      }
+      const writeableData: Example[] = [
+        { id: 1, body: 'content for id 1' },
+        { id: 2, body: 'content for id 2' },
+        { id: 3, body: 'content for id 3' },
+      ];
+
+      httpBackendService.cachedData = { [cacheKey]: { writeableData, readonlyData: [] } };
+      httpBackendService.bindReadonlyData(chainParam, writeableData);
+      const readonlyData = httpBackendService.cachedData[cacheKey].readonlyData as Example[];
+      expect(readonlyData[1]).toEqual({ id: 2, body: 'content for id 2' });
+      writeableData[1].body = 'changed content';
+      expect(readonlyData[1]).toEqual({ id: 2, body: 'changed content' });
+    });
+  });
+
+  describe('cacheGetData()', () => {});
+  describe('getParents()', () => {});
 
   describe('sendResponse()', () => {
     it('should returns result of calling callbackData()', fakeAsync(() => {
