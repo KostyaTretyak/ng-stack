@@ -454,7 +454,7 @@ for example "https://example.com" (without a trailing slash)`
       const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
 
       if (!item) {
-        const message = `Error 404: Not found; item.${primaryKey}=${restId} not found, searched in:`;
+        const message = `Error 404: item.${primaryKey}=${restId} not found, searched in:`;
         this.logErrorResponse(req, message, mockData.writeableData);
 
         return this.makeError(req, Status.NOT_FOUND, 'item not found');
