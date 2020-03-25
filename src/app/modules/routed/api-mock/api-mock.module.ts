@@ -8,11 +8,11 @@ import { ApiMockRoutingModule } from './api-mock-routing.module';
 import { ApiMockComponent } from './pages/api-mock/api-mock.component';
 import { SimpleComponent } from './pages/simple/simple.component';
 import { PostsComponent } from './pages/posts/posts.component';
-import { EditSimpleComponent } from './pages/edit-simple/edit-simple.component';
+import { SimpleEditComponent } from './pages/simple-edit/simple-edit.component';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
-  declarations: [ApiMockComponent, SimpleComponent, PostsComponent, EditSimpleComponent],
+  declarations: [ApiMockComponent, SimpleComponent, PostsComponent, SimpleEditComponent],
   imports: [CommonModule, ApiMockRoutingModule, NgStackFormsModule, ReactiveFormsModule, ContenteditableModule],
 })
 export class ApiMockModule {}

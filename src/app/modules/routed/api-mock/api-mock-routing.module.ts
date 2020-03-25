@@ -4,7 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { ApiMockComponent } from './pages/api-mock/api-mock.component';
 import { SimpleComponent } from './pages/simple/simple.component';
 import { PostsComponent } from './pages/posts/posts.component';
-import { EditSimpleComponent } from './pages/edit-simple/edit-simple.component';
+import { SimpleEditComponent } from './pages/simple-edit/simple-edit.component';
 
 const routes: Routes = [
   // Parent route '/api-mock'
@@ -19,7 +19,7 @@ const routes: Routes = [
   },
   {
     path: 'simple/edit/:id',
-    component: EditSimpleComponent,
+    component: SimpleEditComponent,
   },
   {
     path: 'posts',

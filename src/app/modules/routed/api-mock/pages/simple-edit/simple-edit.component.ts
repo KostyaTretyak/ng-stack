@@ -7,13 +7,15 @@ import { FormGroup, FormBuilder } from '@ng-stack/forms';
 import { SimpleModel } from '../../models/simple-model';
 
 @Component({
-  selector: 'app-edit-simple',
-  templateUrl: './edit-simple.component.html',
-  styleUrls: ['./edit-simple.component.sass'],
+  templateUrl: './simple-edit.component.html',
+  styleUrls: ['./simple-edit.component.sass'],
 })
-export class EditSimpleComponent implements OnInit {
+export class SimpleEditComponent implements OnInit {
   form: FormGroup<SimpleModel>;
   message: string;
+  get id() {
+    return this.form.get('id').value;
+  }
 
   constructor(
     private activatedRoute: ActivatedRoute,

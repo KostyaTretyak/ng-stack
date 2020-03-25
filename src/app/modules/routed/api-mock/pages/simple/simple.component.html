@@ -20,5 +20,5 @@
     <td><div formControlName="body" contenteditable="true"></div></td>
     <td><button (click)="save()">save</button></td>
   </tr>
-  <tr><button (click)="isAdding = true">add</button><span style="margin-left: 5px;">{{ message }}</span></tr>
 </table>
+<button *ngIf="!isLoading" (click)="isAdding = true">add</button><span style="margin-left: 5px; font-style: italic;">{{ message }}</span>
