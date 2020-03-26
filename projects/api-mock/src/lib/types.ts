@@ -5,7 +5,7 @@ import { Status } from './http-status-codes';
 import { pickProperties } from './pick-properties';
 
 export abstract class ApiMockService {
-  abstract getRouteGroups(): ApiMockRouteGroup[];
+  abstract getRoutes(): ApiMockRoute[];
 }
 
 /**
@@ -134,6 +134,7 @@ export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P exten
 ) => any;
 
 export interface ApiMockRoute {
+  host?: string;
   path: string;
   callbackData?: ApiMockCallbackData;
   /**
@@ -142,11 +143,8 @@ export interface ApiMockRoute {
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;
   refreshLocalStorage?: boolean;
+  children?: Omit<this, 'host'>[];
 }
-
-export type ApiMockRouteRoot = ApiMockRoute & { host?: string };
-
-export type ApiMockRouteGroup = [ApiMockRouteRoot, ...ApiMockRoute[]];
 
 export class CacheData {
   [routeKey: string]: MockData;
@@ -157,7 +155,7 @@ export type PartialRoutes = Array<{ path: string; length: number; index: number 
 export class RouteDryMatch {
   splitedUrl: string[];
   splitedRoute: string[];
-  routes: ApiMockRouteGroup;
+  routes: ApiMockRoute[];
   hasLastRestId: boolean;
   lastPrimaryKey?: string;
 }
@@ -168,7 +166,7 @@ export class RouteDryMatch {
  */
 export interface ChainParam {
   cacheKey: string;
-  route: ApiMockRouteRoot | ApiMockRoute;
+  route: ApiMockRoute;
   primaryKey: string;
   restId?: string;
 }

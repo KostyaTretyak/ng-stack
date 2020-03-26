@@ -10,8 +10,6 @@ export {
   ApiMockService,
   ApiMockConfig,
   ApiMockRoute,
-  ApiMockRouteRoot,
-  ApiMockRouteGroup,
   ApiMockCallbackData,
   ApiMockCallbackResponse,
   ObjectAny,
