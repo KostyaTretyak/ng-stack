@@ -134,7 +134,6 @@ export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P exten
 ) => any;
 
 export interface ApiMockRoute {
-  host?: string;
   path: string;
   callbackData?: ApiMockCallbackData;
   /**
@@ -143,7 +142,11 @@ export interface ApiMockRoute {
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;
   refreshLocalStorage?: boolean;
-  children?: Omit<this, 'host'>[];
+  children?: this[];
+}
+
+export interface ApiMockRootRoute extends ApiMockRoute {
+  host?: string;
 }
 
 export class CacheData {

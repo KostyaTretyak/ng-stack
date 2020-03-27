@@ -18,6 +18,7 @@ import {
   ApiMockConfig,
   ObjectAny,
   ResponseOptions,
+  ApiMockRootRoute,
   ApiMockRoute,
   MockData,
   CacheData,
@@ -140,7 +141,7 @@ describe('HttpBackendService', () => {
       expect(() => httpBackendService.checkRoute(route)).toThrowError(regexpMsg);
     });
 
-    const routesNotToThrow: [string, ApiMockRoute][] = [
+    const routesNotToThrow: [string, ApiMockRootRoute][] = [
       ['path with empty path', { path: '' }],
       ['path without slashes', { path: 'api' }],
       ['path with slashes and without primary keys', { path: 'api/sessions' }],
@@ -196,17 +197,17 @@ describe('HttpBackendService', () => {
     });
 
     it('wrong host', () => {
-      const route: ApiMockRoute = { host: 'fake host', path: 'api' };
+      const route: ApiMockRootRoute = { host: 'fake host', path: 'api' };
       expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong host/);
     });
 
     it('wrong host without HTTP protocol', () => {
-      const route: ApiMockRoute = { host: 'example.com', path: 'api' };
+      const route: ApiMockRootRoute = { host: 'example.com', path: 'api' };
       expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong host/);
     });
 
     it('wrong host with slash at the end', () => {
-      const route: ApiMockRoute = { host: 'http://example.com/', path: 'api' };
+      const route: ApiMockRootRoute = { host: 'http://example.com/', path: 'api' };
       expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong host/);
     });
   });
@@ -222,7 +223,7 @@ describe('HttpBackendService', () => {
     { path: 'api/login' },
   ];
 
-  const routesWithMixHost: ApiMockRoute[] = [
+  const routesWithMixHost: ApiMockRootRoute[] = [
     { host: 'https://example3.com', path: 'one/two/three/four/five/six/:primaryId' },
     { host: 'https://example2.com', path: 'one/two/three/four/five/six/:primaryId' },
     { host: 'https://example1.com', path: 'one/two/:primaryId' },
@@ -357,34 +358,34 @@ describe('HttpBackendService', () => {
   });
 
   describe('getRouteDryMatch()', () => {
-    let dryMatch: RouteDryMatch | void;
+    let dryMatch: RouteDryMatch[] | void;
     let url: string;
     let routePath: string;
-    let routes: ApiMockRoute;
+    let route: ApiMockRootRoute;
 
     describe('one level of route.path nesting', () => {
       it('url with primary ID', () => {
         url = 'one/two/three-other/123';
         routePath = 'one/two/three/:primaryId';
-        routes = { path: routePath, children: [{ path: 'level-two/one/two' }] };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
-        expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(true);
-        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
-        expect(dryMatch.splitedRoute.join('/')).toBe(routePath);
-        expect(dryMatch.routes).toEqual([{ path: routePath }]);
+        route = { path: routePath, children: [{ path: 'level-two/one/two' }] };
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        expect(!!dryMatch[0]).toBeTruthy('dryMatch has a value');
+        expect(dryMatch[0].hasLastRestId).toBe(true);
+        expect(dryMatch[0].lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe(routePath);
+        expect(dryMatch[0].routes).toEqual([{ path: routePath }]);
       });
 
       it('url without primary ID', () => {
         url = 'one/two/three-other';
         routePath = 'one/two/three/:primaryId';
-        routes = { path: routePath, children: [{ path: 'level-two/one/two' }] };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
+        route = { path: routePath, children: [{ path: 'level-two/one/two' }] };
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBeUndefined();
-        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
-        expect(dryMatch.splitedRoute.join('/')).toBe('one/two/three');
-        expect(dryMatch.routes).toEqual([{ path: routePath }]);
+        expect(dryMatch[0].hasLastRestId).toBeUndefined();
+        expect(dryMatch[0].lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe('one/two/three');
+        expect(dryMatch[0].routes).toEqual([{ path: routePath }]);
       });
 
       it('should not match a long url to a short route', () => {
@@ -403,91 +404,91 @@ describe('HttpBackendService', () => {
 
       it('url with host and with primary ID', () => {
         url = 'https://example.com/one/two-other/123';
-        routes = {
+        route = {
           host: 'https://example.com',
           path: 'one/two/:primaryId',
           children: [{ path: 'level-two/one/two' }],
         };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(true);
-        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
-        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/one/two/:primaryId');
-        expect(dryMatch.routes).toEqual([{ host: 'https://example.com', path: 'one/two/:primaryId' }]);
+        expect(dryMatch[0].hasLastRestId).toBe(true);
+        expect(dryMatch[0].lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe('https://example.com/one/two/:primaryId');
+        expect(dryMatch[0].routes).toEqual([{ host: 'https://example.com', path: 'one/two/:primaryId' }]);
       });
 
       it('url with host and without primary ID', () => {
         url = 'https://example.com/one/two-other';
-        routes = {
+        route = {
           host: 'https://example.com',
           path: 'one/two/:primaryId',
           children: [{ path: 'level-two/one/two' }],
         };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBeUndefined();
-        expect(dryMatch.lastPrimaryKey).toBe('primaryId');
-        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/one/two');
-        expect(dryMatch.routes).toEqual([{ host: 'https://example.com', path: 'one/two/:primaryId' }]);
+        expect(dryMatch[0].hasLastRestId).toBeUndefined();
+        expect(dryMatch[0].lastPrimaryKey).toBe('primaryId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe('https://example.com/one/two');
+        expect(dryMatch[0].routes).toEqual([{ host: 'https://example.com', path: 'one/two/:primaryId' }]);
       });
     });
 
     describe('multi level of route.path nesting', () => {
       it('url with primary ID', () => {
         url = 'api/posts/123/comments-other/456';
-        routes = {
+        route = {
           path: 'api/posts/:postId',
           children: [{ path: 'comments/:commentId', children: [{ path: 'one/two/:otherId' }] }],
         };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(true);
-        expect(dryMatch.lastPrimaryKey).toBe('commentId');
-        expect(dryMatch.splitedRoute.join('/')).toBe('api/posts/:postId/comments/:commentId');
-        expect(dryMatch.routes).toEqual([{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }]);
+        expect(dryMatch[0].hasLastRestId).toBe(true);
+        expect(dryMatch[0].lastPrimaryKey).toBe('commentId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe('api/posts/:postId/comments/:commentId');
+        expect(dryMatch[0].routes).toEqual([{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }]);
       });
 
       it('url without primary ID', () => {
         url = 'api/posts/123/comments-other';
-        routes = {
+        route = {
           path: 'api/posts/:postId',
           children: [{ path: 'comments/:commentId', children: [{ path: 'one/two/:otherId' }] }],
         };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBeUndefined();
-        expect(dryMatch.lastPrimaryKey).toBe('commentId');
-        expect(dryMatch.splitedRoute.join('/')).toBe('api/posts/:postId/comments');
-        expect(dryMatch.routes).toEqual([{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }]);
+        expect(dryMatch[0].hasLastRestId).toBeUndefined();
+        expect(dryMatch[0].lastPrimaryKey).toBe('commentId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe('api/posts/:postId/comments');
+        expect(dryMatch[0].routes).toEqual([{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }]);
       });
 
       it('should not match a long url to a short route', () => {
         url = 'one/two/three/four/five/six/seven';
-        routes = { path: 'api/posts/:postId', children: [{ path: 'comments/:commentId' }] };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes);
+        route = { path: 'api/posts/:postId', children: [{ path: 'comments/:commentId' }] };
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeFalsy();
       });
 
       it('should not match a short url to a long route', () => {
         url = 'one';
-        routes = { path: 'api/posts/:postId', children: [{ path: 'comments/:commentId' }] };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes);
+        route = { path: 'api/posts/:postId', children: [{ path: 'comments/:commentId' }] };
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeFalsy();
       });
 
       it('url with host and with primary ID', () => {
         url = 'https://example.com/api/posts/123/comments-other/456';
-        routes = {
+        route = {
           host: 'https://example.com',
           path: 'api/posts/:postId',
           children: [{ path: 'comments/:commentId', children: [{ path: 'one/two/:otherId' }] }],
         };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBe(true);
-        expect(dryMatch.lastPrimaryKey).toBe('commentId');
-        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments/:commentId');
-        expect(dryMatch.routes).toEqual([
+        expect(dryMatch[0].hasLastRestId).toBe(true);
+        expect(dryMatch[0].lastPrimaryKey).toBe('commentId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments/:commentId');
+        expect(dryMatch[0].routes).toEqual([
           { host: 'https://example.com', path: 'api/posts/:postId' },
           { path: 'comments/:commentId' },
         ]);
@@ -495,17 +496,18 @@ describe('HttpBackendService', () => {
 
       it('url with host and without primary ID', () => {
         url = 'https://example.com/api/posts/123/comments-other';
-        routes = {
+        route = {
           host: 'https://example.com',
           path: 'api/posts/:postId',
           children: [{ path: 'comments/:commentId', children: [{ path: 'one/two/:otherId' }] }],
         };
-        dryMatch = httpBackendService.getRouteDryMatch(url, routes) as RouteDryMatch;
+        dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        console.log(dryMatch);
         expect(!!dryMatch).toBeTruthy('dryMatch has a value');
-        expect(dryMatch.hasLastRestId).toBeUndefined();
-        expect(dryMatch.lastPrimaryKey).toBe('commentId');
-        expect(dryMatch.splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments');
-        expect(dryMatch.routes).toEqual([
+        expect(dryMatch[0].hasLastRestId).toBeUndefined();
+        expect(dryMatch[0].lastPrimaryKey).toBe('commentId');
+        expect(dryMatch[0].splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments');
+        expect(dryMatch[0].routes).toEqual([
           { host: 'https://example.com', path: 'api/posts/:postId' },
           { path: 'comments/:commentId' },
         ]);

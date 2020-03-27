@@ -19,6 +19,7 @@ import {
   ApiMockConfig,
   ApiMockService,
   CacheData,
+  ApiMockRootRoute,
   ApiMockRoute,
   PartialRoutes,
   RouteDryMatch,
@@ -75,10 +76,10 @@ export class HttpBackendService implements HttpBackend {
     this.isInited = true;
   }
 
-  protected checkRoute(route: ApiMockRoute, parentPath?: string) {
+  protected checkRoute(route: ApiMockRootRoute | ApiMockRoute, parentPath?: string) {
     const isLastRoute = !(route.children && route.children.length);
     const path = route.path;
-    const host = route.host;
+    const host = (route as ApiMockRootRoute).host;
     /**
      * Path with a primary key, like `one/two/:id`.
      */
@@ -132,11 +133,11 @@ for example "https://example.com" (without a trailing slash)`
     }
   }
 
-  protected checkRootDuplicates(routes: ApiMockRoute[]) {
+  protected checkRootDuplicates(routes: (ApiMockRootRoute | ApiMockRoute)[]) {
     const existingRoutes: string[] = [];
     const incomingRoutes = routes.map(route => {
       const rootPath = route.path.split(':')[0];
-      return [route.host, rootPath].filter(s => s).join(' -> ');
+      return [(route as ApiMockRootRoute).host, rootPath].filter(s => s).join(' -> ');
     });
 
     incomingRoutes.forEach(incomingRoute => {
@@ -147,11 +148,11 @@ for example "https://example.com" (without a trailing slash)`
     });
   }
 
-  protected getRootPaths(routes: ApiMockRoute[]): PartialRoutes {
+  protected getRootPaths(routes: (ApiMockRootRoute | ApiMockRoute)[]): PartialRoutes {
     const rootRoutes = routes.map((route, index) => {
       // Transformation: `https://example.com/part1/part2/:paramName` -> `https://example.com/part1/part2`
       const part = route.path.split('/:')[0];
-      const path = [route.host, part].filter(s => s).join('/');
+      const path = [(route as ApiMockRootRoute).host, part].filter(s => s).join('/');
       const length = path.length;
       return { path, length, index };
     });
@@ -185,12 +186,14 @@ for example "https://example.com" (without a trailing slash)`
       return this.send404Error(req);
     }
 
-    const routeDryMatch = this.getRouteDryMatch(normalizedUrl, this.routes[routeIndex]);
+    const routesDryMatch = this.getRouteDryMatch(normalizedUrl, this.routes[routeIndex]);
 
-    if (routeDryMatch) {
-      const chainParams = this.getChainParams(routeDryMatch);
-      if (chainParams) {
-        return this.sendResponse(req, chainParams);
+    if (routesDryMatch) {
+      for (const routeDryMatch of routesDryMatch) {
+        const chainParams = this.getChainParams(routeDryMatch);
+        if (chainParams) {
+          return this.sendResponse(req, chainParams);
+        }
       }
     }
     return this.send404Error(req);
@@ -214,26 +217,42 @@ for example "https://example.com" (without a trailing slash)`
    * - `root-segment/segment` and `root-segment/:routeId`
    * - `root-segment/segment` and `root-segment/other/:routeId`.
    *
-   * Then this method splites them by `/` and compares number parts of `splitedUrl` with number parts of `splitedRoute` and if
-   * they are equal, returns that route with some metadata.
+   * Then this method splites them by `/` and compares number parts of `splitedUrl` with number parts of `splitedRoute`
+   * and if they are equal, returns that route with some metadata.
    *
    * @param normalizedUrl If we have URL without host, here should be url with removed slash from the start.
-   * @param route Routes from `this.routes` that matched to a URL by root path (`route[0].path`).
+   * @param route Routes from `this.routes` that matched to a URL by root path (`route.path`).
    */
-  protected getRouteDryMatch(normalizedUrl: string, route: ApiMockRoute): RouteDryMatch | void {
+  protected getRouteDryMatch(normalizedUrl: string, route: ApiMockRootRoute | ApiMockRoute): RouteDryMatch[] | void {
     const splitedUrl = normalizedUrl.split('/');
     /**
      * `['posts', '123', 'comments', '456']` -> 4 parts of a URL.
      */
     const countPartOfUrl = splitedUrl.length;
-    const routes: ApiMockRoute[] = [];
-    let pathOfRoute = route.host || '';
-    let hasLastRestId: boolean;
-    let lastPrimaryKey: string;
+    const routeDryMatch: RouteDryMatch[] = [];
+    const host = (route as ApiMockRootRoute).host || '';
 
-    for (const child of route.children) {
-      routes.push(child);
-      pathOfRoute += pathOfRoute ? `/${child.path}` : child.path;
+    const rootMetadata = getDryRoutes(route, host);
+    if (rootMetadata) {
+      routeDryMatch.unshift(rootMetadata);
+    }
+
+    if (routeDryMatch.length) {
+      return routeDryMatch;
+    }
+
+    function getDryRoutes(
+      currRoute: ApiMockRootRoute | ApiMockRoute,
+      pathOfRoute?: string,
+      routes?: ApiMockRoute[]
+    ): RouteDryMatch | void {
+      routes = (routes || []).slice();
+      const copyRoute = Object.assign({}, currRoute);
+      delete copyRoute.children;
+      routes.push(copyRoute);
+      let hasLastRestId: boolean;
+      let lastPrimaryKey: string;
+      pathOfRoute = [pathOfRoute, currRoute.path].filter(s => s).join('/');
       const splitedRoute = pathOfRoute.split('/');
       /**
        * `['posts', ':postId', 'comments', ':commentId']` -> 4 parts of a route.
@@ -241,17 +260,25 @@ for example "https://example.com" (without a trailing slash)`
       const countPartOfRoute = splitedRoute.length;
 
       if (countPartOfUrl > countPartOfRoute) {
-        continue;
+        if (currRoute.children) {
+          currRoute.children.forEach(child => {
+            const metadata = getDryRoutes(child, pathOfRoute, routes);
+            if (metadata) {
+              routeDryMatch.push(metadata);
+            }
+          });
+        }
+        return;
       } else if (countPartOfUrl < countPartOfRoute - 1) {
         // URL not matched to defined route path.
-        break;
+        return;
       } else if (countPartOfUrl == countPartOfRoute - 1) {
         const lastElement = splitedRoute.pop();
         if (lastElement.charAt(0) == ':') {
           lastPrimaryKey = lastElement.slice(1);
         } else {
           // URL not matched to defined route path.
-          break;
+          return;
         }
       } else {
         // countPartOfUrl == countPartOfRoute
@@ -261,6 +288,7 @@ for example "https://example.com" (without a trailing slash)`
           lastPrimaryKey = lastElement.slice(1);
         }
       }
+
       return { splitedUrl, splitedRoute, hasLastRestId, lastPrimaryKey, routes };
     }
   }
