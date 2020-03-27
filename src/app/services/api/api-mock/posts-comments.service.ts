@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import * as faker from 'faker/locale/en_US';
 import {
   ApiMockService,
-  ApiMockRouteGroup,
+  ApiMockRoute,
   ApiMockCallbackData,
   ApiMockCallbackResponse,
   pickAllPropertiesAsGetters,
@@ -23,21 +23,22 @@ export class PostsCommentsService implements ApiMockService {
     return faker.random.number({ min: 1, max: 1000 });
   }
 
-  getRouteGroups(): ApiMockRouteGroup[] {
+  getRoutes(): ApiMockRoute[] {
     return [
-      [
-        {
-          path: 'posts/:postId',
-          callbackData: this.changePostsData(),
-          callbackResponse: this.getPostsResponse(),
-        },
-        {
-          path: 'comments/:commentId',
-          callbackData: this.changeCommentsData(),
-          callbackResponse: this.getCommentsResponse(),
-          propertiesForList: new PostList(),
-        },
-      ],
+      {
+        path: 'posts/:postId',
+        callbackData: this.changePostsData(),
+        callbackResponse: this.getPostsResponse(),
+        children: [
+          {
+            path: 'comments/:commentId',
+            callbackData: this.changeCommentsData(),
+            callbackResponse: this.getCommentsResponse(),
+            propertiesForList: new PostList(),
+          },
+        ],
+      },
+      ,
     ];
   }
 
