@@ -57,7 +57,7 @@ export class HttpBackendService implements HttpBackend {
   protected init() {
     // Merge with default configs.
     this.config = new ApiMockConfig(this.config);
-    this.routes = this.apiMockService.getRoutes();
+    this.routes = this.apiMockService.getRoutes().filter(r => r);
     this.routes.forEach(route => this.checkRoute(route));
     this.checkRootDuplicates(this.routes);
     this.rootRoutes = this.getRootPaths(this.routes);

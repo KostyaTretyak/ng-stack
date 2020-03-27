@@ -32,7 +32,9 @@ export class SimpleComponent implements OnInit {
   }
 
   private getSimples() {
+    if (!this.isLoading) {
     this.message = 'getting...';
+    }
     this.httpClient.get<SimpleModel>(`/simple`).subscribe(result => {
       this.message = '';
       this.isLoading = false;
@@ -42,7 +44,6 @@ export class SimpleComponent implements OnInit {
 
   save() {
     this.message = 'saving...';
-    console.log(this.form);
     if (this.form.invalid) {
       this.showFormErrors();
       return;
