@@ -247,9 +247,7 @@ for example "https://example.com" (without a trailing slash)`
       routes?: ApiMockRoute[]
     ): RouteDryMatch | void {
       routes = (routes || []).slice();
-      const copyRoute = Object.assign({}, currRoute);
-      delete copyRoute.children;
-      routes.push(copyRoute);
+      routes.push(currRoute);
       let hasLastRestId: boolean;
       let lastPrimaryKey: string;
       pathOfRoute = [pathOfRoute, currRoute.path].filter(s => s).join('/');
