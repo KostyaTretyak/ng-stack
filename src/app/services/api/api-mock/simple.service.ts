@@ -15,6 +15,7 @@ export class SimpleService implements ApiMockService {
         path: 'simple/:id',
         callbackData: this.getCallbackData(),
         callbackResponse: this.getCallbackResponse(),
+        children: [],
       },
     ];
   }

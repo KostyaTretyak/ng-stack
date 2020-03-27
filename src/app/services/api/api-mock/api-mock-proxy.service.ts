@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { ApiMockService, ApiMockRoute } from '@ng-stack/api-mock';
+import { ApiMockService, ApiMockRootRoute } from '@ng-stack/api-mock';
 
 import { PostsCommentsService } from './posts-comments.service';
 import { SimpleService } from './simple.service';
@@ -12,7 +12,7 @@ import { SimpleService } from './simple.service';
 export class ApiMockProxyService implements ApiMockService {
   constructor(private simpleService: SimpleService, private postCommentService: PostsCommentsService) {}
 
-  getRoutes(): ApiMockRoute[] {
+  getRoutes(): ApiMockRootRoute[] {
     return [...this.simpleService.getRoutes(), ...this.postCommentService.getRoutes()];
   }
 }

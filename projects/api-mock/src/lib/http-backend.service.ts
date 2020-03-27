@@ -186,10 +186,10 @@ for example "https://example.com" (without a trailing slash)`
       return this.send404Error(req);
     }
 
-    const routesDryMatch = this.getRouteDryMatch(normalizedUrl, this.routes[routeIndex]);
+    const groupRouteDryMatch = this.getRouteDryMatch(normalizedUrl, this.routes[routeIndex]);
 
-    if (routesDryMatch) {
-      for (const routeDryMatch of routesDryMatch) {
+    if (groupRouteDryMatch) {
+      for (const routeDryMatch of groupRouteDryMatch) {
         const chainParams = this.getChainParams(routeDryMatch);
         if (chainParams) {
           return this.sendResponse(req, chainParams);
