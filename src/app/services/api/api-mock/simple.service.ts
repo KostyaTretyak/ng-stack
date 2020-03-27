@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { ApiMockService, ApiMockCallbackData, ApiMockRoute } from '@ng-stack/api-mock';
+import { ApiMockService, ApiMockCallbackData, ApiMockRootRoute } from '@ng-stack/api-mock';
 
 interface Model {
   id: number;
@@ -9,9 +9,8 @@ interface Model {
 
 @Injectable()
 export class SimpleService implements ApiMockService {
-  getRoutes(): ApiMockRoute[] {
+  getRoutes(): ApiMockRootRoute[] {
     return [
-      // This array called "routes group". There may be more than one an object.
       {
         path: 'simple/:id',
         callbackData: this.getCallbackData(),

@@ -13,6 +13,7 @@ const apiMockModule = ApiMockModule.forRoot(ApiMockProxyService, {
   showLog: environment.apiMockShowLog,
   clearPrevLog: environment.apiMockClearPrevLog,
   passThruUnknownUrl: environment.apiMockPassThruUnknownUrl,
+  postUpdate409: false,
 });
 
 @NgModule({
