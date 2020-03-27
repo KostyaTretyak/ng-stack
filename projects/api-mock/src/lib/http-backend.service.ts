@@ -798,11 +798,11 @@ for example "https://example.com" (without a trailing slash)`
       queryParams = { parseError: err.message || 'error' };
     }
 
-    const log = {} as {
+    let log: {
       headers?: ObjectAny;
       queryParams?: ObjectAny;
       body?: ObjectAny;
-    };
+    } = {};
     if (JSON.stringify(logHeaders) != '{}') {
       log.headers = logHeaders;
     }
@@ -811,6 +811,9 @@ for example "https://example.com" (without a trailing slash)`
     }
     if (body) {
       log.body = body;
+    }
+    if (JSON.stringify(log) == '{}') {
+      log = '' as any;
     }
 
     console.log(`%creq: ${req.method} ${req.url}`, 'color: green;', log);

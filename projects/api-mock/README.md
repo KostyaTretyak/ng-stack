@@ -44,7 +44,7 @@ Examples:
 GET api/posts                 // all posts
 GET api/posts/42              // the post with id=42
 GET api/posts/42/comments     // all comments of post with id=42
-GET api/authors/10/books/3   // a book with id=3 whose author has id=10
+GET api/authors/10/books/3    // a book with id=3 whose author has id=10
 GET api/one/two/three         // endpoint without primary id
 ```
 

@@ -5,7 +5,7 @@ import { Status } from './http-status-codes';
 import { pickProperties } from './pick-properties';
 
 export abstract class ApiMockService {
-  abstract getRoutes(): ApiMockRoute[];
+  abstract getRoutes(): ApiMockRootRoute[];
 }
 
 /**
@@ -142,7 +142,7 @@ export interface ApiMockRoute {
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;
   refreshLocalStorage?: boolean;
-  children?: this[];
+  children?: ApiMockRoute[];
 }
 
 export interface ApiMockRootRoute extends ApiMockRoute {
