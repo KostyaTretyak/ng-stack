@@ -1,5 +1,12 @@
+<a name="2.0.0-beta.2"></a>
+# [2.0.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.2) (2020-03-28)
+
+### Bug Fixes
+
+- **support strict mode for `ng build`** Removed `Required<T>` for `reset()` and `setValue()`. (See [9e2408](https://github.com/KostyaTretyak/ng-stack/commit/9e2408)).
+
 <a name="2.0.0-beta.1"></a>
-# [2.0.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.1) (2020-03-20)
+## [2.0.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.1) (2020-03-20)
 
 ### Features and BREAKING CHANGES
 
