@@ -14,8 +14,6 @@ export class SimpleService implements ApiMockService {
       {
         path: 'simple/:id',
         callbackData: this.getCallbackData(),
-        callbackResponse: this.getCallbackResponse(),
-        children: [],
       },
     ];
   }
@@ -36,12 +34,5 @@ export class SimpleService implements ApiMockService {
         { id: 4, body: 'content for id 4' },
       ];
     };
-  }
-
-  /**
-   * Returns the data (list or an one item) from `getCallbackData()` callback.
-   */
-  private getCallbackResponse() {
-    return data => data;
   }
 }
