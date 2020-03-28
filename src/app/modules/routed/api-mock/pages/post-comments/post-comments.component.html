@@ -1,0 +1,5 @@
+<div *ngFor="let comment of postComments" class="post-comments">
+  <div>{{ comment.userName }}</div>
+  <img [src]="comment.pathAva" class="ava-40">
+  <div>{{comment.commentBody}}</div>
+</div>

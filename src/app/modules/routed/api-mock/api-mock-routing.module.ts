@@ -7,6 +7,8 @@ import { PostsComponent } from './pages/posts/posts.component';
 import { SimpleEditComponent } from './pages/simple-edit/simple-edit.component';
 import { ApiPostsResolverService } from 'src/app/services/api/posts/api-posts-resolver.service';
 import { PostReadComponent } from './pages/post-read/post-read.component';
+import { ApiPostsCommentsResolverService } from 'src/app/services/api/posts/api-posts-comments-resolver.service';
+import { PostCommentsComponent } from './pages/post-comments/post-comments.component';
 
 const routes: Routes = [
   // Parent route '/api-mock'
@@ -35,6 +37,13 @@ const routes: Routes = [
     component: PostReadComponent,
     resolve: {
       postRes: ApiPostsResolverService,
+    },
+  },
+  {
+    path: 'posts/:postId/comments',
+    component: PostCommentsComponent,
+    resolve: {
+      postCommentsRes: ApiPostsCommentsResolverService,
     },
   },
 ];

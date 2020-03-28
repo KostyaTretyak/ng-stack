@@ -29,12 +29,12 @@ export class PostsCommentsService implements ApiMockService {
         path: 'api/posts/:postId',
         callbackData: this.changePostsData(),
         callbackResponse: this.getPostsResponse(),
+        propertiesForList: new PostList(),
         children: [
           {
             path: 'comments/:commentId',
             callbackData: this.changeCommentsData(),
             callbackResponse: this.getCommentsResponse(),
-            propertiesForList: new PostList(),
           },
         ],
       },
@@ -47,6 +47,10 @@ export class PostsCommentsService implements ApiMockService {
    */
   private changePostsData(): ApiMockCallbackData<Post[]> {
     return (posts, postId, httpMethod, parents, queryParams) => {
+      if (posts.length) {
+        return posts;
+      }
+
       for (let i = 0; i < 5; i++, postId = null) {
         const post: Post = {
           postId: +postId || this.id,
