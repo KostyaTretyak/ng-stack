@@ -10,9 +10,10 @@ import { SimpleComponent } from './pages/simple/simple.component';
 import { PostsComponent } from './pages/posts/posts.component';
 import { SimpleEditComponent } from './pages/simple-edit/simple-edit.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { PostReadComponent } from './pages/post-read/post-read.component';
 
 @NgModule({
-  declarations: [ApiMockComponent, SimpleComponent, PostsComponent, SimpleEditComponent],
+  declarations: [ApiMockComponent, SimpleComponent, PostsComponent, SimpleEditComponent, PostReadComponent],
   imports: [CommonModule, ApiMockRoutingModule, NgStackFormsModule, ReactiveFormsModule, ContenteditableModule],
 })
 export class ApiMockModule {}

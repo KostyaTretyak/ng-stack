@@ -26,7 +26,7 @@ export class PostsCommentsService implements ApiMockService {
   getRoutes(): ApiMockRootRoute[] {
     return [
       {
-        path: 'posts/:postId',
+        path: 'api/posts/:postId',
         callbackData: this.changePostsData(),
         callbackResponse: this.getPostsResponse(),
         children: [
@@ -47,12 +47,12 @@ export class PostsCommentsService implements ApiMockService {
    */
   private changePostsData(): ApiMockCallbackData<Post[]> {
     return (posts, postId, httpMethod, parents, queryParams) => {
-      for (let i = 0; i < 20; i++, postId = null) {
+      for (let i = 0; i < 5; i++, postId = null) {
         const post: Post = {
           postId: +postId || this.id,
-          postTitle: faker.lorem.sentence(20),
-          postLead: faker.lorem.sentence(200),
-          postBody: faker.lorem.sentence(10000),
+          postTitle: faker.lorem.sentence(10),
+          postLead: faker.lorem.sentence(50),
+          postBody: faker.lorem.sentence(500),
           userName: faker.internet.userName(),
           countComments: faker.random.number({ min: 0, max: 10 }),
           datePosted: this.dateRange,

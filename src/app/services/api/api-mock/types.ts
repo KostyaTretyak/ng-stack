@@ -5,18 +5,18 @@ import { ObjectAny } from '../../../types/mix';
  * for use it for `pickAllPropertiesAsGetters()` util as list of properties.
  */
 export class PostList {
-  postId: number = null;
-  userName: string = null;
+  postId?: number = null;
+  userName?: string = null;
   postTitle: string = null;
   postLead: string = null;
-  pathAva: string = null;
-  countComments: number = null;
-  datePosted: number = null;
+  pathAva?: string = null;
+  countComments?: number = null;
+  datePosted?: number = null;
   lastCommentators?: Commentator[] = [];
 }
 
 export class Post extends PostList {
-  userId: number = null;
+  userId?: number = null;
   postBody: string = null;
 }
 

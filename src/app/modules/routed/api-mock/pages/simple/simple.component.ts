@@ -7,7 +7,6 @@ import { FormGroup, FormBuilder, Validators } from '@ng-stack/forms';
 import { SimpleModel } from '../../models/simple-model';
 
 @Component({
-  selector: 'app-simple',
   templateUrl: './simple.component.html',
   styleUrls: ['./simple.component.scss'],
 })
@@ -33,7 +32,7 @@ export class SimpleComponent implements OnInit {
 
   private getSimples() {
     if (!this.isLoading) {
-    this.message = 'getting...';
+      this.message = 'getting...';
     }
     this.httpClient.get<SimpleModel>(`/simple`).subscribe(result => {
       this.message = '';

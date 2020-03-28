@@ -1,4 +1,9 @@
 <p>
-  Press <code>Ctrl+Shift+I</code> and see console
+  Press <code>Ctrl+Shift+I</code> and see the console
 </p>
 
+<h1>Blog posts</h1>
+<div *ngFor="let post of posts" class="post-container">
+  <div class="post-title"><a [routerLink]="[post.postId]">{{ post.postTitle }}</a></div>
+  <div>{{ post.postLead }}</div>
+</div>
