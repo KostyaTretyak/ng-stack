@@ -22,11 +22,11 @@ describe('FormGroup', () => {
   class Profile {
     firstName: string;
     address: Control<Address>;
-    someNumber: number;
     someGroup: SomeGroup;
     someArray: number[];
-    someBoolean: boolean;
-    otheUnionType: 'one' | 'two';
+    someBoolean?: boolean;
+    someNumber?: number;
+    otheUnionType?: 'one' | 'two';
   }
 
   xdescribe('checking types only', () => {
@@ -61,7 +61,7 @@ describe('FormGroup', () => {
       formGroup = new FormGroup<Profile>({
         someBoolean: formControl,
         // otheUnionType: formControl1,
-      });
+      } as any);
 
       enum SomeEnum {
         first = 'one',

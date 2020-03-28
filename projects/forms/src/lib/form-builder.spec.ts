@@ -20,7 +20,7 @@ describe('FormBuilder', () => {
     class UserForm {
       userName: string;
       userEmail: string;
-      password: string;
+      password?: string;
       addresses: Address;
       someArray: SomeArray[];
       otherArray: (string | number)[];

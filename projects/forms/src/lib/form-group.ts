@@ -137,7 +137,7 @@ console.log(form.value);   // {first: 'Nancy', last: 'Drew'}
    * observables emit events with the latest status and value when the control value is updated.
    * When false, no events are emitted.
    */
-  setValue(value: Required<T>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  setValue(value: T, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.setValue(value, options);
   }
 
@@ -233,7 +233,7 @@ console.log(this.form.value);  // {first: 'name', last: 'last name'}
 console.log(this.form.get('first').status);  // 'DISABLED'
 ```
    */
-  reset(value: Required<T> = {} as any, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  reset(value: T = {} as any, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.reset(value, options);
   }
 
