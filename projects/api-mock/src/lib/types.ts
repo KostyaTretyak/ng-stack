@@ -141,7 +141,13 @@ export interface ApiMockRoute {
    */
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;
-  refreshLocalStorage?: boolean;
+  /**
+   * You can store almost all mockData in localStorage, but with exception of store
+   * from individual routes with `ignoreDataFromLocalStorage == true`.
+   *
+   * By default `ignoreDataFromLocalStorage == false`.
+   */
+  ignoreDataFromLocalStorage?: boolean;
   children?: ApiMockRoute[];
 }
 
