@@ -96,6 +96,10 @@ describe('HttpBackendService', () => {
     bindReadonlyData(chainParam: ChainParam, writeableData: ObjectAny[]) {
       return super.bindReadonlyData(chainParam, writeableData);
     }
+
+    cacheDataWithGetMethod(parents: ObjectAny[], chainParam: ChainParam, queryParams?: Params, body?: any) {
+      return super.cacheDataWithGetMethod(parents, chainParam, queryParams, body);
+    }
   }
 
   class MyApiMockService implements ApiMockService {
@@ -789,10 +793,27 @@ describe('HttpBackendService', () => {
       expect(readonlyData[1]).toEqual({ id: 2, body: 'content for id 2' });
       writeableData[1].body = 'changed content';
       expect(readonlyData[1]).toEqual({ id: 2, body: 'changed content' });
+      expect(() => (readonlyData[1].body = '')).toThrowError(/which has only a getter/);
     });
   });
 
-  describe('cacheGetData()', () => {});
+  describe('cacheDataWithGetMethod()', () => {
+    it(`returned object have writeableData and readonlyData`, () => {
+      const cacheKey = 'api/posts';
+      const data = [{ one: 1, two: 2 }];
+      const chainParam: ChainParam = {
+        cacheKey,
+        primaryKey: 'any-primary-key',
+        route: { path: 'any-path', callbackData: () => data },
+      };
+
+      let result = httpBackendService.cacheDataWithGetMethod([], chainParam);
+      expect(result).toEqual({ writeableData: data, readonlyData: data });
+      result = httpBackendService.cacheDataWithGetMethod([], { cacheKey } as ChainParam);
+      expect(result).toEqual({ writeableData: data, readonlyData: data });
+    });
+  });
+
   describe('getParents()', () => {});
 
   describe('sendResponse()', () => {
