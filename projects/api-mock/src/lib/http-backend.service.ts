@@ -397,7 +397,7 @@ for example "https://example.com" (without a trailing slash)`
 
   protected cacheGetData(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
     if (this.config.cacheFromLocalStorage && !chainParam.route.ignoreDataFromLocalStorage) {
-      this.getFromLocalStorage(chainParam);
+      this.applyDataFromLocalStorage(chainParam);
     }
 
     if (!this.cachedData[chainParam.cacheKey]) {
@@ -416,7 +416,7 @@ for example "https://example.com" (without a trailing slash)`
     return this.cachedData[chainParam.cacheKey];
   }
 
-  protected getFromLocalStorage(chainParam: ChainParam): void {
+  protected applyDataFromLocalStorage(chainParam: ChainParam): void {
     try {
       const cachedData: CacheData = JSON.parse(localStorage.getItem(this.config.localStorageKey));
       const cacheKey = chainParam.cacheKey;
