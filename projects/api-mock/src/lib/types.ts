@@ -164,7 +164,7 @@ export class RouteDryMatch {
 }
 
 /**
- * If we have URL `api/posts/123/comments/456`,
+ * If we have URL `api/posts/123/comments/456` with route `api/posts/:postId/comments/:commentId`,
  * we have two "chain params" for `api/posts` and for `api/posts/123/comments`.
  */
 export interface ChainParam {

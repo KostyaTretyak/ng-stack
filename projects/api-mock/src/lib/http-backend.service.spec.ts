@@ -654,7 +654,6 @@ describe('HttpBackendService', () => {
           splitedUrl: url.split('/'),
           splitedRoute: routePath.split('/'),
           hasLastRestId: true,
-          lastPrimaryKey: 'anyKey',
           routes: [{ path: routePath }],
         };
 
@@ -719,7 +718,6 @@ describe('HttpBackendService', () => {
           splitedUrl: url.split('/'),
           splitedRoute: routePath.split('/'),
           hasLastRestId: true,
-          lastPrimaryKey: 'anyKey',
           routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
         };
 
