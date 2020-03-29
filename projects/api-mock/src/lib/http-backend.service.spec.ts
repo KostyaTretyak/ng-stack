@@ -97,8 +97,8 @@ describe('HttpBackendService', () => {
       return super.bindReadonlyData(chainParam, writeableData);
     }
 
-    cacheDataWithGetMethod(parents: ObjectAny[], chainParam: ChainParam, queryParams?: Params, body?: any) {
-      return super.cacheDataWithGetMethod(parents, chainParam, queryParams, body);
+    cacheDataWithGetMethod(chainParam: ChainParam, parents?: ObjectAny[], queryParams?: Params, body?: any) {
+      return super.cacheDataWithGetMethod(chainParam, parents, queryParams, body);
     }
   }
 
@@ -798,7 +798,7 @@ describe('HttpBackendService', () => {
   });
 
   describe('cacheDataWithGetMethod()', () => {
-    it(`returned object have writeableData and readonlyData`, () => {
+    fit(`returned object have writeableData and readonlyData`, () => {
       const cacheKey = 'api/posts';
       const data = [{ one: 1, two: 2 }];
       const chainParam: ChainParam = {
@@ -807,9 +807,9 @@ describe('HttpBackendService', () => {
         route: { path: 'any-path', callbackData: () => data },
       };
 
-      let result = httpBackendService.cacheDataWithGetMethod([], chainParam);
+      let result = httpBackendService.cacheDataWithGetMethod(chainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
-      result = httpBackendService.cacheDataWithGetMethod([], { cacheKey } as ChainParam);
+      result = httpBackendService.cacheDataWithGetMethod({ cacheKey } as ChainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
     });
   });

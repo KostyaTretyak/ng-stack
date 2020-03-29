@@ -361,7 +361,7 @@ for example "https://example.com" (without a trailing slash)`
     let responseOptions = {} as ResponseOptions;
 
     if (chainParam.route.callbackData) {
-      const mockData = this.cacheDataWithGetMethod(parents, chainParam, queryParams, req.body);
+      const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body);
       responseOptions = this.callRequestMethod(req, chainParam, mockData);
 
       if (responseOptions instanceof HttpErrorResponse) {
@@ -399,7 +399,7 @@ for example "https://example.com" (without a trailing slash)`
    * If cache data no exists, calls `callbackData()` with GET HTTP method,
    * cache the result and returns it.
    */
-  protected cacheDataWithGetMethod(parents: ObjectAny[], chainParam: ChainParam, queryParams: Params, body: any) {
+  protected cacheDataWithGetMethod(chainParam: ChainParam, parents?: ObjectAny[], queryParams?: Params, body?: any) {
     if (this.config.cacheFromLocalStorage && !chainParam.route.ignoreDataFromLocalStorage) {
       this.applyDataFromLocalStorage(chainParam);
     }
@@ -460,7 +460,7 @@ for example "https://example.com" (without a trailing slash)`
     for (let i = 0; i < chainParams.length - 1; i++) {
       const chainParam = chainParams[i];
 
-      const mockData = this.cacheDataWithGetMethod(parents, chainParam, queryParams, req.body);
+      const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body);
       const primaryKey = chainParam.primaryKey;
       const restId = chainParam.restId;
       const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
