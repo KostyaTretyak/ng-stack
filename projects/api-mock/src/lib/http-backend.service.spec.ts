@@ -109,8 +109,8 @@ describe('HttpBackendService', () => {
   }
 
   let httpBackendService: MockHttpBackendService;
-
-  beforeEach(() => {
+  function resetMock() {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule, ApiMockModule.forRoot(MyApiMockService), RouterTestingModule],
       providers: [MockHttpBackendService],
@@ -120,6 +120,12 @@ describe('HttpBackendService', () => {
 
     // Merge with default configs.
     httpBackendService.config = new ApiMockConfig(httpBackendService.config);
+  }
+
+  beforeEach(resetMock);
+
+  afterEach(() => {
+    localStorage.clear();
   });
 
   describe('checkRouts()', () => {
@@ -798,7 +804,7 @@ describe('HttpBackendService', () => {
   });
 
   describe('cacheDataWithGetMethod()', () => {
-    fit(`returned object have writeableData and readonlyData`, () => {
+    it(`returned object have writeableData and readonlyData`, () => {
       const cacheKey = 'api/posts';
       const data = [{ one: 1, two: 2 }];
       const chainParam: ChainParam = {
@@ -810,6 +816,30 @@ describe('HttpBackendService', () => {
       let result = httpBackendService.cacheDataWithGetMethod(chainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
       result = httpBackendService.cacheDataWithGetMethod({ cacheKey } as ChainParam);
+      expect(result).toEqual({ writeableData: data, readonlyData: data });
+      resetMock();
+      httpBackendService.config.cacheFromLocalStorage = true;
+      const errMsg = /callbackData is not a function/;
+      expect(() => httpBackendService.cacheDataWithGetMethod({ cacheKey, route: {} } as ChainParam)).toThrowError(
+        errMsg
+      );
+    });
+
+    it(`get data from localStorage`, () => {
+      const cacheKey = 'api/posts';
+      const data = [{ one: 1, two: 2 }];
+      const chainParam: ChainParam = {
+        cacheKey,
+        primaryKey: 'any-primary-key',
+        route: { path: 'any-path', callbackData: () => data },
+      };
+
+      httpBackendService.config.cacheFromLocalStorage = true;
+      let result = httpBackendService.cacheDataWithGetMethod(chainParam);
+      expect(result).toEqual({ writeableData: data, readonlyData: data });
+      resetMock();
+      httpBackendService.config.cacheFromLocalStorage = true;
+      result = httpBackendService.cacheDataWithGetMethod({ cacheKey, route: {} } as ChainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
     });
   });
