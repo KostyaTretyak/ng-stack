@@ -137,7 +137,7 @@ export interface ApiMockRoute {
   path: string;
   callbackData?: ApiMockCallbackData;
   /**
-   * Properties for list items, that returns from `callbackData()`.
+   * Properties for a list items that returns from `callbackData()`.
    */
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;

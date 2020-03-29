@@ -1,3 +1,4 @@
+<div *ngIf="!postComments.length">No comments yet</div>
 <div *ngFor="let comment of postComments" class="post-comments">
   <div>{{ comment.userName }}</div>
   <img [src]="comment.pathAva" class="ava-40">

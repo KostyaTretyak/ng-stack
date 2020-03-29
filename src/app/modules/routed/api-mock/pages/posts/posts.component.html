@@ -11,6 +11,6 @@
 <h1>Blog posts</h1>
 <div *ngFor="let post of posts" class="post-container">
   <div><img [src]="post.pathAva" class="ava-24" /> {{ post.userName }}</div>
-  <div class="post-title"><a [routerLink]="[post.postId]">{{ post.postTitle }}</a></div>
+  <div class="post-title"><a [routerLink]="[post.postId]">{{ post.postTitle }}</a> ({{post.countComments}} comments)</div>
   <div>{{ post.postLead }}</div>
 </div>

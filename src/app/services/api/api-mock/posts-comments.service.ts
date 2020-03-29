@@ -100,7 +100,7 @@ export class PostsCommentsService implements ApiMockService {
           for (let i = 0; i < post.countComments; i++, postCommentId = null) {
             const postComment: PostComment = {
               commentId: +postCommentId || this.id,
-              commentBody: faker.lorem.sentence(200),
+              commentBody: faker.lorem.sentence(100),
               dateInsert: this.dateRange,
               dateUpdate: this.dateRange,
               pathAva: faker.internet.avatar(),
