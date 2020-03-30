@@ -396,7 +396,7 @@ for example "https://example.com" (without a trailing slash)`
   }
 
   /**
-   * If cache data no exists, calls `callbackData()` with GET HTTP method,
+   * If cached data no exists, calls `callbackData()` with `GET` HTTP method,
    * cache the result and returns it.
    */
   protected cacheDataWithGetMethod(chainParam: ChainParam, parents?: ObjectAny[], queryParams?: Params, body?: any) {
@@ -459,7 +459,6 @@ for example "https://example.com" (without a trailing slash)`
     // for() without last chainParam.
     for (let i = 0; i < chainParams.length - 1; i++) {
       const chainParam = chainParams[i];
-
       const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body);
       const primaryKey = chainParam.primaryKey;
       const restId = chainParam.restId;

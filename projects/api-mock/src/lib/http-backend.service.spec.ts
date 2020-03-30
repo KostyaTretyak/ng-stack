@@ -100,6 +100,10 @@ describe('HttpBackendService', () => {
     cacheDataWithGetMethod(chainParam: ChainParam, parents?: ObjectAny[], queryParams?: Params, body?: any) {
       return super.cacheDataWithGetMethod(chainParam, parents, queryParams, body);
     }
+
+    getParents(req: HttpRequest<any>, chainParams: ChainParam[]) {
+      return super.getParents(req, chainParams);
+    }
   }
 
   class MyApiMockService implements ApiMockService {
@@ -844,7 +848,45 @@ describe('HttpBackendService', () => {
     });
   });
 
-  describe('getParents()', () => {});
+  describe('getParents()', () => {
+    const req = new HttpRequest('GET', 'any-url');
+    interface PostData {
+      postId: number;
+      postBody: string;
+    }
+    const postData: PostData[] = [
+      { postId: 1, postBody: 'content for postId=1' },
+      { postId: 2, postBody: 'content for postId=2' },
+      { postId: 3, postBody: 'content for postId=3' },
+      { postId: 4, postBody: 'content for postId=4' },
+    ];
+
+    it(`should found post with id=2`, () => {
+      const chainParam1: ChainParam = {
+        cacheKey: 'any-cache-key',
+        route: { path: 'any-post-path', callbackData: () => postData },
+        primaryKey: 'postId',
+        restId: '2',
+      };
+      const chainParam2 = {} as ChainParam;
+
+      const parent = httpBackendService.getParents(req, [chainParam1, chainParam2]);
+      expect(parent).toEqual([{ postId: 2, postBody: 'content for postId=2' }]);
+    });
+
+    it(`should not found post with id=10`, () => {
+      const chainParam1: ChainParam = {
+        cacheKey: 'any-cache-key',
+        route: { path: 'any-post-path', callbackData: () => postData },
+        primaryKey: 'postId',
+        restId: '10',
+      };
+      const chainParam2 = {} as ChainParam;
+
+      const parent = httpBackendService.getParents(req, [chainParam1, chainParam2]);
+      expect(parent instanceof HttpErrorResponse).toBe(true);
+    });
+  });
 
   describe('sendResponse()', () => {
     it('should returns result of calling callbackData()', fakeAsync(() => {
