@@ -15,14 +15,6 @@ import { makeResponse } from './make-response';
 
 @Injectable()
 export class PostsCommentsService implements ApiMockService {
-  private get dateRange() {
-    return faker.date.between(new Date('2019.01.01'), Date()).getTime();
-  }
-
-  private get id() {
-    return faker.random.number({ min: 1, max: 1000 });
-  }
-
   getRoutes(): ApiMockRootRoute[] {
     return [
       {
@@ -154,5 +146,13 @@ export class PostsCommentsService implements ApiMockService {
       const postInfo = pickAllPropertiesAsGetters(new PostInfo(), post);
       return makeResponse(clonedData, { postInfo, queryParams });
     };
+  }
+
+  private get dateRange() {
+    return faker.date.between(new Date('2019.01.01'), Date()).getTime();
+  }
+
+  private get id() {
+    return faker.random.number({ min: 1, max: 1000 });
   }
 }
