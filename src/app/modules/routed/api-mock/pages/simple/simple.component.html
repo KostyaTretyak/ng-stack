@@ -1,6 +1,12 @@
 <p>
   Press <code>Ctrl+Shift+I</code> and see the console
 </p>
+<p>
+  This component created with
+  <a href="https://github.com/KostyaTretyak/ng-stack/blob/master/src/app/services/api/api-mock/simple.service.ts" target="_blank">SimpleService</a>.
+  Each request to "backend" has a delay of one second
+  (see <a href="https://github.com/KostyaTretyak/ng-stack/blob/master/src/environments/environment.ts" target="_blank">environment.ts</a>).
+</p>
 
 <pre *ngIf="isLoading">loading...</pre>
 
@@ -8,12 +14,13 @@
   <tr>
     <th>id</th>
     <th>body</th>
-    <th>action</th>
+    <th colspan="2">action</th>
   </tr>
   <tr *ngFor="let simple of simples$ | async">
     <td>{{ simple.id }}</td>
     <td>{{ simple.body }}</td>
     <td><a [routerLink]="['edit', simple.id]">edit</a></td>
+    <td><button (click)="delete(simple.id)">delete</button></td>
   </tr>
   <tr *ngIf="isAdding" [formGroup]="form">
     <td><div formControlName="id" contenteditable="true"></div></td>

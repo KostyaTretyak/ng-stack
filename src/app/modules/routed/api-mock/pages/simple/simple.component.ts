@@ -55,6 +55,11 @@ export class SimpleComponent implements OnInit {
     });
   }
 
+  delete(id: number) {
+    this.message = 'deleting...';
+    this.httpClient.delete(`/simple/${id}`).subscribe(() => this.getSimples());
+  }
+
   private showFormErrors() {
     if (this.form.get('id').getError('required')) {
       this.message = 'id is required';
