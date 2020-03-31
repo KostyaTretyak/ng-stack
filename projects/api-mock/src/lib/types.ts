@@ -105,32 +105,34 @@ export type CallbackAny = (...params: any[]) => any;
  */
 export type HttpMethod = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'OPTIONS' | 'CONNECT' | 'PATCH';
 
-export type ApiMockDataCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
-  items?: I,
-  itemId?: string,
-  httpMethod?: HttpMethod,
-  parents?: P,
-  queryParams?: Params,
+export interface ApiMockDataCallbackOptions<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> {
+  items?: I;
+  itemId?: string;
+  httpMethod?: HttpMethod;
+  parents?: P;
+  queryParams?: Params;
   /**
    * Request body.
    */
-  reqBody?: any
-) => ObjectAny[];
+  reqBody?: any;
+}
 
-export type ApiMockResponseCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
-  items?: I,
-  itemId?: string,
-  httpMethod?: HttpMethod,
-  parents?: P,
-  queryParams?: Params,
-  /**
-   * Request body.
-   */
-  reqBody?: any,
+export interface ApiMockResponseCallbackOptions<
+  I extends ObjectAny[] = ObjectAny[],
+  P extends ObjectAny[] = ObjectAny[]
+> extends ApiMockDataCallbackOptions<I, P> {
   /**
    * Response body.
    */
-  resBody?: any
+  resBody?: any;
+}
+
+export type ApiMockDataCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+  opts?: ApiMockDataCallbackOptions<I, P>
+) => ObjectAny[];
+
+export type ApiMockResponseCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+  opts?: ApiMockResponseCallbackOptions<I, P>
 ) => any;
 
 export interface ApiMockRoute {

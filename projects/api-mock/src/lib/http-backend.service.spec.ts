@@ -22,6 +22,8 @@ import {
   ApiMockRoute,
   MockData,
   CacheData,
+  ApiMockDataCallback,
+  ApiMockResponseCallback,
 } from './types';
 import { Status } from './http-status-codes';
 
@@ -892,8 +894,8 @@ describe('HttpBackendService', () => {
 
   describe('sendResponse()', () => {
     it('should returns result of calling dataCallback()', fakeAsync(() => {
-      const dataCallback = () => [{ some: 1 }];
-      const responseCallback = clonedItems => clonedItems;
+      const dataCallback: ApiMockDataCallback = () => [{ some: 1 }];
+      const responseCallback: ApiMockResponseCallback = clonedItems => clonedItems.items;
       const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
@@ -916,8 +918,8 @@ describe('HttpBackendService', () => {
     }));
 
     it('should returns searched item with given primaryKey and restId inside result of calling dataCallback()', fakeAsync(() => {
-      const dataCallback = () => [{ somePrimaryKey: 23, some: 1 }];
-      const responseCallback = clonedItems => clonedItems;
+      const dataCallback: ApiMockDataCallback = () => [{ somePrimaryKey: 23, some: 1 }];
+      const responseCallback: ApiMockResponseCallback = response => response.items;
       const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',

@@ -30,6 +30,7 @@ import {
   ResponseOptionsLog,
   MockData,
   isFormData,
+  ApiMockDataCallbackOptions,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -369,14 +370,15 @@ for example "https://example.com" (without a trailing slash)`
       }
 
       if (httpMethod != 'GET') {
-        const writeableData = chainParam.route.dataCallback(
-          mockData.writeableData,
-          chainParam.restId,
+        const opts: ApiMockDataCallbackOptions = {
+          items: mockData.writeableData,
+          itemId: chainParam.restId,
           httpMethod,
           parents,
           queryParams,
-          req.body
-        );
+          reqBody: req.body,
+        };
+        const writeableData = chainParam.route.dataCallback(opts);
 
         this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
         this.bindReadonlyData(chainParam, writeableData);
@@ -405,7 +407,15 @@ for example "https://example.com" (without a trailing slash)`
     }
 
     if (!this.cachedData[chainParam.cacheKey]) {
-      const writeableData = chainParam.route.dataCallback([], chainParam.restId, 'GET', parents, queryParams, body);
+      const opts: ApiMockDataCallbackOptions = {
+        items: [],
+        itemId: chainParam.restId,
+        httpMethod: 'GET',
+        parents,
+        queryParams,
+        reqBody: body,
+      };
+      const writeableData = chainParam.route.dataCallback(opts);
       if (!Array.isArray(writeableData)) {
         throw new TypeError('route.dataCallback() should returns an array');
       }
@@ -702,14 +712,15 @@ for example "https://example.com" (without a trailing slash)`
     let resOrBody = clonedBody;
 
     if (chainParam.route.responseCallback) {
-      resOrBody = chainParam.route.responseCallback(
-        clonedBody,
-        restId,
+      const opts: ApiMockDataCallbackOptions = {
+        items: clonedBody,
+        itemId: restId,
         httpMethod,
-        this.clone(parents),
+        parents: this.clone(parents),
         queryParams,
-        this.clone(req.body)
-      );
+        reqBody: this.clone(req.body),
+      };
+      resOrBody = chainParam.route.responseCallback(opts);
     }
 
     let observable: Observable<HttpResponse<any>>;
