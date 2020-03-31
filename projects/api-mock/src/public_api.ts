@@ -12,7 +12,7 @@ export {
   ApiMockRootRoute,
   ApiMockRoute,
   ApiMockDataCallback,
-  ApiMockCallbackResponse,
+  ApiMockResponseCallback,
   ObjectAny,
   CallbackAny,
   HttpMethod,

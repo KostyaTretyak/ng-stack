@@ -117,7 +117,7 @@ export type ApiMockDataCallback<I extends ObjectAny[] = ObjectAny[], P extends O
   reqBody?: any
 ) => ObjectAny[];
 
-export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+export type ApiMockResponseCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
   items?: I,
   itemId?: string,
   httpMethod?: HttpMethod,
@@ -140,7 +140,7 @@ export interface ApiMockRoute {
    * Properties for a list items that returns from `dataCallback()`.
    */
   propertiesForList?: ObjectAny;
-  callbackResponse?: ApiMockCallbackResponse;
+  responseCallback?: ApiMockResponseCallback;
   /**
    * You can store almost all mockData in localStorage, but with exception of store
    * from individual routes with `ignoreDataFromLocalStorage == true`.

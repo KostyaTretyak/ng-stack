@@ -166,16 +166,16 @@ describe('HttpBackendService', () => {
       ['cyrillic host', { host: 'https://приклад.укр', path: 'api' }],
       ['xn host', { host: 'https://xn--80aikifvh.xn--j1amh', path: 'api' }],
       [
-        'callbackResponse as a function',
+        'responseCallback as a function',
         {
           path: 'api/posts/:postId',
           dataCallback: () => [],
-          callbackResponse: () => [],
+          responseCallback: () => [],
         },
       ],
       [
-        'callbackResponse as a function, without path primary key',
-        { path: 'api/pre-account/login', callbackResponse: () => [] },
+        'responseCallback as a function, without path primary key',
+        { path: 'api/pre-account/login', responseCallback: () => [] },
       ],
     ];
 
@@ -205,8 +205,8 @@ describe('HttpBackendService', () => {
       expect(() => httpBackendService.checkRoute(route)).toThrowError(/is not a function/);
     });
 
-    it('callbackResponse as an object', () => {
-      const route: ApiMockRoute = { callbackResponse: {} as any, dataCallback: () => [], path: 'api/posts/:postId' };
+    it('responseCallback as an object', () => {
+      const route: ApiMockRoute = { responseCallback: {} as any, dataCallback: () => [], path: 'api/posts/:postId' };
       expect(() => httpBackendService.checkRoute(route)).toThrowError(/is not a function/);
     });
 
@@ -893,9 +893,13 @@ describe('HttpBackendService', () => {
   describe('sendResponse()', () => {
     it('should returns result of calling dataCallback()', fakeAsync(() => {
       const dataCallback = () => [{ some: 1 }];
-      const callbackResponse = clonedItems => clonedItems;
+      const responseCallback = clonedItems => clonedItems;
       const chainParam: ChainParam[] = [
-        { cacheKey: 'api/posts', primaryKey: '', route: { path: '', dataCallback, callbackResponse } },
+        {
+          cacheKey: 'api/posts',
+          primaryKey: '',
+          route: { path: '', dataCallback, responseCallback },
+        },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
       const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
@@ -913,13 +917,13 @@ describe('HttpBackendService', () => {
 
     it('should returns searched item with given primaryKey and restId inside result of calling dataCallback()', fakeAsync(() => {
       const dataCallback = () => [{ somePrimaryKey: 23, some: 1 }];
-      const callbackResponse = clonedItems => clonedItems;
+      const responseCallback = clonedItems => clonedItems;
       const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
           restId: '23',
-          route: { path: '', dataCallback, callbackResponse },
+          route: { path: '', dataCallback, responseCallback },
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
@@ -938,13 +942,13 @@ describe('HttpBackendService', () => {
 
     it('should returns undefined when search inside result of calling dataCallback()', fakeAsync(() => {
       const dataCallback = () => [{ some: 1 }];
-      const callbackResponse = clonedItems => clonedItems;
+      const responseCallback = clonedItems => clonedItems;
       const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
           restId: 'someRestId',
-          route: { path: '', dataCallback, callbackResponse },
+          route: { path: '', dataCallback, responseCallback },
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');

@@ -115,8 +115,8 @@ route.path should not to have trailing slash.`
     if (route.dataCallback && typeof route.dataCallback != 'function') {
       throw new Error(`Route dataCallback with path "${path}" is not a function`);
     }
-    if (route.callbackResponse && typeof route.callbackResponse != 'function') {
-      throw new Error(`Route callbackResponse with path "${path}" is not a function`);
+    if (route.responseCallback && typeof route.responseCallback != 'function') {
+      throw new Error(`Route responseCallback with path "${path}" is not a function`);
     }
 
     // Checking a path.host
@@ -342,7 +342,7 @@ for example "https://example.com" (without a trailing slash)`
   /**
    * This function:
    * - calls `dataCallback()` from apropriate route;
-   * - calls `callbackResponse()` from matched route and returns a result.
+   * - calls `responseCallback()` from matched route and returns a result.
    */
   protected sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]): Observable<HttpResponse<any>> {
     const queryParams = this.parseUrl(req.urlWithParams).queryParams;
@@ -701,8 +701,8 @@ for example "https://example.com" (without a trailing slash)`
      */
     let resOrBody = clonedBody;
 
-    if (chainParam.route.callbackResponse) {
-      resOrBody = chainParam.route.callbackResponse(
+    if (chainParam.route.responseCallback) {
+      resOrBody = chainParam.route.responseCallback(
         clonedBody,
         restId,
         httpMethod,
