@@ -26,6 +26,7 @@
     <td><div formControlName="id" contenteditable="true"></div></td>
     <td><div formControlName="body" contenteditable="true"></div></td>
     <td><button (click)="save()">save</button></td>
+    <td><button (click)="isAdding = false">delete</button></td>
   </tr>
 </table>
 <button *ngIf="!isLoading" (click)="isAdding = true">add</button><span style="margin-left: 5px; font-style: italic;">{{ message }}</span>

@@ -19,14 +19,14 @@ export class PostsCommentsService implements ApiMockService {
     return [
       {
         path: 'api/posts/:postId',
-        callbackData: this.changePostsData(),
-        callbackResponse: this.getPostsResponse(),
+        callbackData: this.getPostsDataCallback(),
+        callbackResponse: this.getPostsResponseCallback(),
         propertiesForList: new PostList(),
         children: [
           {
             path: 'comments/:commentId',
-            callbackData: this.changeCommentsData(),
-            callbackResponse: this.getCommentsResponse(),
+            callbackData: this.getCommentsDataCallback(),
+            callbackResponse: this.getCommentsResponseCallback(),
           },
         ],
       },
@@ -37,25 +37,25 @@ export class PostsCommentsService implements ApiMockService {
   /**
    * Called when URL is like `/posts` or `/posts/123`
    */
-  private changePostsData(): ApiMockCallbackData<Post[]> {
+  private getPostsDataCallback(): ApiMockCallbackData<Post[]> {
     return (posts, postId, httpMethod, parents, queryParams) => {
-      if (posts.length) {
+      if (httpMethod == 'GET') {
+        for (let i = 0; i < 5; i++, postId = null) {
+          const post: Post = {
+            postId: +postId || this.id,
+            postTitle: faker.lorem.sentence(10),
+            postLead: faker.lorem.sentence(50),
+            postBody: faker.lorem.sentence(500),
+            userName: faker.internet.userName(),
+            countComments: faker.random.number({ min: 0, max: 10 }),
+            datePosted: this.dateRange,
+            pathAva: faker.internet.avatar(),
+            userId: this.id,
+          };
+          posts.push(post);
+        }
+      } else {
         return posts;
-      }
-
-      for (let i = 0; i < 5; i++, postId = null) {
-        const post: Post = {
-          postId: +postId || this.id,
-          postTitle: faker.lorem.sentence(10),
-          postLead: faker.lorem.sentence(50),
-          postBody: faker.lorem.sentence(500),
-          userName: faker.internet.userName(),
-          countComments: faker.random.number({ min: 0, max: 10 }),
-          datePosted: this.dateRange,
-          pathAva: faker.internet.avatar(),
-          userId: this.id,
-        };
-        posts.push(post);
       }
 
       return posts;
@@ -65,7 +65,7 @@ export class PostsCommentsService implements ApiMockService {
   /**
    * Returns the data (list or one item) from `changePostsData()` callback.
    */
-  private getPostsResponse(): ApiMockCallbackResponse<Post[]> {
+  private getPostsResponseCallback(): ApiMockCallbackResponse<Post[]> {
     return (clonedData, postId, httpMethod, parents, queryParams) => {
       if (postId) {
         return makeResponse(clonedData);
@@ -80,7 +80,7 @@ export class PostsCommentsService implements ApiMockService {
    *  - `[Post]` - it is generic type for `parents` - parameter for the callback.
    *  - `PostComment[]` - it is generic type for `postComments` - parameter for the callback.
    */
-  private changeCommentsData(): ApiMockCallbackData<PostComment[], [Post]> {
+  private getCommentsDataCallback(): ApiMockCallbackData<PostComment[], [Post]> {
     /**
      * @param commentId Only need to may include it in one of postComments.
      */
@@ -136,7 +136,7 @@ export class PostsCommentsService implements ApiMockService {
    * Returns the data (list or one item) from `changeCommentsData()` callback.
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
-  private getCommentsResponse(): ApiMockCallbackResponse<PostComment[], [Post]> {
+  private getCommentsResponseCallback(): ApiMockCallbackResponse<PostComment[], [Post]> {
     return (clonedData, postCommentId, httpMethod, parents, queryParams) => {
       if (postCommentId) {
         return makeResponse(clonedData);
