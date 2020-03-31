@@ -38,7 +38,7 @@ export class PostsCommentsService implements ApiMockService {
    * Called when URL is like `/posts` or `/posts/123`
    */
   private getPostsDataCallback(): ApiMockDataCallback<Post[]> {
-    return ({ items: posts, itemId: postId, httpMethod }) => {
+    return ({ httpMethod, items: posts, itemId: postId }) => {
       if (httpMethod == 'GET') {
         for (let i = 0; i < 5; i++, postId = null) {
           const post: Post = {
@@ -54,8 +54,6 @@ export class PostsCommentsService implements ApiMockService {
           };
           posts.push(post);
         }
-      } else {
-        return posts;
       }
 
       return posts;
@@ -63,7 +61,7 @@ export class PostsCommentsService implements ApiMockService {
   }
 
   /**
-   * Returns the data (list or one item) from `changePostsData()` callback.
+   * Callback returns the data (list or one item) from `changePostsData()` callback.
    */
   private getPostsResponseCallback(): ApiMockResponseCallback<Post[]> {
     return ({ items: clonedData, itemId: postId, queryParams }) => {
@@ -75,7 +73,7 @@ export class PostsCommentsService implements ApiMockService {
   }
 
   /**
-   * Called when URL is like `/posts/123/comments` or `/posts/123/comments/456`.
+   * Callback called when URL is like `/posts/123/comments` or `/posts/123/comments/456`.
    * Here
    *  - `[Post]` - it is generic type for `parents` - parameter for the callback.
    *  - `PostComment[]` - it is generic type for `postComments` - parameter for the callback.
@@ -133,7 +131,7 @@ export class PostsCommentsService implements ApiMockService {
   }
 
   /**
-   * Returns the data (list or one item) from `changeCommentsData()` callback.
+   * Callback returns the data (list or one item) from `changeCommentsData()` callback.
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsResponseCallback(): ApiMockResponseCallback<PostComment[], [Post]> {
