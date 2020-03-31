@@ -5,7 +5,7 @@ import {
   ApiMockService,
   ApiMockRootRoute,
   ApiMockDataCallback,
-  ApiMockCallbackResponse,
+  ApiMockResponseCallback,
   pickAllPropertiesAsGetters,
   pickPropertiesAsGetters,
 } from '@ng-stack/api-mock';
@@ -20,13 +20,13 @@ export class PostsCommentsService implements ApiMockService {
       {
         path: 'api/posts/:postId',
         dataCallback: this.getPostsDataCallback(),
-        callbackResponse: this.getPostsResponseCallback(),
+        responseCallback: this.getPostsResponseCallback(),
         propertiesForList: new PostList(),
         children: [
           {
             path: 'comments/:commentId',
             dataCallback: this.getCommentsDataCallback(),
-            callbackResponse: this.getCommentsResponseCallback(),
+            responseCallback: this.getCommentsResponseCallback(),
           },
         ],
       },
@@ -65,7 +65,7 @@ export class PostsCommentsService implements ApiMockService {
   /**
    * Returns the data (list or one item) from `changePostsData()` callback.
    */
-  private getPostsResponseCallback(): ApiMockCallbackResponse<Post[]> {
+  private getPostsResponseCallback(): ApiMockResponseCallback<Post[]> {
     return (clonedData, postId, httpMethod, parents, queryParams) => {
       if (postId) {
         return makeResponse(clonedData);
@@ -136,7 +136,7 @@ export class PostsCommentsService implements ApiMockService {
    * Returns the data (list or one item) from `changeCommentsData()` callback.
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
-  private getCommentsResponseCallback(): ApiMockCallbackResponse<PostComment[], [Post]> {
+  private getCommentsResponseCallback(): ApiMockResponseCallback<PostComment[], [Post]> {
     return (clonedData, postCommentId, httpMethod, parents, queryParams) => {
       if (postCommentId) {
         return makeResponse(clonedData);
