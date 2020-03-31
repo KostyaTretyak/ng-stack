@@ -105,7 +105,7 @@ export type CallbackAny = (...params: any[]) => any;
  */
 export type HttpMethod = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'OPTIONS' | 'CONNECT' | 'PATCH';
 
-export type ApiMockCallbackData<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
+export type ApiMockDataCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
   items?: I,
   itemId?: string,
   httpMethod?: HttpMethod,
@@ -135,9 +135,9 @@ export type ApiMockCallbackResponse<I extends ObjectAny[] = ObjectAny[], P exten
 
 export interface ApiMockRoute {
   path: string;
-  callbackData?: ApiMockCallbackData;
+  dataCallback?: ApiMockDataCallback;
   /**
-   * Properties for a list items that returns from `callbackData()`.
+   * Properties for a list items that returns from `dataCallback()`.
    */
   propertiesForList?: ObjectAny;
   callbackResponse?: ApiMockCallbackResponse;

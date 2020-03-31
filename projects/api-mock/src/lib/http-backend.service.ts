@@ -86,25 +86,25 @@ export class HttpBackendService implements HttpBackend {
     const pathWithPk = /^(?:[\w-]+\/)+:\w+$/;
     const childPath = [parentPath, route.path].filter(s => s).join(' -> ');
 
-    // Nested routes should to have route.callbackData and primary keys.
-    if (!isLastRoute && (!route.callbackData || !pathWithPk.test(path))) {
+    // Nested routes should to have route.dataCallback and primary keys.
+    if (!isLastRoute && (!route.dataCallback || !pathWithPk.test(path))) {
       throw new Error(
         `ApiMockModule detected wrong multi level route with path "${childPath}".
 With multi level route you should to use a primary key in nested route path,
 for example "api/posts/:postId/comments", where ":postId" is a primary key of collection "api/posts".
-Also you should to have corresponding route.callbackData.`
+Also you should to have corresponding route.dataCallback.`
       );
     }
 
-    // route.callbackData should to have corresponding a primary key, and vice versa.
-    if ((route.callbackData && !pathWithPk.test(path)) || (pathWithPk.test(path) && !route.callbackData)) {
+    // route.dataCallback should to have corresponding a primary key, and vice versa.
+    if ((route.dataCallback && !pathWithPk.test(path)) || (pathWithPk.test(path) && !route.dataCallback)) {
       throw new Error(
         `ApiMockModule detected wrong route with path "${childPath}".
-If you have route.callbackData, you should to have corresponding a primary key, and vice versa.`
+If you have route.dataCallback, you should to have corresponding a primary key, and vice versa.`
       );
     }
 
-    // route.callbackData should to have corresponding a primary key.
+    // route.dataCallback should to have corresponding a primary key.
     if (path && path.slice(-1) == '/') {
       throw new Error(
         `ApiMockModule detected wrong route with path "${childPath}".
@@ -112,8 +112,8 @@ route.path should not to have trailing slash.`
       );
     }
 
-    if (route.callbackData && typeof route.callbackData != 'function') {
-      throw new Error(`Route callbackData with path "${path}" is not a function`);
+    if (route.dataCallback && typeof route.dataCallback != 'function') {
+      throw new Error(`Route dataCallback with path "${path}" is not a function`);
     }
     if (route.callbackResponse && typeof route.callbackResponse != 'function') {
       throw new Error(`Route callbackResponse with path "${path}" is not a function`);
@@ -341,7 +341,7 @@ for example "https://example.com" (without a trailing slash)`
 
   /**
    * This function:
-   * - calls `callbackData()` from apropriate route;
+   * - calls `dataCallback()` from apropriate route;
    * - calls `callbackResponse()` from matched route and returns a result.
    */
   protected sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]): Observable<HttpResponse<any>> {
@@ -360,7 +360,7 @@ for example "https://example.com" (without a trailing slash)`
 
     let responseOptions = {} as ResponseOptions;
 
-    if (chainParam.route.callbackData) {
+    if (chainParam.route.dataCallback) {
       const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body);
       responseOptions = this.callRequestMethod(req, chainParam, mockData);
 
@@ -369,7 +369,7 @@ for example "https://example.com" (without a trailing slash)`
       }
 
       if (httpMethod != 'GET') {
-        const writeableData = chainParam.route.callbackData(
+        const writeableData = chainParam.route.dataCallback(
           mockData.writeableData,
           chainParam.restId,
           httpMethod,
@@ -396,7 +396,7 @@ for example "https://example.com" (without a trailing slash)`
   }
 
   /**
-   * If cached data no exists, calls `callbackData()` with `GET` HTTP method,
+   * If cached data no exists, calls `dataCallback()` with `GET` HTTP method,
    * cache the result and returns it.
    */
   protected cacheDataWithGetMethod(chainParam: ChainParam, parents?: ObjectAny[], queryParams?: Params, body?: any) {
@@ -405,9 +405,9 @@ for example "https://example.com" (without a trailing slash)`
     }
 
     if (!this.cachedData[chainParam.cacheKey]) {
-      const writeableData = chainParam.route.callbackData([], chainParam.restId, 'GET', parents, queryParams, body);
+      const writeableData = chainParam.route.dataCallback([], chainParam.restId, 'GET', parents, queryParams, body);
       if (!Array.isArray(writeableData)) {
-        throw new TypeError('route.callbackData() should returns an array');
+        throw new TypeError('route.dataCallback() should returns an array');
       }
       this.cachedData[chainParam.cacheKey] = { writeableData, readonlyData: [] };
       this.bindReadonlyData(chainParam, writeableData);
