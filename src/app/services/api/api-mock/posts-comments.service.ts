@@ -38,7 +38,7 @@ export class PostsCommentsService implements ApiMockService {
    * Called when URL is like `/posts` or `/posts/123`
    */
   private getPostsDataCallback(): ApiMockDataCallback<Post[]> {
-    return (posts, postId, httpMethod, parents, queryParams) => {
+    return ({ items: posts, itemId: postId, httpMethod }) => {
       if (httpMethod == 'GET') {
         for (let i = 0; i < 5; i++, postId = null) {
           const post: Post = {
@@ -66,7 +66,7 @@ export class PostsCommentsService implements ApiMockService {
    * Returns the data (list or one item) from `changePostsData()` callback.
    */
   private getPostsResponseCallback(): ApiMockResponseCallback<Post[]> {
-    return (clonedData, postId, httpMethod, parents, queryParams) => {
+    return ({ items: clonedData, itemId: postId, queryParams }) => {
       if (postId) {
         return makeResponse(clonedData);
       }
@@ -84,7 +84,7 @@ export class PostsCommentsService implements ApiMockService {
     /**
      * @param commentId Only need to may include it in one of postComments.
      */
-    return (postComments, postCommentId, httpMethod, parents, queryParams) => {
+    return ({ items: postComments, itemId: postCommentId, httpMethod, parents }) => {
       const post = parents[0];
 
       switch (httpMethod) {
@@ -137,7 +137,7 @@ export class PostsCommentsService implements ApiMockService {
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsResponseCallback(): ApiMockResponseCallback<PostComment[], [Post]> {
-    return (clonedData, postCommentId, httpMethod, parents, queryParams) => {
+    return ({ items: clonedData, itemId: postCommentId, parents, queryParams }) => {
       if (postCommentId) {
         return makeResponse(clonedData);
       }

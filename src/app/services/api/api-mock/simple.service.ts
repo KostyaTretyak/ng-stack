@@ -22,7 +22,7 @@ export class SimpleService implements ApiMockService {
    * Called when URL is like `/simple` or `/simple/3`.
    */
   private getDataCallback(): ApiMockDataCallback<Model[]> {
-    return (data, id, httpMethod) => {
+    return ({ httpMethod, items }) => {
       if (httpMethod == 'GET') {
         return [
           { id: 1, body: 'content for id 1' },
@@ -31,7 +31,7 @@ export class SimpleService implements ApiMockService {
           { id: 4, body: 'content for id 4' },
         ];
       } else {
-        return data;
+        return items;
       }
     };
   }
