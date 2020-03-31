@@ -4,7 +4,7 @@ import * as faker from 'faker/locale/en_US';
 import {
   ApiMockService,
   ApiMockRootRoute,
-  ApiMockCallbackData,
+  ApiMockDataCallback,
   ApiMockCallbackResponse,
   pickAllPropertiesAsGetters,
   pickPropertiesAsGetters,
@@ -19,13 +19,13 @@ export class PostsCommentsService implements ApiMockService {
     return [
       {
         path: 'api/posts/:postId',
-        callbackData: this.getPostsDataCallback(),
+        dataCallback: this.getPostsDataCallback(),
         callbackResponse: this.getPostsResponseCallback(),
         propertiesForList: new PostList(),
         children: [
           {
             path: 'comments/:commentId',
-            callbackData: this.getCommentsDataCallback(),
+            dataCallback: this.getCommentsDataCallback(),
             callbackResponse: this.getCommentsResponseCallback(),
           },
         ],
@@ -37,7 +37,7 @@ export class PostsCommentsService implements ApiMockService {
   /**
    * Called when URL is like `/posts` or `/posts/123`
    */
-  private getPostsDataCallback(): ApiMockCallbackData<Post[]> {
+  private getPostsDataCallback(): ApiMockDataCallback<Post[]> {
     return (posts, postId, httpMethod, parents, queryParams) => {
       if (httpMethod == 'GET') {
         for (let i = 0; i < 5; i++, postId = null) {
@@ -80,7 +80,7 @@ export class PostsCommentsService implements ApiMockService {
    *  - `[Post]` - it is generic type for `parents` - parameter for the callback.
    *  - `PostComment[]` - it is generic type for `postComments` - parameter for the callback.
    */
-  private getCommentsDataCallback(): ApiMockCallbackData<PostComment[], [Post]> {
+  private getCommentsDataCallback(): ApiMockDataCallback<PostComment[], [Post]> {
     /**
      * @param commentId Only need to may include it in one of postComments.
      */

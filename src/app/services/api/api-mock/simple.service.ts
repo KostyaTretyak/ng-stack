@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { ApiMockService, ApiMockCallbackData, ApiMockRootRoute } from '@ng-stack/api-mock';
+import { ApiMockService, ApiMockDataCallback, ApiMockRootRoute } from '@ng-stack/api-mock';
 
 interface Model {
   id: number;
@@ -13,7 +13,7 @@ export class SimpleService implements ApiMockService {
     return [
       {
         path: 'simple/:id',
-        callbackData: this.getDataCallback(),
+        dataCallback: this.getDataCallback(),
       },
     ];
   }
@@ -21,7 +21,7 @@ export class SimpleService implements ApiMockService {
   /**
    * Called when URL is like `/simple` or `/simple/3`.
    */
-  private getDataCallback(): ApiMockCallbackData<Model[]> {
+  private getDataCallback(): ApiMockDataCallback<Model[]> {
     return (data, id, httpMethod) => {
       if (httpMethod == 'GET') {
         return [
