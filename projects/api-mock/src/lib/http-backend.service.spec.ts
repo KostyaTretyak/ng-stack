@@ -64,7 +64,7 @@ describe('HttpBackendService', () => {
       return super.sendResponse(req, chainParams);
     }
 
-    response(
+    getResponse(
       req: HttpRequest<any>,
       chainParam: ChainParam,
       parents: ObjectAny[],
@@ -72,7 +72,7 @@ describe('HttpBackendService', () => {
       responseOptions: ResponseOptions = {} as any,
       items: ObjectAny[]
     ) {
-      return super.response(req, chainParam, parents, queryParams, responseOptions, items);
+      return super.getResponse(req, chainParam, parents, queryParams, responseOptions, items);
     }
 
     callRequestMethod(req: HttpRequest<any>, chainParam: ChainParam, mockData: MockData): ResponseOptions {
@@ -126,6 +126,7 @@ describe('HttpBackendService', () => {
 
     // Merge with default configs.
     httpBackendService.config = new ApiMockConfig(httpBackendService.config);
+    httpBackendService.config.showLog = false;
   }
 
   beforeEach(resetMock);
@@ -966,7 +967,7 @@ describe('HttpBackendService', () => {
     }));
   });
 
-  describe('response()', () => {});
+  describe('getResponse()', () => {});
 
   describe('changeItem()', () => {});
 

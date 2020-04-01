@@ -394,7 +394,7 @@ for example "https://example.com" (without a trailing slash)`
     if (anyBody !== undefined) {
       body = Array.isArray(anyBody) ? anyBody : [anyBody];
     }
-    return this.response(req, chainParam, parents, queryParams, responseOptions, body);
+    return this.getResponse(req, chainParam, parents, queryParams, responseOptions, body);
   }
 
   /**
@@ -695,7 +695,7 @@ for example "https://example.com" (without a trailing slash)`
     return { headers, status: Status.NO_CONTENT };
   }
 
-  protected response(
+  protected getResponse(
     req: HttpRequest<any>,
     chainParam: ChainParam,
     parents: ObjectAny[],
