@@ -22,7 +22,7 @@ export class SimpleComponent implements OnInit {
 
   ngOnInit() {
     this.form = this.formBuilder.group<SimpleModel>({
-      id: [null, Validators.required],
+      id: [undefined],
       body: [null, Validators.required],
     });
     this.isLoading = true;
@@ -47,6 +47,8 @@ export class SimpleComponent implements OnInit {
       this.showFormErrors();
       return;
     }
+    const id = this.form.get('id').value || undefined;
+    this.form.get('id').setValue(id);
     this.httpClient.post<SimpleModel>(`/simple`, this.form.value).subscribe(() => {
       this.message = 'saved!';
       this.isAdding = false;
@@ -61,10 +63,6 @@ export class SimpleComponent implements OnInit {
   }
 
   private showFormErrors() {
-    if (this.form.get('id').getError('required')) {
-      this.message = 'id is required';
-      return;
-    }
     if (this.form.get('body').getError('required')) {
       this.message = 'body is required';
       return;
