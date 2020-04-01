@@ -540,6 +540,10 @@ for example "https://example.com" (without a trailing slash)`
     return { status: Status.OK, headers, body };
   }
 
+  /**
+   * Create entity, but can update an existing entity too
+   * if `config.postUpdate409 = false` (by default).
+   */
   protected post(
     req: HttpRequest<any>,
     headers: HttpHeaders,
@@ -578,7 +582,7 @@ for example "https://example.com" (without a trailing slash)`
       return this.makeError(req, Status.CONFLICT, errMsg);
     } else {
       writeableData[itemIndex] = item;
-      return this.config.postReturn204
+      return this.config.postUpdate204
         ? { headers, status: Status.NO_CONTENT } // successful; no content
         : { headers, body: item, status: Status.OK }; // successful; return entity
     }

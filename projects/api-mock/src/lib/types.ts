@@ -14,6 +14,11 @@ export abstract class ApiMockService {
 @Injectable()
 export class ApiMockConfig {
   /**
+   * - `true` - should pass unrecognized request URL through to original backend.
+   * - `false` - (default) return 404 code.
+   */
+  passThruUnknownUrl? = false;
+  /**
    * - Do you need to clear previous console logs?
    *
    * Clears logs between previous route `NavigationStart` and current `NavigationStart` events.
@@ -35,22 +40,7 @@ export class ApiMockConfig {
    */
   delay? = 500;
   /**
-   * - `true` - (default) 404 code - if item with that ID not found.
-   * - `false` - 204 code.
-   *
-   * Tip:
-   * > **204 No Content**
-   *
-   * > The server successfully processed the request and is not returning any content.
-   */
-  deleteNotFound404? = true;
-  /**
-   * - `true` - should pass unrecognized request URL through to original backend.
-   * - `false` - (default) return 404 code.
-   */
-  passThruUnknownUrl? = false;
-  /**
-   * - `true` - (default) 204 code - should NOT return the item after a `POST`.
+   * - `true` - (default) 204 code - should NOT return the item after a `POST` an item with existing ID.
    * - `false` - 200 code - return the item.
    *
    * Tip:
@@ -58,7 +48,7 @@ export class ApiMockConfig {
    *
    * > The server successfully processed the request and is not returning any content.
    */
-  postReturn204? = true;
+  postUpdate204? = true;
   /**
    * - `true` - 409 code - should NOT update existing item with `POST`.
    * - `false` - (default) 200 code - OK to update.
@@ -85,6 +75,16 @@ export class ApiMockConfig {
    * - `false` - create new item.
    */
   putNotFound404? = true;
+  /**
+   * - `true` - (default) 404 code - if item with that ID not found.
+   * - `false` - 204 code.
+   *
+   * Tip:
+   * > **204 No Content**
+   *
+   * > The server successfully processed the request and is not returning any content.
+   */
+  deleteNotFound404? = true;
 
   constructor(apiMockConfig?: ApiMockConfig) {
     pickProperties(this, apiMockConfig as any);
