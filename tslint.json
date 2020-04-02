@@ -76,7 +76,6 @@
     "use-pipe-transform-interface": true,
     "component-class-suffix": true,
     "directive-class-suffix": true,
-    // Added myself
     "triple-equals": [
       false,
       "allow-null-check"

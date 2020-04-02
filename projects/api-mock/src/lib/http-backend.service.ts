@@ -11,7 +11,7 @@ import {
   HttpHeaders,
 } from '@angular/common/http';
 
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError, config } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
 import { pickAllPropertiesAsGetters } from './pick-properties';
@@ -501,9 +501,9 @@ for example "https://example.com" (without a trailing slash)`
       case 'POST':
         return this.post(req, headers, chainParam, mockData.writeableData);
       case 'PUT':
-        return this.put(req, headers, chainParam, mockData.writeableData);
+        return this.patchOrPut('put', req, headers, chainParam, mockData.writeableData);
       case 'PATCH':
-        return this.patch(req, headers, chainParam, mockData.writeableData);
+        return this.patchOrPut('patch', req, headers, chainParam, mockData.writeableData);
       case 'DELETE':
         return this.delete(req, headers, chainParam, mockData.writeableData);
       default:
@@ -565,6 +565,16 @@ for example "https://example.com" (without a trailing slash)`
       return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
     }
 
+    if (!primaryKey) {
+      if (this.config.postNoAction) {
+        return { headers, status: Status.NO_CONTENT }; // successful; no content
+      } else {
+        const errMsg = `Error 400: Bad Request; POST forbidder on URI without primary key in the route`;
+        this.logErrorResponse(req, errMsg);
+        return this.makeError(req, Status.BAD_REQUEST, errMsg);
+      }
+    }
+
     if (item[primaryKey] === undefined) {
       item[primaryKey] = this.genId(writeableData, primaryKey);
     }
@@ -588,25 +598,39 @@ for example "https://example.com" (without a trailing slash)`
     }
   }
 
-  protected put(
+  /**
+   * Update existing entity, but can create an entity too
+   * if `config.putUpdate204 = true` (by default).
+   */
+  protected patchOrPut(
+    method: 'patch' | 'put',
     req: HttpRequest<any>,
     headers: HttpHeaders,
     chainParam: ChainParam,
     writeableData: ObjectAny[]
   ): ResponseOptions | HttpErrorResponse {
+    const METHOD = method.toUpperCase();
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = chainParam;
 
     if (restId == undefined) {
-      const errMsg = `Error 405: Method not allowed; PUT forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
+      const errMsg = `Error 405: Method not allowed; ${METHOD} forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
     }
 
+    if (!primaryKey) {
+      if (this.config[`${method}NoAction`]) {
+        return { headers, status: Status.NO_CONTENT }; // successful; no content
+      } else {
+        const errMsg = `Error 400: Bad Request; ${METHOD} forbidder on URI without primary key in the route`;
+        this.logErrorResponse(req, errMsg);
+        return this.makeError(req, Status.BAD_REQUEST, errMsg);
+      }
+    }
+
     if (item[primaryKey] == undefined) {
-      const errMsg = `Error 404: Not found; missing ${primaryKey} field`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.NOT_FOUND, errMsg);
+      item[primaryKey] = restId;
     }
 
     if (restId != item[primaryKey]) {
@@ -621,13 +645,13 @@ for example "https://example.com" (without a trailing slash)`
 
     if (itemIndex != -1) {
       writeableData[itemIndex] = item;
-      return this.config.putReturn204
+      return this.config[`${method}Update204`]
         ? { headers, status: Status.NO_CONTENT } // successful; no content
         : { headers, body: item, status: Status.OK }; // successful; return entity
-    } else if (this.config.putNotFound404) {
+    } else if (this.config[`${method}NotFound404`]) {
       const errMsg =
         `Error 404: Not found; item.${primaryKey}=${restId} ` +
-        `not found and may not be created with PUT; use POST instead.`;
+        `not found and may not be created with ${METHOD}; use POST instead.`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.NOT_FOUND, errMsg);
     } else {
@@ -637,42 +661,9 @@ for example "https://example.com" (without a trailing slash)`
     }
   }
 
-  protected patch(
-    req: HttpRequest<any>,
-    headers: HttpHeaders,
-    chainParam: ChainParam,
-    writeableData: ObjectAny[]
-  ): ResponseOptions | HttpErrorResponse {
-    const item: ObjectAny = this.clone(req.body || {});
-    const { primaryKey, restId } = chainParam;
-
-    if (restId == undefined) {
-      const errMsg = `Error 405: Method not allowed; PATCH forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
-    }
-
-    const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == restId);
-
-    if (itemIndex == -1) {
-      let errMsg = 'Error 404: Not found; ';
-      errMsg += restId ? `item.${primaryKey}=${restId} not found` : `missing "${primaryKey}" field`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.NOT_FOUND, errMsg);
-    }
-
-    if (item[primaryKey] != undefined && restId != item[primaryKey]) {
-      const errMsg =
-        `Error 400: Bad request; ` +
-        `request with resource ID "${restId}" does not match item.${primaryKey}=${item[primaryKey]}`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.BAD_REQUEST, errMsg);
-    }
-
-    Object.assign(writeableData[itemIndex], item);
-    return { headers, status: Status.NO_CONTENT };
-  }
-
+  /**
+   * @todo Consider the case where `primaryKey` and `restId` are missing.
+   */
   protected delete(
     req: HttpRequest<any>,
     headers: HttpHeaders,

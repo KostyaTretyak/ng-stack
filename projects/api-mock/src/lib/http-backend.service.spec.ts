@@ -87,6 +87,16 @@ describe('HttpBackendService', () => {
       return super.post(req, headers, chainParam, writeableData);
     }
 
+    patchOrPut(
+      method: 'patch' | 'put',
+      req: HttpRequest<any>,
+      headers: HttpHeaders,
+      chainParam: ChainParam,
+      writeableData: ObjectAny[]
+    ) {
+      return super.patchOrPut(method, req, headers, chainParam, writeableData);
+    }
+
     transformHeaders(headers: HttpHeaders) {
       return super.transformHeaders(headers);
     }
@@ -114,7 +124,7 @@ describe('HttpBackendService', () => {
     }
   }
 
-  let httpBackendService: MockHttpBackendService;
+  let service: MockHttpBackendService;
   function resetMock() {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -122,11 +132,11 @@ describe('HttpBackendService', () => {
       providers: [MockHttpBackendService],
     });
 
-    httpBackendService = TestBed.inject(MockHttpBackendService);
+    service = TestBed.inject(MockHttpBackendService);
 
     // Merge with default configs.
-    httpBackendService.config = new ApiMockConfig(httpBackendService.config);
-    httpBackendService.config.showLog = false;
+    service.config = new ApiMockConfig(service.config);
+    service.config.showLog = false;
   }
 
   beforeEach(resetMock);
@@ -138,24 +148,24 @@ describe('HttpBackendService', () => {
   describe('checkRouts()', () => {
     it('multi level route paths, without primary keys', () => {
       const route: ApiMockRoute = { path: 'api/posts', children: [{ path: 'comments' }] };
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong multi level route/);
+      expect(() => service.checkRoute(route)).toThrowError(/detected wrong multi level route/);
     });
 
     it('multi level route paths, without route.dataCallback', () => {
       const route: ApiMockRoute = { path: 'api/posts/:postId', children: [{ path: 'comments' }] };
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong multi level route/);
+      expect(() => service.checkRoute(route)).toThrowError(/detected wrong multi level route/);
     });
 
     it('with dataCallback, but without a primary key', () => {
       const route: ApiMockRoute = { path: 'api/posts', dataCallback: () => [] };
       const regexpMsg = /If you have route.dataCallback, you should/;
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(regexpMsg);
+      expect(() => service.checkRoute(route)).toThrowError(regexpMsg);
     });
 
     it('with a primary key, but without dataCallback', () => {
       const route: ApiMockRoute = { path: 'api/pre-account/:login' };
       const regexpMsg = /If you have route.dataCallback, you should/;
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(regexpMsg);
+      expect(() => service.checkRoute(route)).toThrowError(regexpMsg);
     });
 
     const routesNotToThrow: [string, ApiMockRootRoute][] = [
@@ -184,7 +194,7 @@ describe('HttpBackendService', () => {
 
     routesNotToThrow.forEach(([msg, route]) => {
       it(msg, () => {
-        expect(() => httpBackendService.checkRoute(route)).not.toThrow();
+        expect(() => service.checkRoute(route)).not.toThrow();
       });
     });
 
@@ -194,38 +204,38 @@ describe('HttpBackendService', () => {
         dataCallback: () => [],
         children: [{ path: 'comments' }],
       };
-      expect(() => httpBackendService.checkRoute(route)).not.toThrow();
+      expect(() => service.checkRoute(route)).not.toThrow();
     });
 
     it('route path with trailing slash', () => {
       const route: ApiMockRoute = { path: 'api/sessions/' };
       const regexpMsg = /route.path should not to have trailing slash/;
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(regexpMsg);
+      expect(() => service.checkRoute(route)).toThrowError(regexpMsg);
     });
 
     it('dataCallback as an object', () => {
       const route: ApiMockRoute = { dataCallback: {} as any, path: 'api/posts/:postId' };
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(/is not a function/);
+      expect(() => service.checkRoute(route)).toThrowError(/is not a function/);
     });
 
     it('responseCallback as an object', () => {
       const route: ApiMockRoute = { responseCallback: {} as any, dataCallback: () => [], path: 'api/posts/:postId' };
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(/is not a function/);
+      expect(() => service.checkRoute(route)).toThrowError(/is not a function/);
     });
 
     it('wrong host', () => {
       const route: ApiMockRootRoute = { host: 'fake host', path: 'api' };
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong host/);
+      expect(() => service.checkRoute(route)).toThrowError(/detected wrong host/);
     });
 
     it('wrong host without HTTP protocol', () => {
       const route: ApiMockRootRoute = { host: 'example.com', path: 'api' };
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong host/);
+      expect(() => service.checkRoute(route)).toThrowError(/detected wrong host/);
     });
 
     it('wrong host with slash at the end', () => {
       const route: ApiMockRootRoute = { host: 'http://example.com/', path: 'api' };
-      expect(() => httpBackendService.checkRoute(route)).toThrowError(/detected wrong host/);
+      expect(() => service.checkRoute(route)).toThrowError(/detected wrong host/);
     });
   });
 
@@ -257,7 +267,7 @@ describe('HttpBackendService', () => {
 
   describe('getRootPaths()', () => {
     it('param: route.path only', () => {
-      const rootRoutes = httpBackendService.getRootPaths(routesWithoutHost);
+      const rootRoutes = service.getRootPaths(routesWithoutHost);
       expect(rootRoutes[0].path).toBe('one/two/three/four/five/six/seven');
       expect(rootRoutes[0].index).toEqual(2);
       expect(rootRoutes[1].path).toBe('one/two/three/four/five/six');
@@ -277,7 +287,7 @@ describe('HttpBackendService', () => {
     });
 
     it('param: route.path and route.host', () => {
-      const rootRoutes = httpBackendService.getRootPaths(routesWithMixHost);
+      const rootRoutes = service.getRootPaths(routesWithMixHost);
       expect(rootRoutes[0].path).toBe('https://example3.com/one/two/three/four/five/six');
       expect(rootRoutes[0].index).toEqual(0);
       expect(rootRoutes[2].path).toBe('https://example1.com/one/two/three/four/five/six');
@@ -291,42 +301,42 @@ describe('HttpBackendService', () => {
 
   describe('findRoutesIndex()', () => {
     it('param: routes without a host', () => {
-      const rootRoutes = httpBackendService.getRootPaths(routesWithoutHost);
-      let routeIndex = httpBackendService.findRouteIndex(rootRoutes, 'one/two/three/four/primaryId');
+      const rootRoutes = service.getRootPaths(routesWithoutHost);
+      let routeIndex = service.findRouteIndex(rootRoutes, 'one/two/three/four/primaryId');
       expect(routeIndex).toEqual(5);
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, 'one/two/primaryId');
+      routeIndex = service.findRouteIndex(rootRoutes, 'one/two/primaryId');
       expect(routeIndex).toEqual(1);
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, 'one-other/primaryId');
+      routeIndex = service.findRouteIndex(rootRoutes, 'one-other/primaryId');
       expect(routeIndex).toEqual(-1);
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, 'one/two/three/four/five/six/seven/primaryId');
+      routeIndex = service.findRouteIndex(rootRoutes, 'one/two/three/four/five/six/seven/primaryId');
       expect(routeIndex).toEqual(2);
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, 'one/two/three/four/five/six/primaryId');
+      routeIndex = service.findRouteIndex(rootRoutes, 'one/two/three/four/five/six/primaryId');
       expect(routeIndex).toEqual(3);
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, 'one/two/three/four/five/primaryId');
+      routeIndex = service.findRouteIndex(rootRoutes, 'one/two/three/four/five/primaryId');
       expect(routeIndex).toEqual(6);
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, 'api/login');
+      routeIndex = service.findRouteIndex(rootRoutes, 'api/login');
       expect(routeIndex).toEqual(7);
     });
 
     it('param: routes with a host', () => {
-      const rootRoutes = httpBackendService.getRootPaths(routesWithMixHost);
+      const rootRoutes = service.getRootPaths(routesWithMixHost);
       let url = 'https://example2.com/one/two/primaryId';
-      let routeIndex = httpBackendService.findRouteIndex(rootRoutes, url);
+      let routeIndex = service.findRouteIndex(rootRoutes, url);
       expect(routeIndex).toEqual(4);
       url = 'https://example4.com/one/two/three/four/primaryId';
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, url);
+      routeIndex = service.findRouteIndex(rootRoutes, url);
       expect(routeIndex).toEqual(5);
       url = 'https://example4.com/one/two/primaryId';
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, url);
+      routeIndex = service.findRouteIndex(rootRoutes, url);
       expect(routeIndex).toEqual(6);
       url = 'https://example1.com/one/two/primaryId';
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, url);
+      routeIndex = service.findRouteIndex(rootRoutes, url);
       expect(routeIndex).toEqual(2);
       url = 'https://example1.com/one/two-other/primaryId';
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, url);
+      routeIndex = service.findRouteIndex(rootRoutes, url);
       expect(routeIndex).toEqual(-1);
       url = 'https://example4.com/api/login';
-      routeIndex = httpBackendService.findRouteIndex(rootRoutes, url);
+      routeIndex = service.findRouteIndex(rootRoutes, url);
       expect(routeIndex).toEqual(11);
     });
   });
@@ -335,14 +345,14 @@ describe('HttpBackendService', () => {
     it(`object`, () => {
       const obj = { 'Content-Type': 'application/json' };
       const headers = new HttpHeaders(obj);
-      const result = httpBackendService.transformHeaders(headers);
+      const result = service.transformHeaders(headers);
       expect(result).toEqual(obj);
     });
 
     it(`array`, () => {
       const obj = { other: ['one', 'two'] };
       const headers = new HttpHeaders(obj);
-      const result = httpBackendService.transformHeaders(headers);
+      const result = service.transformHeaders(headers);
       expect(result).toEqual(obj);
     });
   });
@@ -350,26 +360,26 @@ describe('HttpBackendService', () => {
   describe('logRequest()', () => {
     it(`queryParams only`, () => {
       const req = new HttpRequest<any>('GET', 'any/url/here?one=1&two=2&arr=3&arr=4');
-      const result = httpBackendService.logRequest(req);
+      const result = service.logRequest(req);
       expect(result).toEqual({ queryParams: { one: '1', two: '2', arr: ['3', '4'] } });
     });
 
     it(`headers only`, () => {
       const req = new HttpRequest<any>('GET', 'any/url/here', { headers: new HttpHeaders({ one: '1', two: '2' }) });
-      const result = httpBackendService.logRequest(req);
+      const result = service.logRequest(req);
       expect(result).toEqual({ headers: { one: '1', two: '2' } });
     });
 
     it(`body only`, () => {
       const req = new HttpRequest<any>('POST', 'any/url/here', { one: '1', two: '2' });
-      const result = httpBackendService.logRequest(req);
+      const result = service.logRequest(req);
       expect(result).toEqual({ body: { one: '1', two: '2' } });
     });
 
     it(`headers and queryParams only`, () => {
       const headers = { headers: new HttpHeaders({ one: '1', two: '2' }) };
       const req = new HttpRequest<any>('GET', 'any/url/here?one=1&two=2&arr=3&arr=4', headers);
-      const result = httpBackendService.logRequest(req);
+      const result = service.logRequest(req);
       expect(result).toEqual({ headers: { one: '1', two: '2' }, queryParams: { one: '1', two: '2', arr: ['3', '4'] } });
     });
   });
@@ -390,7 +400,7 @@ describe('HttpBackendService', () => {
         url = 'one/two/three-other/123';
         const rootPath = 'one/two/three/:primaryId';
         route = { path: rootPath, children: [{ path: 'level-two/one/two' }] };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(1);
         expect(dryMatch[0].splitedRoute.join('/')).toBe(rootPath);
         expect(dryMatch[0].hasLastRestId).toBe(true);
@@ -402,7 +412,7 @@ describe('HttpBackendService', () => {
         url = 'one/two/three-other';
         const rootPath = 'one/two/three/:primaryId';
         route = { path: rootPath, children: [{ path: 'level-two/one/two' }] };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(1);
         expect(dryMatch[0].splitedRoute.join('/')).toBe('one/two/three');
         expect(dryMatch[0].hasLastRestId).toBeUndefined();
@@ -413,14 +423,14 @@ describe('HttpBackendService', () => {
       it('should not match a long url to a short route', () => {
         url = 'one/two/three-other/four/123';
         const rootPath = 'one/two/three/:primaryId';
-        const dryMatch = httpBackendService.getRouteDryMatch(url, { path: rootPath });
+        const dryMatch = service.getRouteDryMatch(url, { path: rootPath });
         expect(dryMatch.length).toBe(0);
       });
 
       it('should not match a short url to a long route', () => {
         url = 'one/two/three-other/123';
         const rootPath = 'one/two/three/five/six/:primaryId';
-        const dryMatch = httpBackendService.getRouteDryMatch(url, { path: rootPath });
+        const dryMatch = service.getRouteDryMatch(url, { path: rootPath });
         expect(dryMatch.length).toBe(0);
       });
 
@@ -431,7 +441,7 @@ describe('HttpBackendService', () => {
           path: 'one/two/:primaryId',
           children: [{ path: 'level-two/one/two' }],
         };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(1);
         expect(dryMatch[0].splitedRoute.join('/')).toBe('https://example.com/one/two/:primaryId');
         expect(dryMatch[0].hasLastRestId).toBe(true);
@@ -448,7 +458,7 @@ describe('HttpBackendService', () => {
           path: 'one/two/:primaryId',
           children: [{ path: 'level-two/one/two' }],
         };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(1);
         expect(dryMatch[0].hasLastRestId).toBeUndefined();
         expect(dryMatch[0].lastPrimaryKey).toBe('primaryId');
@@ -475,7 +485,7 @@ describe('HttpBackendService', () => {
       it('url with primary ID', () => {
         url = 'api/posts/123/comments-other/456';
         route = { path: 'api/posts/:postId', children };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(3);
         expect(dryMatch[0].splitedRoute.join('/')).toBe('api/posts/:postId/comments/:commentId');
         expect(dryMatch[0].hasLastRestId).toBe(true);
@@ -503,7 +513,7 @@ describe('HttpBackendService', () => {
       it('url without primary ID', () => {
         url = 'api/posts/123/comments-other';
         route = { path: 'api/posts/:postId', children };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(4);
         expect(dryMatch[0].splitedRoute.join('/')).toBe('api/posts/:postId/comments');
         expect(dryMatch[0].hasLastRestId).toBeUndefined();
@@ -532,21 +542,21 @@ describe('HttpBackendService', () => {
       it('should not match a long url to a short route', () => {
         url = 'api/one/two/three/four/five/six/seven';
         route = { path: 'api/posts/:postId', children: [{ path: 'comments/:commentId' }] };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBeFalsy();
       });
 
       it('should not match a short url to a long route', () => {
         url = 'api';
         route = { path: 'api/posts/:postId', children: [{ path: 'comments/:commentId' }] };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBeFalsy();
       });
 
       it('url with host and with primary ID', () => {
         url = 'https://example.com/api/posts/123/comments-other/456';
         route = { host: 'https://example.com', path: 'api/posts/:postId', children };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(3);
         expect(dryMatch[0].splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments/:commentId');
         expect(dryMatch[0].hasLastRestId).toBe(true);
@@ -577,7 +587,7 @@ describe('HttpBackendService', () => {
       it('url with host and without primary ID', () => {
         url = 'https://example.com/api/posts/123/comments-other';
         route = { host: 'https://example.com', path: 'api/posts/:postId', children };
-        const dryMatch = httpBackendService.getRouteDryMatch(url, route);
+        const dryMatch = service.getRouteDryMatch(url, route);
         expect(dryMatch.length).toBe(4);
 
         expect(dryMatch[0].splitedRoute.join('/')).toBe('https://example.com/api/posts/:postId/comments');
@@ -657,7 +667,7 @@ describe('HttpBackendService', () => {
             routes,
           };
 
-          const params = httpBackendService.getChainParams(routeDryMatch);
+          const params = service.getChainParams(routeDryMatch);
           expect(!!params).toBeFalsy('getChainParams() not returns params');
         });
       });
@@ -674,7 +684,7 @@ describe('HttpBackendService', () => {
           routes: [{ path: routePath }],
         };
 
-        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        const params = service.getChainParams(routeDryMatch) as ChainParam[];
         expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(1);
         const param = params[0];
@@ -695,7 +705,7 @@ describe('HttpBackendService', () => {
           routes: [{ path: 'api/posts/:postId' }],
         };
 
-        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        const params = service.getChainParams(routeDryMatch) as ChainParam[];
         expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(1);
         const param = params[0];
@@ -716,7 +726,7 @@ describe('HttpBackendService', () => {
           routes: [{ path: routePath }],
         };
 
-        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        const params = service.getChainParams(routeDryMatch) as ChainParam[];
         expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(1);
         const param = params[0];
@@ -738,7 +748,7 @@ describe('HttpBackendService', () => {
           routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
         };
 
-        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        const params = service.getChainParams(routeDryMatch) as ChainParam[];
         expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(2);
         const param1 = params[0];
@@ -764,7 +774,7 @@ describe('HttpBackendService', () => {
           routes: [{ path: 'api/posts/:postId' }, { path: 'comments/:commentId' }],
         };
 
-        const params = httpBackendService.getChainParams(routeDryMatch) as ChainParam[];
+        const params = service.getChainParams(routeDryMatch) as ChainParam[];
         expect(!!params).toBeTruthy('getChainParams() returns params');
         expect(params.length).toEqual(2);
         const param1 = params[0];
@@ -800,9 +810,9 @@ describe('HttpBackendService', () => {
         { id: 3, body: 'content for id 3' },
       ];
 
-      httpBackendService.cachedData = { [cacheKey]: { writeableData, readonlyData: [] } };
-      httpBackendService.bindReadonlyData(chainParam, writeableData);
-      const readonlyData = httpBackendService.cachedData[cacheKey].readonlyData as Example[];
+      service.cachedData = { [cacheKey]: { writeableData, readonlyData: [] } };
+      service.bindReadonlyData(chainParam, writeableData);
+      const readonlyData = service.cachedData[cacheKey].readonlyData as Example[];
       expect(readonlyData[1]).toEqual({ id: 2, body: 'content for id 2' });
       writeableData[1].body = 'changed content';
       expect(readonlyData[1]).toEqual({ id: 2, body: 'changed content' });
@@ -820,16 +830,14 @@ describe('HttpBackendService', () => {
         route: { path: 'any-path', dataCallback: () => data },
       };
 
-      let result = httpBackendService.cacheDataWithGetMethod(chainParam);
+      let result = service.cacheDataWithGetMethod(chainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
-      result = httpBackendService.cacheDataWithGetMethod({ cacheKey } as ChainParam);
+      result = service.cacheDataWithGetMethod({ cacheKey } as ChainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
       resetMock();
-      httpBackendService.config.cacheFromLocalStorage = true;
+      service.config.cacheFromLocalStorage = true;
       const errMsg = /dataCallback is not a function/;
-      expect(() => httpBackendService.cacheDataWithGetMethod({ cacheKey, route: {} } as ChainParam)).toThrowError(
-        errMsg
-      );
+      expect(() => service.cacheDataWithGetMethod({ cacheKey, route: {} } as ChainParam)).toThrowError(errMsg);
     });
 
     it(`get data from localStorage`, () => {
@@ -841,12 +849,12 @@ describe('HttpBackendService', () => {
         route: { path: 'any-path', dataCallback: () => data },
       };
 
-      httpBackendService.config.cacheFromLocalStorage = true;
-      let result = httpBackendService.cacheDataWithGetMethod(chainParam);
+      service.config.cacheFromLocalStorage = true;
+      let result = service.cacheDataWithGetMethod(chainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
       resetMock();
-      httpBackendService.config.cacheFromLocalStorage = true;
-      result = httpBackendService.cacheDataWithGetMethod({ cacheKey, route: {} } as ChainParam);
+      service.config.cacheFromLocalStorage = true;
+      result = service.cacheDataWithGetMethod({ cacheKey, route: {} } as ChainParam);
       expect(result).toEqual({ writeableData: data, readonlyData: data });
     });
   });
@@ -873,7 +881,7 @@ describe('HttpBackendService', () => {
       };
       const chainParam2 = {} as ChainParam;
 
-      const parent = httpBackendService.getParents(req, [chainParam1, chainParam2]);
+      const parent = service.getParents(req, [chainParam1, chainParam2]);
       expect(parent).toEqual([{ postId: 2, postBody: 'content for postId=2' }]);
     });
 
@@ -886,111 +894,180 @@ describe('HttpBackendService', () => {
       };
       const chainParam2 = {} as ChainParam;
 
-      const parent = httpBackendService.getParents(req, [chainParam1, chainParam2]);
+      const parent = service.getParents(req, [chainParam1, chainParam2]);
       expect(parent instanceof HttpErrorResponse).toBe(true);
     });
   });
 
   describe('post()', () => {
-    it('case 1: reqBody == null', () => {
-      const req = new HttpRequest<any>('POST', 'any/url/here', null);
-      const update: ResponseOptions = httpBackendService.post(
-        req,
-        new HttpHeaders(),
-        { primaryKey: 'postId', route: {} as any, cacheKey: '' },
-        []
-      );
-      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
-      const { status, body: resBody, headers } = update;
+    const reqHeaders = new HttpHeaders();
+    it(`case 1: reqBody == undefined, primaryKey == 'postId'`, () => {
+      const req = {} as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId' } as ChainParam;
+      const writeableData = [];
+      const response: ResponseOptions = service.post(req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = response;
       expect(status).toBe(Status.CREATED);
       expect(resBody).toEqual({ postId: 1 });
       expect(headers.has('Location')).toBe(true, 'has header "Location"');
       expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });
 
-    it(`case 2: reqBody have some object`, () => {
-      const reqBody = { other: 'some value here' };
-      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
-      const update: ResponseOptions = httpBackendService.post(
-        req,
-        new HttpHeaders(),
-        { primaryKey: 'postId', route: {} as any, cacheKey: '' },
-        []
-      );
-      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
-      const { status, body: resBody, headers } = update;
+    it(`case 2: reqBody == undefined, primaryKey == undefined`, () => {
+      const req = {} as HttpRequest<any>;
+      const chainParam = {} as ChainParam;
+      const writeableData = [];
+      const response: ResponseOptions = service.post(req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(true, 'update Errored');
+      const { status, headers } = response;
+      expect(status).toBe(Status.BAD_REQUEST);
+      expect(headers.has('Content-Type')).toBe(true, 'has header "Content-Type"');
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+    });
+
+    it(`case 3: request have reqBody and route have primaryKey`, () => {
+      const reqBody = {};
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId' } as ChainParam;
+      const writeableData = [];
+      const response: ResponseOptions = service.post(req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = response;
       expect(status).toBe(Status.CREATED);
       expect(resBody).toEqual({ postId: 1, ...reqBody });
       expect(headers.has('Location')).toBe(true, 'has header "Location"');
       expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });
 
-    it(`case 3: POST on URI with restId`, () => {
-      const reqBody = { postId: 123, other: 'some value here' };
-      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
-      const reqHeaders: HttpHeaders = new HttpHeaders();
-      const chainParam: ChainParam = { primaryKey: 'postId', restId: '456', route: {} as any, cacheKey: '' };
-      const writeableData: ObjectAny[] = [{ postId: 123 }];
-      const update = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
-
-      expect(update instanceof HttpErrorResponse).toBe(true, 'update Errored');
-      const { status, headers } = update;
+    it(`case 4: in URI and in reqBody restId is different (123 and 456)`, () => {
+      const reqBody = { postId: 123 };
+      const req = { body: reqBody, url: '' } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId', restId: '456' } as ChainParam;
+      const writeableData = [];
+      const response = service.post(req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(true, 'update Errored');
+      const { status, headers } = response;
       expect(status).toBe(Status.METHOD_NOT_ALLOWED);
       expect(headers.has('Content-Type')).toBe(true, 'has header "Content-Type"');
       expect(headers.has('Location')).toBe(false, 'has not header "Location"');
     });
 
-    it(`case 4: reqBody updates existing ID`, () => {
-      const reqBody = { postId: 123, other: 'some value here' };
-      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
-      const reqHeaders: HttpHeaders = new HttpHeaders();
-      const chainParam: ChainParam = { primaryKey: 'postId', route: {} as any, cacheKey: '' };
-      const writeableData: ObjectAny[] = [{ postId: 123 }];
-      const update: ResponseOptions = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
-
-      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
-      const { status, body: resBody, headers } = update;
+    it(`case 5: reqBody updates existing ID`, () => {
+      const reqBody = { postId: 123 };
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId' } as ChainParam;
+      const writeableData = [{ postId: 123 }];
+      const response: ResponseOptions = service.post(req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = response;
       expect(status).toBe(Status.NO_CONTENT);
       expect(resBody).toBeUndefined('should resBody to be undefined');
       expect(headers.has('Location')).toBe(false, 'has not header "Location"');
       expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });
 
-    it(`case 5: reqBody updates existing ID and 'postUpdate204 = false'`, () => {
-      const reqBody = { postId: 123, other: 'some value here' };
-      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
-      const reqHeaders: HttpHeaders = new HttpHeaders();
-      const chainParam: ChainParam = { primaryKey: 'postId', route: {} as any, cacheKey: '' };
-      const writeableData: ObjectAny[] = [{ postId: 123 }];
-      httpBackendService.config.postUpdate204 = false;
-      const update: ResponseOptions = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
-
-      expect(update instanceof HttpErrorResponse).toBe(false, 'update not Errored');
-      const { status, body: resBody, headers } = update;
+    it(`case 6: reqBody updates existing ID and 'config.postUpdate204 = false'`, () => {
+      const reqBody = { postId: 123 };
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId' } as ChainParam;
+      const writeableData = [{ postId: 123 }];
+      service.config.postUpdate204 = false;
+      const response: ResponseOptions = service.post(req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = response;
       expect(status).toBe(Status.OK);
       expect(resBody).toEqual(reqBody);
       expect(headers.has('Location')).toBe(false, 'has not header "Location"');
       expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });
 
-    it(`case 6: reqBody updates existing ID and 'postUpdate409 = true'`, () => {
-      const reqBody = { postId: 123, other: 'some value here' };
-      const req = new HttpRequest<any>('POST', 'any/url/here', reqBody);
-      const reqHeaders: HttpHeaders = new HttpHeaders();
-      const chainParam: ChainParam = { primaryKey: 'postId', route: {} as any, cacheKey: '' };
-      const writeableData: ObjectAny[] = [{ postId: 123 }];
-      httpBackendService.config.postUpdate409 = true;
-      const update = httpBackendService.post(req, reqHeaders, chainParam, writeableData);
-
-      expect(update instanceof HttpErrorResponse).toBe(true, 'update Errored');
-      const { status, headers } = update;
+    it(`case 7: reqBody updates existing ID and 'postUpdate409 = true'`, () => {
+      const reqBody = { postId: 123 };
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId' } as ChainParam;
+      const writeableData = [{ postId: 123 }];
+      service.config.postUpdate409 = true;
+      const response = service.post(req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(true, 'update Errored');
+      const { status, headers } = response;
       expect(status).toBe(Status.CONFLICT);
       expect(headers.has('Content-Type')).toBe(true, 'has header "Content-Type"');
       expect(headers.has('Location')).toBe(false, 'has not header "Location"');
     });
   });
 
-  describe('post()', () => {});
+  describe('patchOrPut()', () => {
+    const reqHeaders = new HttpHeaders();
+    it(`case 1: put non-existent item`, () => {
+      const req = {} as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId', restId: '1' } as ChainParam;
+      const writeableData = [];
+      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(true, 'update Errored');
+      const { status, headers } = response;
+      expect(status).toBe(Status.NOT_FOUND);
+      expect(headers.has('Content-Type')).toBe(true, 'has header "Content-Type"');
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+    });
+
+    it(`case 2: reqBody with existing ID and body`, () => {
+      const reqBody = { postId: 1 };
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId', restId: '1' } as ChainParam;
+      const writeableData = [reqBody];
+      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = response;
+      expect(status).toBe(Status.NO_CONTENT);
+      expect(resBody).toBeUndefined();
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
+    });
+
+    it(`case 3: ID from URL no equal to ID from body`, () => {
+      const reqBody = { postId: 123 };
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId', restId: '456' } as ChainParam;
+      const writeableData = [reqBody];
+      const response = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(true, 'update Errored');
+      const { status, headers } = response;
+      expect(status).toBe(Status.BAD_REQUEST);
+      expect(headers.has('Content-Type')).toBe(true, 'has header "Content-Type"');
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+    });
+
+    it(`case 4: put item with existing ID and 'config.putUpdate204 = false'`, () => {
+      const reqBody = { postId: 123 };
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId', restId: '123' } as ChainParam;
+      const writeableData = [reqBody];
+      service.config.putUpdate204 = false;
+      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = response;
+      expect(status).toBe(Status.OK);
+      expect(resBody).toEqual(reqBody);
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
+    });
+
+    it(`case 5: reqBody put item with existing ID and 'config.putNotFound404 = false'`, () => {
+      const reqBody = { postId: 123 };
+      const req = { body: reqBody } as HttpRequest<any>;
+      const chainParam = { primaryKey: 'postId', restId: '123' } as ChainParam;
+      const writeableData = [{ postId: 'no-existing-id' }];
+      service.config.putNotFound404 = false;
+      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
+      const { status, body: resBody, headers } = response;
+      expect(status).toBe(Status.CREATED);
+      expect(resBody).toEqual(reqBody);
+      expect(headers.has('Location')).toBe(false, 'has not header "Location"');
+      expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
+    });
+  });
 
   describe('sendResponse()', () => {
     it('should returns result of calling dataCallback()', fakeAsync(() => {
@@ -1004,13 +1081,13 @@ describe('HttpBackendService', () => {
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
+      const res: Observable<HttpResponse<any>> = service.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(r => (result = r));
       expect(result).toBeNull();
 
-      tick(httpBackendService.config.delay);
+      tick(service.config.delay);
 
       expect(result instanceof HttpResponse).toBe(true);
       expect(Array.isArray(result.body)).toBe(true);
@@ -1029,13 +1106,13 @@ describe('HttpBackendService', () => {
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
+      const res: Observable<HttpResponse<any>> = service.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(r => (result = r));
       expect(result).toBeNull();
 
-      tick(httpBackendService.config.delay);
+      tick(service.config.delay);
 
       expect(result instanceof HttpResponse).toBe(true);
       expect(Array.isArray(result.body)).toBe(true);
@@ -1054,7 +1131,7 @@ describe('HttpBackendService', () => {
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = httpBackendService.sendResponse(req, chainParam);
+      const res: Observable<HttpResponse<any>> = service.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(
@@ -1072,25 +1149,25 @@ describe('HttpBackendService', () => {
 
   describe('genId()', () => {
     it('should returns 1 as new id', () => {
-      const newId = httpBackendService.genId([], 'id');
+      const newId = service.genId([], 'id');
       expect(newId).toBe(1);
     });
 
     it('should ignore string id and returns 1 as new id', () => {
       const collection = [{ id: 'one' }];
-      const newId = httpBackendService.genId(collection, 'id');
+      const newId = service.genId(collection, 'id');
       expect(newId).toBe(1);
     });
 
     it('should returns 10 as new id', () => {
       const collection = [{ id: 9 }];
-      const newId = httpBackendService.genId(collection, 'id');
+      const newId = service.genId(collection, 'id');
       expect(newId).toBe(10);
     });
 
     it('should ignore string id and returns 100 as new id', () => {
       const collection = [{ id: 'one' }, { id: 99 }];
-      const newId = httpBackendService.genId(collection, 'id');
+      const newId = service.genId(collection, 'id');
       expect(newId).toBe(100);
     });
   });
