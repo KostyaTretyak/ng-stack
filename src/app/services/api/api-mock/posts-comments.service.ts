@@ -64,11 +64,11 @@ export class PostsCommentsService implements ApiMockService {
    * Callback returns the data (list or one item) from `changePostsData()` callback.
    */
   private getPostsResponseCallback(): ApiMockResponseCallback<Post[]> {
-    return ({ items: clonedData, itemId: postId, queryParams }) => {
+    return ({ itemId: postId, queryParams, resBody }) => {
       if (postId) {
-        return makeResponse(clonedData);
+        return makeResponse(resBody);
       }
-      return makeResponse(clonedData, { queryParams });
+      return makeResponse(resBody, { queryParams });
     };
   }
 
@@ -135,14 +135,14 @@ export class PostsCommentsService implements ApiMockService {
    * Here `[Post]` - it is generic type for `parents` - parameter for the callback.
    */
   private getCommentsResponseCallback(): ApiMockResponseCallback<PostComment[], [Post]> {
-    return ({ items: clonedData, itemId: postCommentId, parents, queryParams }) => {
+    return ({ resBody, itemId: postCommentId, parents, queryParams }) => {
       if (postCommentId) {
-        return makeResponse(clonedData);
+        return makeResponse(resBody);
       }
       const post = parents[0];
       // Meta data.
       const postInfo = pickAllPropertiesAsGetters(new PostInfo(), post);
-      return makeResponse(clonedData, { postInfo, queryParams });
+      return makeResponse(resBody, { postInfo, queryParams });
     };
   }
 
