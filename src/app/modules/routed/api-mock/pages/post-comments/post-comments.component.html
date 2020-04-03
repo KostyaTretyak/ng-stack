@@ -1,3 +1,5 @@
+<img [src]="postInfo.pathAva" class="ava-80">
+<div>Comments for blog post: <b><a routerLink="../">{{ postInfo.postTitle }}</a></b></div>
 <div *ngIf="!postComments.length">No comments yet</div>
 <div *ngFor="let comment of postComments" class="post-comments">
   <div>{{ comment.userName }}</div>

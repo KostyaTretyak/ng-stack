@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiResponse, PostComment } from 'src/app/services/api/api-mock/types';
+import { ApiResponse, PostComment, PostInfo } from 'src/app/services/api/api-mock/types';
 
 @Component({
   templateUrl: './post-comments.component.html',
@@ -9,12 +9,13 @@ import { ApiResponse, PostComment } from 'src/app/services/api/api-mock/types';
 })
 export class PostCommentsComponent implements OnInit {
   postComments: PostComment[];
+  postInfo: PostInfo;
 
   constructor(private activatedRoute: ActivatedRoute) {}
 
   ngOnInit(): void {
     const resolversData = this.activatedRoute.snapshot.data.postCommentsRes as ApiResponse<PostComment>;
-    const postComments = resolversData.data;
-    this.postComments = postComments;
+    this.postInfo = resolversData.meta.postInfo;
+    this.postComments = resolversData.data;
   }
 }
