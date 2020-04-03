@@ -79,7 +79,7 @@ export class ApiMockConfig {
    * - `true` - (default) 404 code - if `PUT` item with that ID not found.
    * - `false` - create new item.
    */
-  putNotFound404? = true;
+  putUpdate404? = true;
   /**
    * If you no need insert item in a resource on `PUT`,
    * set the route without primary id and `config.putNoAction = true`.
@@ -96,15 +96,15 @@ export class ApiMockConfig {
    */
   patchUpdate204? = true;
   /**
-   * - `true` - (default) 404 code - if `PATCH` item with that ID not found.
-   * - `false` - create new item.
-   */
-  patchNotFound404? = true;
-  /**
    * If you no need insert item in a resource on `PATCH`,
    * set the route without primary id and `config.patchNoAction = true`.
    */
   patchNoAction? = false;
+  /**
+   * If you no need insert item in a resource on `DELETE`,
+   * set the route without primary id and `config.deleteNoAction = true`.
+   */
+  deleteNoAction? = false;
   /**
    * - `true` - (default) 404 code - if item with that ID not found.
    * - `false` - 204 code.

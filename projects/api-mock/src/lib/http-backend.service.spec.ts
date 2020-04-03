@@ -87,14 +87,8 @@ describe('HttpBackendService', () => {
       return super.post(req, headers, chainParam, writeableData);
     }
 
-    patchOrPut(
-      method: 'patch' | 'put',
-      req: HttpRequest<any>,
-      headers: HttpHeaders,
-      chainParam: ChainParam,
-      writeableData: ObjectAny[]
-    ) {
-      return super.patchOrPut(method, req, headers, chainParam, writeableData);
+    putOrPatch(req: HttpRequest<any>, headers: HttpHeaders, chainParam: ChainParam, writeableData: ObjectAny[]) {
+      return super.putOrPatch(req, headers, chainParam, writeableData);
     }
 
     transformHeaders(headers: HttpHeaders) {
@@ -997,13 +991,13 @@ describe('HttpBackendService', () => {
     });
   });
 
-  describe('patchOrPut()', () => {
+  describe('putOrPatch()', () => {
     const reqHeaders = new HttpHeaders();
     it(`case 1: put non-existent item`, () => {
-      const req = {} as HttpRequest<any>;
+      const req = new HttpRequest<any>('PUT', 'any-url', {});
       const chainParam = { primaryKey: 'postId', restId: '1' } as ChainParam;
       const writeableData = [];
-      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      const response: ResponseOptions = service.putOrPatch(req, reqHeaders, chainParam, writeableData);
       expect(response instanceof HttpErrorResponse).toBe(true, 'update Errored');
       const { status, headers } = response;
       expect(status).toBe(Status.NOT_FOUND);
@@ -1012,11 +1006,11 @@ describe('HttpBackendService', () => {
     });
 
     it(`case 2: reqBody with existing ID and body`, () => {
-      const reqBody = { postId: 1 };
-      const req = { body: reqBody } as HttpRequest<any>;
+      const sourceItem = { postId: 1 };
+      const req = new HttpRequest<any>('PUT', 'any-url', sourceItem);
       const chainParam = { primaryKey: 'postId', restId: '1' } as ChainParam;
-      const writeableData = [reqBody];
-      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      const writeableData = [sourceItem];
+      const response: ResponseOptions = service.putOrPatch(req, reqHeaders, chainParam, writeableData);
       expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
       const { status, body: resBody, headers } = response;
       expect(status).toBe(Status.NO_CONTENT);
@@ -1026,11 +1020,11 @@ describe('HttpBackendService', () => {
     });
 
     it(`case 3: ID from URL no equal to ID from body`, () => {
-      const reqBody = { postId: 123 };
-      const req = { body: reqBody } as HttpRequest<any>;
+      const sourceItem = { postId: 123 };
+      const req = new HttpRequest<any>('PUT', 'any-url', sourceItem);
       const chainParam = { primaryKey: 'postId', restId: '456' } as ChainParam;
-      const writeableData = [reqBody];
-      const response = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      const writeableData = [sourceItem];
+      const response = service.putOrPatch(req, reqHeaders, chainParam, writeableData);
       expect(response instanceof HttpErrorResponse).toBe(true, 'update Errored');
       const { status, headers } = response;
       expect(status).toBe(Status.BAD_REQUEST);
@@ -1039,31 +1033,49 @@ describe('HttpBackendService', () => {
     });
 
     it(`case 4: put item with existing ID and 'config.putUpdate204 = false'`, () => {
-      const reqBody = { postId: 123 };
-      const req = { body: reqBody } as HttpRequest<any>;
+      const sourceItem = { postId: 123 };
+      const req = new HttpRequest<any>('PUT', 'any-url', sourceItem);
       const chainParam = { primaryKey: 'postId', restId: '123' } as ChainParam;
-      const writeableData = [reqBody];
+      const writeableData = [sourceItem];
       service.config.putUpdate204 = false;
-      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      const response: ResponseOptions = service.putOrPatch(req, reqHeaders, chainParam, writeableData);
       expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
       const { status, body: resBody, headers } = response;
       expect(status).toBe(Status.OK);
-      expect(resBody).toEqual(reqBody);
+      expect(resBody).toEqual(sourceItem);
       expect(headers.has('Location')).toBe(false, 'has not header "Location"');
       expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });
 
-    it(`case 5: reqBody put item with existing ID and 'config.putNotFound404 = false'`, () => {
-      const reqBody = { postId: 123 };
-      const req = { body: reqBody } as HttpRequest<any>;
+    it(`case 5: put should replace set properties of an old object`, () => {
+      const sourceItem = { postId: 123, oldProperty: 1 };
+      const req = new HttpRequest<any>('PUT', 'any-url', { postId: 123, newProperty: 2 });
+      const chainParam = { primaryKey: 'postId', restId: '123' } as ChainParam;
+      const writeableData = [sourceItem];
+      service.putOrPatch(req, reqHeaders, chainParam, writeableData);
+      expect(sourceItem as any).toEqual({ postId: 123, newProperty: 2 });
+    });
+
+    it(`case 6: patch should extends set properties of an old object`, () => {
+      const sourceItem = { postId: 123, oldProperty: 1 };
+      const req = new HttpRequest<any>('PATCH', 'any-url', { postId: 123, newProperty: 2 });
+      const chainParam = { primaryKey: 'postId', restId: '123' } as ChainParam;
+      const writeableData = [sourceItem];
+      service.putOrPatch(req, reqHeaders, chainParam, writeableData);
+      expect(sourceItem as any).toEqual({ postId: 123, oldProperty: 1, newProperty: 2 });
+    });
+
+    it(`case 7: reqBody put item with existing ID and 'config.putNotFound404 = false'`, () => {
+      const sourceItem = { postId: 123 };
+      const req = new HttpRequest<any>('PUT', 'any-url', sourceItem);
       const chainParam = { primaryKey: 'postId', restId: '123' } as ChainParam;
       const writeableData = [{ postId: 'no-existing-id' }];
-      service.config.putNotFound404 = false;
-      const response: ResponseOptions = service.patchOrPut('put', req, reqHeaders, chainParam, writeableData);
+      service.config.putUpdate404 = false;
+      const response: ResponseOptions = service.putOrPatch(req, reqHeaders, chainParam, writeableData);
       expect(response instanceof HttpErrorResponse).toBe(false, 'update not Errored');
       const { status, body: resBody, headers } = response;
       expect(status).toBe(Status.CREATED);
-      expect(resBody).toEqual(reqBody);
+      expect(resBody).toEqual(sourceItem);
       expect(headers.has('Location')).toBe(false, 'has not header "Location"');
       expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
     });

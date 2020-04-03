@@ -11,7 +11,7 @@ import {
   HttpHeaders,
 } from '@angular/common/http';
 
-import { Observable, of, throwError, config } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
 import { pickAllPropertiesAsGetters } from './pick-properties';
@@ -31,6 +31,7 @@ import {
   MockData,
   isFormData,
   ApiMockDataCallbackOptions,
+  ApiMockResponseCallbackOptions,
 } from './types';
 import { Status, getStatusText } from './http-status-codes';
 
@@ -501,9 +502,8 @@ for example "https://example.com" (without a trailing slash)`
       case 'POST':
         return this.post(req, headers, chainParam, mockData.writeableData);
       case 'PUT':
-        return this.patchOrPut('put', req, headers, chainParam, mockData.writeableData);
       case 'PATCH':
-        return this.patchOrPut('patch', req, headers, chainParam, mockData.writeableData);
+        return this.putOrPatch(req, headers, chainParam, mockData.writeableData);
       case 'DELETE':
         return this.delete(req, headers, chainParam, mockData.writeableData);
       default:
@@ -598,32 +598,22 @@ for example "https://example.com" (without a trailing slash)`
     }
   }
 
-  /**
-   * Update existing entity, but can create an entity too
-   * if `config.putUpdate204 = true` (by default).
-   */
-  protected patchOrPut(
-    method: 'patch' | 'put',
+  protected putOrPatch(
     req: HttpRequest<any>,
     headers: HttpHeaders,
     chainParam: ChainParam,
     writeableData: ObjectAny[]
   ): ResponseOptions | HttpErrorResponse {
-    const METHOD = method.toUpperCase();
+    const noAction = req.method == 'PUT' ? this.config.putNoAction : this.config.patchNoAction;
+    const update204 = req.method == 'PUT' ? this.config.putUpdate204 : this.config.patchUpdate204;
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = chainParam;
 
-    if (restId == undefined) {
-      const errMsg = `Error 405: Method not allowed; ${METHOD} forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
-      this.logErrorResponse(req, errMsg);
-      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
-    }
-
     if (!primaryKey) {
-      if (this.config[`${method}NoAction`]) {
+      if (noAction) {
         return { headers, status: Status.NO_CONTENT }; // successful; no content
       } else {
-        const errMsg = `Error 400: Bad Request; ${METHOD} forbidder on URI without primary key in the route`;
+        const errMsg = `Error 400: Bad Request; ${req.method} forbidder on URI without primary key in the route`;
         this.logErrorResponse(req, errMsg);
         return this.makeError(req, Status.BAD_REQUEST, errMsg);
       }
@@ -631,6 +621,12 @@ for example "https://example.com" (without a trailing slash)`
 
     if (item[primaryKey] == undefined) {
       item[primaryKey] = restId;
+    }
+
+    if (restId == undefined) {
+      const errMsg = `Error 405: Method not allowed; ${req.method} forbidder on this URI, try on "${req.url}/:${primaryKey}"`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.METHOD_NOT_ALLOWED, errMsg);
     }
 
     if (restId != item[primaryKey]) {
@@ -644,14 +640,22 @@ for example "https://example.com" (without a trailing slash)`
     const itemIndex = writeableData.findIndex((itm: any) => itm[primaryKey] == restId);
 
     if (itemIndex != -1) {
-      writeableData[itemIndex] = item;
-      return this.config[`${method}Update204`]
+      if (req.method == 'PUT') {
+        const keysFromNewItem = Object.keys(item);
+        Object.keys(writeableData[itemIndex]).forEach(k => {
+          if (!keysFromNewItem.includes(k)) {
+            delete writeableData[itemIndex][k];
+          }
+        });
+      }
+      Object.assign(writeableData[itemIndex], item);
+      return update204
         ? { headers, status: Status.NO_CONTENT } // successful; no content
         : { headers, body: item, status: Status.OK }; // successful; return entity
-    } else if (this.config[`${method}NotFound404`]) {
+    } else if (this.config.putUpdate404 || req.method == 'PATCH') {
       const errMsg =
         `Error 404: Not found; item.${primaryKey}=${restId} ` +
-        `not found and may not be created with ${METHOD}; use POST instead.`;
+        `not found and may not be created with ${req.method}; use POST instead.`;
       this.logErrorResponse(req, errMsg);
       return this.makeError(req, Status.NOT_FOUND, errMsg);
     } else {
@@ -661,9 +665,6 @@ for example "https://example.com" (without a trailing slash)`
     }
   }
 
-  /**
-   * @todo Consider the case where `primaryKey` and `restId` are missing.
-   */
   protected delete(
     req: HttpRequest<any>,
     headers: HttpHeaders,
@@ -671,6 +672,17 @@ for example "https://example.com" (without a trailing slash)`
     writeableData: ObjectAny[]
   ): ResponseOptions | HttpErrorResponse {
     const { primaryKey, restId: id } = chainParam;
+
+    if (!primaryKey) {
+      if (this.config.deleteNoAction) {
+        return { headers, status: Status.NO_CONTENT }; // successful; no content
+      } else {
+        const errMsg = `Error 400: Bad Request; DELETE forbidder on URI without primary key in the route`;
+        this.logErrorResponse(req, errMsg);
+        return this.makeError(req, Status.BAD_REQUEST, errMsg);
+      }
+    }
+
     let itemIndex = -1;
     if (id != undefined) {
       itemIndex = writeableData.findIndex((itemLocal: any) => itemLocal[primaryKey] == id);
@@ -707,13 +719,14 @@ for example "https://example.com" (without a trailing slash)`
     let resOrBody = clonedBody;
 
     if (chainParam.route.responseCallback) {
-      const opts: ApiMockDataCallbackOptions = {
+      const opts: ApiMockResponseCallbackOptions = {
         items: clonedBody,
         itemId: restId,
         httpMethod,
         parents: this.clone(parents),
         queryParams,
         reqBody: this.clone(req.body),
+        resBody: responseOptions.body,
       };
       resOrBody = chainParam.route.responseCallback(opts);
     }
