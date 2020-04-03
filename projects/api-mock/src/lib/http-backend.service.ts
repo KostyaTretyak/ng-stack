@@ -389,13 +389,7 @@ for example "https://example.com" (without a trailing slash)`
       }
     }
 
-    /** The body should be always an array. */
-    let body: any[] = [];
-    const anyBody: any = responseOptions.body;
-    if (anyBody !== undefined) {
-      body = Array.isArray(anyBody) ? anyBody : [anyBody];
-    }
-    return this.getResponse(req, chainParam, parents, queryParams, responseOptions, body);
+    return this.getResponse(req, chainParam, parents, queryParams, responseOptions);
   }
 
   /**
@@ -707,9 +701,15 @@ for example "https://example.com" (without a trailing slash)`
     chainParam: ChainParam,
     parents: ObjectAny[],
     queryParams: Params,
-    responseOptions: ResponseOptions = {} as any,
-    body: any[]
+    responseOptions: ResponseOptions = {} as any
   ): Observable<HttpResponse<any>> {
+    /** The body should be always an array. */
+    let body: any[] = [];
+    const anyBody: any = responseOptions.body;
+    if (anyBody !== undefined) {
+      body = Array.isArray(anyBody) ? anyBody : [anyBody];
+    }
+
     const restId = chainParam.restId || '';
     const httpMethod = req.method as HttpMethod;
     const clonedBody: any[] = this.clone(body);

@@ -23,7 +23,6 @@ import {
   MockData,
   CacheData,
   ApiMockDataCallback,
-  ApiMockResponseCallback,
 } from './types';
 import { Status } from './http-status-codes';
 
@@ -69,10 +68,9 @@ describe('HttpBackendService', () => {
       chainParam: ChainParam,
       parents: ObjectAny[],
       queryParams: Params,
-      responseOptions: ResponseOptions = {} as any,
-      items: ObjectAny[]
+      responseOptions: ResponseOptions = {} as any
     ) {
-      return super.getResponse(req, chainParam, parents, queryParams, responseOptions, items);
+      return super.getResponse(req, chainParam, parents, queryParams, responseOptions);
     }
 
     callRequestMethod(req: HttpRequest<any>, chainParam: ChainParam, mockData: MockData): ResponseOptions {
@@ -1081,19 +1079,21 @@ describe('HttpBackendService', () => {
     });
   });
 
+  /**
+   * @todo make more tests with responseCallback().
+   */
   describe('sendResponse()', () => {
     it('should returns result of calling dataCallback()', fakeAsync(() => {
       const dataCallback: ApiMockDataCallback = () => [{ some: 1 }];
-      const responseCallback: ApiMockResponseCallback = clonedItems => clonedItems.items;
       const chainParam: ChainParam[] = [
         {
-          cacheKey: 'api/posts',
+          cacheKey: 'anyCacheKey',
           primaryKey: '',
-          route: { path: '', dataCallback, responseCallback },
+          route: { path: 'any/path', dataCallback },
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = service.sendResponse(req, chainParam);
+      const res = service.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(r => (result = r));
@@ -1108,17 +1108,16 @@ describe('HttpBackendService', () => {
 
     it('should returns searched item with given primaryKey and restId inside result of calling dataCallback()', fakeAsync(() => {
       const dataCallback: ApiMockDataCallback = () => [{ somePrimaryKey: 23, some: 1 }];
-      const responseCallback: ApiMockResponseCallback = response => response.items;
       const chainParam: ChainParam[] = [
         {
-          cacheKey: 'api/posts',
+          cacheKey: 'anyCacheKey',
           primaryKey: 'somePrimaryKey',
           restId: '23',
-          route: { path: '', dataCallback, responseCallback },
+          route: { path: '', dataCallback },
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = service.sendResponse(req, chainParam);
+      const res = service.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(r => (result = r));
@@ -1133,17 +1132,16 @@ describe('HttpBackendService', () => {
 
     it('should returns undefined when search inside result of calling dataCallback()', fakeAsync(() => {
       const dataCallback = () => [{ some: 1 }];
-      const responseCallback = clonedItems => clonedItems;
       const chainParam: ChainParam[] = [
         {
           cacheKey: 'api/posts',
           primaryKey: 'somePrimaryKey',
           restId: 'someRestId',
-          route: { path: '', dataCallback, responseCallback },
+          route: { path: '', dataCallback },
         },
       ];
       const req = new HttpRequest<any>('GET', 'any/url/here');
-      const res: Observable<HttpResponse<any>> = service.sendResponse(req, chainParam);
+      const res = service.sendResponse(req, chainParam);
       expect(res instanceof Observable).toBe(true);
       let result: HttpResponse<any> = null;
       res.subscribe(
@@ -1154,10 +1152,6 @@ describe('HttpBackendService', () => {
       expect(result.status).toBe(Status.NOT_FOUND);
     }));
   });
-
-  describe('getResponse()', () => {});
-
-  describe('changeItem()', () => {});
 
   describe('genId()', () => {
     it('should returns 1 as new id', () => {
