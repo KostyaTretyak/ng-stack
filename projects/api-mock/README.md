@@ -180,6 +180,29 @@ interface ApiMockRoute {
   ignoreDataFromLocalStorage?: boolean;
   children?: ApiMockRoute[];
 }
+
+interface ApiMockDataCallbackOptions<I, P> {
+  items?: I;
+  itemId?: string;
+  httpMethod?: HttpMethod;
+  parents?: P;
+  queryParams?: Params;
+  /**
+   * Request body.
+   */
+  reqBody?: any;
+}
+
+interface ApiMockResponseCallbackOptions<I, P> extends ApiMockDataCallbackOptions<I, P> {
+  /**
+   * Response body.
+   */
+  resBody?: any;
+}
+
+type ApiMockDataCallback<I, P> = (opts?: ApiMockDataCallbackOptions<I, P>) => I;
+
+type ApiMockResponseCallback<I, P> = (opts?: ApiMockResponseCallbackOptions<I, P>) => any;
 ```
 
 ## Peer dependencies
