@@ -19,4 +19,16 @@ export class ApiMockModule {
       ],
     };
   }
+
+  /**
+   * Enable and configure the `@ng-stack/api-mock` in a lazy-loaded feature module.
+   * Same as `forRoot`.
+   * This is a feel-good method so you can follow the Angular style guide for lazy-loaded modules.
+   */
+  static forFeature(
+    apiMockService: Type<ApiMockService>,
+    apiMockConfig?: ApiMockConfig
+  ): ModuleWithProviders<ApiMockModule> {
+    return ApiMockModule.forRoot(apiMockService, apiMockConfig);
+  }
 }
