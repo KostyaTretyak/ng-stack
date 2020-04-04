@@ -7,7 +7,7 @@ This module is an alternative of [angular-in-memory-web-api](https://github.com/
 - [Install](#install)
 - [HTTP request handling](#http-request-handling)
 - [Basic setup](#basic-setup)
-- [Import the `@ng-stack/api-mock` module](#import-the-ng-stack-api-mock-module)
+- [Import the `@ng-stack/api-mock` module](#import-the-ng-stackapi-mock-module)
 
 `@ng-stack/api-mock` for Angular demos and tests that emulates CRUD operations over a RESTy API.
 
