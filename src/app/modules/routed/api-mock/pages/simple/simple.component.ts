@@ -23,7 +23,7 @@ export class SimpleComponent implements OnInit {
   ngOnInit() {
     this.form = this.formBuilder.group<SimpleModel>({
       id: [undefined],
-      body: [null, Validators.required],
+      name: [null, Validators.required],
     });
     this.isLoading = true;
     this.bsSimples.next(undefined);
@@ -63,8 +63,8 @@ export class SimpleComponent implements OnInit {
   }
 
   private showFormErrors() {
-    if (this.form.get('body').getError('required')) {
-      this.message = 'body is required';
+    if (this.form.get('name').getError('required')) {
+      this.message = 'name is required';
       return;
     }
   }

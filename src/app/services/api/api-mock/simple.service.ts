@@ -1,13 +1,10 @@
-import { Injectable } from '@angular/core';
-
 import { ApiMockService, ApiMockDataCallback, ApiMockRootRoute } from '@ng-stack/api-mock';
 
 interface Model {
   id: number;
-  body: string;
+  name: string;
 }
 
-@Injectable()
 export class SimpleService implements ApiMockService {
   getRoutes(): ApiMockRootRoute[] {
     return [
@@ -25,10 +22,10 @@ export class SimpleService implements ApiMockService {
     return ({ httpMethod, items }) => {
       if (httpMethod == 'GET') {
         return [
-          { id: 1, body: 'content for id 1' },
-          { id: 2, body: 'content for id 2' },
-          { id: 3, body: 'content for id 3' },
-          { id: 4, body: 'content for id 4' },
+          { id: 1, name: 'Windstorm' },
+          { id: 2, name: 'Bombasto' },
+          { id: 3, name: 'Magneta' },
+          { id: 4, name: 'Tornado' },
         ];
       } else {
         return items;

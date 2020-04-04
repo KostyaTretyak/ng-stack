@@ -25,7 +25,7 @@ export class SimpleEditComponent implements OnInit {
 
   ngOnInit() {
     this.message = 'loading...';
-    this.form = this.formBuilder.group({ id: 0, body: '' });
+    this.form = this.formBuilder.group({ id: 0, name: '' });
 
     const id: number = this.activatedRoute.snapshot.params.id;
     this.httpClient.get<SimpleModel[]>(`/simple/${id}`).subscribe(result => {
