@@ -2,16 +2,16 @@
 
 This module is an alternative of [angular-in-memory-web-api](https://github.com/angular/in-memory-web-api).
 
+`@ng-stack/api-mock` for Angular demos and tests that emulates CRUD operations over a RESTy API.
+
+It intercepts Angular `HttpClient` requests that would otherwise go to the remote server and redirects them to an `@ng-stack/api-mock` data store that you control.
+
 ## Table of contents
 - [Use cases](#use-cases)
 - [Install](#install)
 - [HTTP request handling](#http-request-handling)
 - [Basic setup](#basic-setup)
 - [Import the `@ng-stack/api-mock` module](#import-the-ng-stackapi-mock-module)
-
-`@ng-stack/api-mock` for Angular demos and tests that emulates CRUD operations over a RESTy API.
-
-It intercepts Angular `HttpClient` requests that would otherwise go to the remote server and redirects them to an `@ng-stack/api-mock` data store that you control.
 
 ## Use cases
 
