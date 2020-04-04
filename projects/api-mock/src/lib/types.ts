@@ -159,7 +159,7 @@ export interface ApiMockResponseCallbackOptions<
 
 export type ApiMockDataCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
   opts?: ApiMockDataCallbackOptions<I, P>
-) => ObjectAny[];
+) => I;
 
 export type ApiMockResponseCallback<I extends ObjectAny[] = ObjectAny[], P extends ObjectAny[] = ObjectAny[]> = (
   opts?: ApiMockResponseCallbackOptions<I, P>
