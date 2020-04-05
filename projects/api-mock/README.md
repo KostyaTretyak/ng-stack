@@ -105,18 +105,18 @@ The `getDataCallback()` method returns a callback called:
 - once if the HTTP request has `httpMethod == 'GET'`.
 - twice if the HTTP request has `httpMethod != 'GET'`. The first call automatically comes with `httpMethod == 'GET'` and with an empty array in the `items` argument. The result from the first call is then passed to an array by the `items` argument for further calls with the original HTTP method. That is, for example, if the backend receives a request with the `POST` method, first the callback is called with the `GET` method and then with the `POST` method, and the `items` argument contains the result returned from the first call.
 - if we have a nesting route, for example:
-  ```ts
-  {
-    path: 'api/posts/:postId',
-    dataCallback: firstCallback,
-    children: [
-      {
-        path: 'comments/:commentId',
-        dataCallback: secondCallback
-      }
-    ]
-  }
-  ```
+  ```ts
+  {
+    path: 'api/posts/:postId',
+    dataCallback: firstCallback,
+    children: [
+      {
+        path: 'comments/:commentId',
+        dataCallback: secondCallback
+      }
+    ]
+  }
+  ```
   and if the request comes with `URL == 'api/posts/123/comments'`, it will first call `firstCallback()` with `httpMethod == 'GET'`, then in result of this call will search for the item with `postId == 123`. Then `secondCallback()` will be called according to the algorithm described in the first two points, but with the `parents` argument, where there will be an array with one element `postId == 123`.
 
 ## Import the `@ng-stack/api-mock` module
