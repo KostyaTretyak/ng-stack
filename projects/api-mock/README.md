@@ -1,10 +1,6 @@
 # @ng-stack/api-mock
 
-This module is an alternative of [angular-in-memory-web-api](https://github.com/angular/in-memory-web-api).
-
-`@ng-stack/api-mock` for Angular demos and tests that emulates CRUD operations over a RESTy API.
-
-It intercepts Angular `HttpClient` requests that would otherwise go to the remote server and redirects them to an `@ng-stack/api-mock` data store that you control.
+This module is an alternative of [angular-in-memory-web-api](https://github.com/angular/in-memory-web-api), it's intended for Angular demos and tests that simulates CRUD operations over a RESTy API. It intercepts Angular `HttpClient` requests that would otherwise go to the remote server and redirects them to an `@ng-stack/api-mock` data store that you control.
 
 You can also view the [Ukrainian version of the documentation](./README.uk.md).
 
@@ -14,19 +10,15 @@ You can also view the [Ukrainian version of the documentation](./README.uk.md).
 - [HTTP request handling](#http-request-handling)
 - [Basic setup](#basic-setup)
 - [Import the `@ng-stack/api-mock` module](#import-the-ng-stackapi-mock-module)
+- [API](#api)
 
 ## Use cases
 
-- An angular application develops faster than the backend API for this application. That is, simulate operations against data collections that aren't yet implemented on your dev/test server. You can pass requests thru to the dev/test server for collections that are supported.
-
+- When Angular applications are developed faster than the API backend for these applications. This module allows you to simulate the data as if they were on the backend. Later, when the required functionality is implemented on a real dev/test server, this module can be switched off seamlessly, thus directing requests to the real backend.
 - Demo apps that need to simulate CRUD data persistence operations without a real server. You won't have to build and start a test server.
-
 - Whip up prototypes and proofs of concept.
-
 - Share examples with the community in a web coding environment such as [StackBlitz](https://stackblitz.com/) or [CodePen](https://codepen.io/). Create Angular issues and StackOverflow answers supported by live code.
-
 - Write unit test apps that read and write data. Avoid the hassle of intercepting multiple http calls and manufacturing sequences of responses. The `@ng-stack/api-mock` data store resets for each test so there is no cross-test data pollution.
-
 - End-to-end tests. If you can toggle the app into test mode using the `@ng-stack/api-mock`, you won't disturb the real database. This can be especially useful for CI (continuous integration) builds.
 
 ## Install
@@ -67,7 +59,8 @@ or on [stackblitz](https://stackblitz.com/github/KostyaTretyak/angular-example-s
 
 Create `SimpleService` class that implements `ApiMockService`.
 
-At minimum it must implement `getRoutes()` which creates an array whose items are collection routes to return or update. For example:
+At minimum it must implement `getRoutes()` which returns an array whose items are collection routes to return or update.
+For example:
 
 ```ts
 import { ApiMockService, ApiMockDataCallback, ApiMockRootRoute } from '@ng-stack/api-mock';
@@ -107,28 +100,28 @@ export class SimpleService implements ApiMockService {
 }
 ```
 
-**_Notes_**
-- `getDataCallback()` returns a callback that called:
-  - once if HTTP requests go with `httpMethod == 'GET'`.
-  - twice if HTTP requests go with `httpMethod != 'GET'`. The first call automatically come with `httpMethod == 'GET'` and with `items` as an empty array. Then the result returns in `items` array for the next calls that comes with the original method. For example, if you are requesting a backend with the `POST` method, then the callback is first called with the `GET` method and then with the `POST` method and with `items` returned from the first call.
-  - if we have multi-level route like this:
-  ```ts
-  {
-    path: 'api/posts/:postId',
-    dataCallback: firstCallback,
-    children: [
-      {
-        path: 'comments/:commentId',
-        dataCallback: secondCallback
-      }
-    ]
-  }
-  ```
-  and if request come with URL like this `api/posts/123/comments`, the first will be called `firstCallback()` with `httpMethod == 'GET'`, then item with `postId == 123` will be searched. Then `secondCallback()` will be called according to the algorithm described above in the first two points, but `parents` array with one item, whose `postId == 123`, will be passed to the callback.
+### _Notes 1_
+The `getDataCallback()` method returns a callback called:
+- once if the HTTP request has `httpMethod == 'GET'`.
+- twice if the HTTP request has `httpMethod != 'GET'`. The first call automatically comes with `httpMethod == 'GET'` and with an empty array in the `items` argument. The result from the first call is then passed to an array by the `items` argument for further calls with the original HTTP method. That is, for example, if the backend receives a request with the `POST` method, first the callback is called with the `GET` method and then with the `POST` method, and the `items` argument contains the result returned from the first call.
+- if we have a nesting route, for example:
+  ```ts
+  {
+    path: 'api/posts/:postId',
+    dataCallback: firstCallback,
+    children: [
+      {
+        path: 'comments/:commentId',
+        dataCallback: secondCallback
+      }
+    ]
+  }
+  ```
+  and if the request comes with `URL == 'api/posts/123/comments'`, it will first call `firstCallback()` with `httpMethod == 'GET'`, then in result of this call will search for the item with `postId == 123`. Then `secondCallback()` will be called according to the algorithm described in the first two points, but with the `parents` argument, where there will be an array with one element `postId == 123`.
 
 ## Import the `@ng-stack/api-mock` module
 
-Register your data store service implementation with the `ApiMockModule` in your root `AppModule.imports` calling the `forRoot` static method with this service class and an optional configuration object:
+Register `SimpleService` with the `ApiMockModule` in your root `imports` calling the `forRoot` static method with `SimpleService` and an optional configuration object:
 
 ```ts
 import { NgModule } from '@angular/core';
@@ -150,7 +143,7 @@ const apiMockModule = ApiMockModule.forRoot(SimpleService, { delay: 1000 });
 export class AppModule { }
 ```
 
-**_Notes_**
+### _Notes 2_
 - Always import the `ApiMockModule` after the `HttpClientModule` to ensure that the `@ng-stack/api-mock` backend provider supersedes the Angular version.
 - You can setup the `@ng-stack/api-mock` within a lazy loaded feature module by calling the `.forFeature()` method as you would `.forRoot()`.
 
