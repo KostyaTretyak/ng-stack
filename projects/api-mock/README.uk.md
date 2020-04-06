@@ -9,6 +9,10 @@
 - [Базове налаштування](#basic-setup)
 - [Імпорт `@ng-stack/api-mock`](#import-the-ng-stackapi-mock-module)
 - [API](#api)
+  - [ApiMockService and ApiMockRoute](#apimockservice-and-apimockroute)
+  - [dataCallback](#datacallback)
+  - [responseCallback](#responsecallback)
+  - [ApiMockConfig](#apimockconfig)
 
 ## Use cases
 
@@ -45,7 +49,7 @@ GET api/posts                 // усі пости
 GET api/posts/42              // пост із id=42
 GET api/posts/42/comments     // усі коментарі поста із id=42
 GET api/authors/10/books/3    // книга із id=3 чий автор має id=10
-GET api/one/two/three         // інші маршрути, що не мають primary id
+GET api/one/two/three         // інші маршрути, що не мають primary key
 ```
 
 Підтримується будь-який рівень вкладеності маршрутів.
@@ -73,14 +77,14 @@ export class SimpleService implements ApiMockService {
   getRoutes(): ApiMockRootRoute[] {
     return [
       {
-        path: 'simple/:id',
+        path: 'api/simple/:id',
         dataCallback: this.getDataCallback(),
       },
     ];
   }
 
   /**
-   * Колбек викликається, наприклад коли `URL == '/simple'` чи `URL == '/simple/3'`.
+   * Колбек викликається, наприклад коли `URL == '/api/simple'` чи `URL == '/api/simple/3'`.
    */
   private getDataCallback(): ApiMockDataCallback<Model[]> {
     return ({ httpMethod, items }) => {
@@ -98,25 +102,6 @@ export class SimpleService implements ApiMockService {
   }
 }
 ```
-
-### _Зверніть увагу, 1_
-Метод `getDataCallback()` повертає колбек, що викликається:
-- один раз, якщо HTTP-запит має `httpMethod == 'GET'`.
-- двічі, якщо HTTP-запит має `httpMethod != 'GET'`. Перший виклик автоматично йде із `httpMethod == 'GET'` та із пустим масивом в аргументі `items`. Далі результат із першого виклику передається масивом в аргумент `items` для подальших викликів з оригінальним HTTP-методом. Тобто, наприклад, якщо на бекенд приходить запит із методом `POST`, то спочатку колбек викликається із методом `GET`, а потім із методом `POST`, причому в аргументі `items` міститься результат повернутий від першого виклику.
-- якщо ми маємо маршрут із вкладеністю, наприклад:
-  ```ts
-  {
-    path: 'api/posts/:postId',
-    dataCallback: firstCallback,
-    children: [
-      {
-        path: 'comments/:commentId',
-        dataCallback: secondCallback
-      }
-    ]
-  }
-  ```
-  та якщо запит йде із `URL == 'api/posts/123/comments'`, спочатку буде викликатись `firstCallback()` із `httpMethod == 'GET'`, потім у результаті цього виклику буде шукатись елемент із `postId == 123`. Після чого буде викликатись `secondCallback()` у відповідності із алгоритмом, описаним у перших двох пунктах, але із аргументом `parents`, де буде масив із одним елементом `postId == 123`.
 
 ## Import the `@ng-stack/api-mock` module
 
@@ -142,17 +127,34 @@ const apiMockModule = ApiMockModule.forRoot(SimpleService, { delay: 1000 });
 export class AppModule { }
 ```
 
-### _Зверніть увагу, 2_
+### _Зверніть увагу, 1_
 - Завжди імпортуйте `ApiMockModule` після `HttpClientModule`, бо цей модуль потрібен для коректної роботи `ApiMockModule`.
 - Ви можете також встановлювати `ApiMockModule` для модулів із лінивим завантаженням викликаючи метод `.forFeature()`.
 
 ## API
 
+### ApiMockService and ApiMockRoute
+
 ```ts
 abstract class ApiMockService {
   abstract getRoutes(): ApiMockRootRoute[];
 }
+```
 
+`ApiMockService` є інтерфейсом, який повинен впроваджувати будь-який сервіс модуля ` @ng-stack/api-mock`. Наприклад:
+
+```ts
+class SomeService implements ApiMockService {
+  getRoutes(): ApiMockRootRoute[] {
+    return [{ path: 'api/login' }];
+  }
+}
+```
+
+Якщо ми глянемо на визначення інтерфейсу `ApiMockRootRoute`,
+ми побачимо, що воно відрізняється від інтерфейсу `ApiMockRoute` лише наявністю властивості `host`:
+
+```ts
 interface ApiMockRootRoute extends ApiMockRoute {
   host?: string;
 }
@@ -162,7 +164,8 @@ interface ApiMockRoute {
   dataCallback?: ApiMockDataCallback;
   /**
    * Вказані властивості в цьому об'єкті будуть використовуватись для елементів,
-   * що повертаються при виклику `dataCallback()`.
+   * що повертаються при виклику `dataCallback()`, але ці властивості необхідно ініціалізувати:
+   * `propertiesForList: { firstProp: null, secondProp: null }`.
    */
   propertiesForList?: ObjectAny;
   responseCallback?: ApiMockResponseCallback;
@@ -175,32 +178,240 @@ interface ApiMockRoute {
   ignoreDataFromLocalStorage?: boolean;
   children?: ApiMockRoute[];
 }
+```
 
+Отже, якщо ви встановлюєте усі можливі властивості маршруту, він буде схожий на цей приклад:
+
+```ts
+class SomeService implements ApiMockService {
+  getRoutes(): ApiMockRootRoute[] {
+    return [
+      {
+        host: 'https://example.com',
+        path: 'api/posts/:postId',
+        dataCallback: ({ items }) => items.length ? items : [{ postId: 1, body: 'one' }, { postId: 2, body: 'two' }],
+        propertiesForList: { body: null },
+        responseCallback: ({ resBody }) => resBody,
+        ignoreDataFromLocalStorage: false,
+        children: []
+      }
+    ];
+  }
+}
+```
+
+Де `:postId` вказує нам на те, що цей ключ повинен використовуватись в якості "primary key" для елементів, що повертаються функцією `dataCallback`.
+А `propertiesForList` містить об'єкт із ініціалізованими властивостями,
+які використовуються для виведення списку, що повертається функцією `dataCallback`.
+
+У прикладі, наведеному вище, функція `dataCallback` повертає елементи із типом `{ postId: number, body: string }`,
+і якщо ми маємо запит із `URL == '/api/posts/1'`, відповідь, що мітиться в аргументі `resBody`, буде мати тип `{ postId: number, body: string }`.
+
+Але якщо ми маємо запит із `URL == '/api/posts'` (без primary key),
+відповідь, що мітиться в аргументі `resBody` буде мати тип `{ body: string }`,
+оскільки ми це вказали у властивості `propertiesForList: { body: null }` маршрута.
+
+### dataCallback
+
+`dataCallback` - являє собою властивість інтерфейсу `ApiMockRoute`, що містить функцію, яка викликається:
+- один раз, якщо HTTP-запит має `httpMethod == 'GET'`.
+- двічі, якщо HTTP-запит має `httpMethod != 'GET'`. Перший виклик автоматично йде із `httpMethod == 'GET'` та із пустим масивом в аргументі `items`. Далі результат із першого виклику передається масивом в аргумент `items` для подальших викликів з оригінальним HTTP-методом. Тобто, наприклад, якщо на бекенд приходить запит із методом `POST`, то спочатку колбек викликається із методом `GET`, а потім із методом `POST`, причому в аргументі `items` міститься результат повернутий від першого виклику.
+- якщо ми маємо маршрут із вкладеністю, наприклад:
+  ```ts
+  {
+    path: 'api/posts/:postId',
+    dataCallback: firstCallback,
+    children: [
+      {
+        path: 'comments/:commentId',
+        dataCallback: secondCallback
+      }
+    ]
+  }
+  ```
+  та якщо запит йде із `URL == 'api/posts/123/comments'`, спочатку буде викликатись `firstCallback()` із `httpMethod == 'GET'`, потім у результаті цього виклику буде шукатись елемент із `postId == 123`. Після чого буде викликатись `secondCallback()` у відповідності із алгоритмом, описаним у перших двох пунктах, але із аргументом `parents`, де буде масив із одним елементом `postId == 123`.
+
+Якщо ваш маршрут не має властивості `dataCallback` та не має властивості `responseCallback`, ви завжди отримуватимете `{ status: 200 }` у якості відповіді.
+
+Властивість `dataCallback` повинна містити функцію наступного типу:
+
+```ts
+/**
+ * Спрощена версія.
+ */
+type ApiMockDataCallback<I, P> = (opts?: ApiMockDataCallbackOptions<I, P>) => I;
+/**
+ * Спрощена версія.
+ */
 interface ApiMockDataCallbackOptions<I, P> {
+  httpMethod?: HttpMethod;
   items?: I;
   itemId?: string;
-  httpMethod?: HttpMethod;
   parents?: P;
   queryParams?: Params;
   /**
-   * Request body.
+   * Тіло запиту.
    */
   reqBody?: any;
 }
+```
 
+Отже, якщо ви встановлюєте усі можливі властивості `ApiMockDataCallbackOptions`, це буде схоже на цей приклад:
+
+```ts
+export class SomeService implements ApiMockService {
+  getRoutes(): ApiMockRootRoute[] {
+    return [
+      {
+        path: 'api/heroes/:id',
+        dataCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody }) => [],
+      },
+    ];
+  }
+}
+```
+
+### responseCallback
+
+`responseCallback` - є властивістю `ApiMockRoute`, що містить функцію, яка викликається після виклику `dataCallback`.
+
+Ця властивість повинна містити функцію наступного типу:
+
+```ts
+/**
+ * Спрощена версія.
+ */
+type ApiMockResponseCallback<I, P> = (opts?: ApiMockResponseCallbackOptions<I, P>) => any;
+
+/**
+ * Спрощена версія.
+ */
 interface ApiMockResponseCallbackOptions<I, P> extends ApiMockDataCallbackOptions<I, P> {
   /**
-   * Response body.
+   * Тіло відповіді.
    */
   resBody?: any;
 }
+```
 
-type ApiMockDataCallback<I, P> = (opts?: ApiMockDataCallbackOptions<I, P>) => I;
+Отже, якщо ви встановлюєте усі можливі властивості `ApiMockResponseCallbackOptions`, це буде схоже на цей приклад:
 
-type ApiMockResponseCallback<I, P> = (opts?: ApiMockResponseCallbackOptions<I, P>) => any;
+```ts
+export class SomeService implements ApiMockService {
+  getRoutes(): ApiMockRootRoute[] {
+    return [
+      {
+        path: 'api/login',
+        responseCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody, resBody }) => [],
+      },
+    ];
+  }
+}
+```
+
+### ApiMockConfig
+
+`ApiMockConfig` визначає набір опцій. Додайте їх другим аргументом для `forRoot`:
+
+```ts
+ApiMockModule.forRoot(SimpleService, { delay: 1000 });
+```
+
+Прогляньте клас `ApiMockConfig`, щоб вивчити цей набір опцій:
+
+```ts
+class ApiMockConfig {
+  /**
+   * - `true` - потрібно пропускати запити із нерозпізнаними URL на оригінальний сервер.
+   * - `false` - (початково) повертати 404 код.
+   */
+  passThruUnknownUrl? = false;
+  /**
+   * - Чи потрібно очищати попередні записи в консолі?
+   *
+   * Очищує записи між попередньою подією маршрутизації `NavigationStart` та поточною подією `NavigationStart`.
+   */
+  clearPrevLog? = false;
+  showLog? = true;
+  cacheFromLocalStorage? = false;
+  localStorageKey? = 'apiMockCachedData';
+  /**
+   * - `true` - Пошук повинен бути чутливий до регістра літер (велика чи маленька буква).
+   * - `false` - (початково).
+   */
+  caseSensitiveSearch? = false;
+  /**
+   * Симуляція затримки відповіді (в мілісекундах).
+   */
+  delay? = 500;
+  /**
+   * - `true` - (початково) 204 код - якщо елемент, із ID відправленим у тілі `POST`, існує,
+   * не повертати оновлений елемент у відповіді.
+   * 
+   * - `false` - 200 код - повертати оновлений елемент у відповіді.
+   *
+   * Підказка:
+   * > **204 No Content**
+   *
+   * > Сервер успішно обробив запит та не повертає будь-який вміст.
+   */
+  postUpdate204? = true;
+  /**
+   * - `true` - 409 код - не потрібно оновлювати існуючий елемент, якщо ми маємо `POST` запит.
+   * - `false` - (початково) 200 код - OK, оновлювати.
+   *
+   * Підказка:
+   * > **409 Conflict**
+   *
+   * > Вказує, що запит не буде оброблятись, оскільки існує конфлікт з поточним станом ресурсу,
+   * > наприклад конфлікт зміни елементу між одночасними оновленнями.
+   */
+  postUpdate409? = false;
+  /**
+   * - `true` - (початково) 204 код - якщо елемент, із ID відправленим у тілі `PUT`, існує,
+   * не повертати оновлений елемент у відповіді.
+   *
+   * - `false` - 200 код - повертати оновлений елемент у відповіді.
+   *
+   * Підказка:
+   * > **204 No Content**
+   *
+   * > Сервер успішно обробив запит та не повертає будь-який вміст.
+   */
+  putUpdate204? = true;
+  /**
+   * - `true` - (початково) 404 код - якщо елемент, що йде у тілі `PUT` не знайдено.
+   * - `false` - створювати новий елемент.
+   */
+  putUpdate404? = true;
+  /**
+   * - `true` - (початково) 204 код - якщо елемент, із ID відправленим у тілі `PATCH`, існує,
+   * не повертати оновлений елемент у відповіді.
+   *
+   * - `false` - 200 код - повертати оновлений елемент у відповіді.
+   *
+   * Підказка:
+   * > **204 No Content**
+   *
+   * > Сервер успішно обробив запит та не повертає будь-який вміст.
+   */
+  patchUpdate204? = true;
+  /**
+   * - `true` - (початково) 404 код - якщо елементу, що треба видалити, не існує.
+   * - `false` - 204 код.
+   *
+   * Підказка:
+   * > **204 No Content**
+   *
+   * > Сервер успішно обробив запит та не повертає будь-який вміст.
+   */
+  deleteNotFound404? = true;
+}
 ```
 
 ## Peer dependencies
 
-Модуль сумісний із `@angular/core` >= v4.3.6 та `rxjs` > v6.
+Compatible with `@angular/core` >= v4.3.6 and `rxjs` > v6
+
+
 

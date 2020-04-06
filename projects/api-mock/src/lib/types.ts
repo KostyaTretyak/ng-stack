@@ -169,7 +169,8 @@ export interface ApiMockRoute {
   path: string;
   dataCallback?: ApiMockDataCallback;
   /**
-   * Properties for a list items that returns from `dataCallback()`.
+   * Properties for a list items that returns from `dataCallback()`, but
+   * you need init this properties: `propertiesForList: { firstProp: null, secondProp: null }`.
    */
   propertiesForList?: ObjectAny;
   responseCallback?: ApiMockResponseCallback;
