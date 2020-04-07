@@ -61,11 +61,6 @@ export class ApiMockConfig {
    */
   postUpdate409? = false;
   /**
-   * If you no need insert item in a resource on `POST`,
-   * set the route without primary id and `config.postNoAction = true`.
-   */
-  postNoAction? = false;
-  /**
    * - `true` - (default) 204 code - should NOT return the item after a `PUT` an item with existing ID.
    * - `false` - 200 code - return the item.
    *
@@ -81,11 +76,6 @@ export class ApiMockConfig {
    */
   putUpdate404? = true;
   /**
-   * If you no need insert item in a resource on `PUT`,
-   * set the route without primary id and `config.putNoAction = true`.
-   */
-  putNoAction? = false;
-  /**
    * - `true` - (default) 204 code - should NOT return the item after a `PATCH` an item with existing ID.
    * - `false` - 200 code - return the item.
    *
@@ -95,16 +85,6 @@ export class ApiMockConfig {
    * > The server successfully processed the request and is not returning any content.
    */
   patchUpdate204? = true;
-  /**
-   * If you no need insert item in a resource on `PATCH`,
-   * set the route without primary id and `config.patchNoAction = true`.
-   */
-  patchNoAction? = false;
-  /**
-   * If you no need insert item in a resource on `DELETE`,
-   * set the route without primary id and `config.deleteNoAction = true`.
-   */
-  deleteNoAction? = false;
   /**
    * - `true` - (default) 404 code - if item with that ID not found.
    * - `false` - 204 code.

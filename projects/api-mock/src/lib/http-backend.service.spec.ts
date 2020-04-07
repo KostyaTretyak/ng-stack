@@ -138,14 +138,14 @@ describe('HttpBackendService', () => {
   });
 
   describe('checkRouts()', () => {
-    it('multi level route paths, without primary keys', () => {
+    it('nested routes, without primary keys', () => {
       const route: ApiMockRoute = { path: 'api/posts', children: [{ path: 'comments' }] };
-      expect(() => service.checkRoute(route)).toThrowError(/detected wrong multi level route/);
+      expect(() => service.checkRoute(route)).toThrowError(/detected wrong nested routes/);
     });
 
-    it('multi level route paths, without route.dataCallback', () => {
+    it('nested routes route paths, without route.dataCallback', () => {
       const route: ApiMockRoute = { path: 'api/posts/:postId', children: [{ path: 'comments' }] };
-      expect(() => service.checkRoute(route)).toThrowError(/detected wrong multi level route/);
+      expect(() => service.checkRoute(route)).toThrowError(/detected wrong nested routes/);
     });
 
     it('with dataCallback, but without a primary key', () => {
@@ -166,6 +166,7 @@ describe('HttpBackendService', () => {
       ['path with slashes and without primary keys', { path: 'api/sessions' }],
       ['with dataCallback and with a primary key', { path: 'api/posts/:postId', dataCallback: () => [] }],
       ['http protocol', { host: 'http://example.com', path: 'api' }],
+      ['port', { host: 'http://localhost:4200', path: 'api' }],
       ['secure protocol', { host: 'https://example.com', path: 'api/sessions' }],
       ['ua host', { host: 'https://example.com.ua', path: 'api' }],
       ['cyrillic host', { host: 'https://приклад.укр', path: 'api' }],
@@ -190,7 +191,7 @@ describe('HttpBackendService', () => {
       });
     });
 
-    it('multi level route paths, with route.dataCallback and a primary key', () => {
+    it('nested routes, with route.dataCallback and a primary key', () => {
       const route: ApiMockRoute = {
         path: 'api/posts/:postId',
         dataCallback: () => [],
@@ -213,16 +214,6 @@ describe('HttpBackendService', () => {
     it('responseCallback as an object', () => {
       const route: ApiMockRoute = { responseCallback: {} as any, dataCallback: () => [], path: 'api/posts/:postId' };
       expect(() => service.checkRoute(route)).toThrowError(/is not a function/);
-    });
-
-    it('wrong host', () => {
-      const route: ApiMockRootRoute = { host: 'fake host', path: 'api' };
-      expect(() => service.checkRoute(route)).toThrowError(/detected wrong host/);
-    });
-
-    it('wrong host without HTTP protocol', () => {
-      const route: ApiMockRootRoute = { host: 'example.com', path: 'api' };
-      expect(() => service.checkRoute(route)).toThrowError(/detected wrong host/);
     });
 
     it('wrong host with slash at the end', () => {
@@ -388,7 +379,7 @@ describe('HttpBackendService', () => {
     }
 
     describe('one level of route.path nesting', () => {
-      it('url with primary ID', () => {
+      it('url with primary key', () => {
         url = 'one/two/three-other/123';
         const rootPath = 'one/two/three/:primaryId';
         route = { path: rootPath, children: [{ path: 'level-two/one/two' }] };
@@ -400,7 +391,7 @@ describe('HttpBackendService', () => {
         expect(deleteChildren(dryMatch[0].routes)).toEqual([{ path: rootPath }]);
       });
 
-      it('url without primary ID', () => {
+      it('url without primary key', () => {
         url = 'one/two/three-other';
         const rootPath = 'one/two/three/:primaryId';
         route = { path: rootPath, children: [{ path: 'level-two/one/two' }] };
@@ -426,7 +417,7 @@ describe('HttpBackendService', () => {
         expect(dryMatch.length).toBe(0);
       });
 
-      it('url with host and with primary ID', () => {
+      it('url with host and with primary key', () => {
         url = 'https://example.com/one/two-other/123';
         route = {
           host: 'https://example.com',
@@ -443,7 +434,7 @@ describe('HttpBackendService', () => {
         ]);
       });
 
-      it('url with host and without primary ID', () => {
+      it('url with host and without primary key', () => {
         url = 'https://example.com/one/two-other';
         route = {
           host: 'https://example.com',
@@ -461,7 +452,7 @@ describe('HttpBackendService', () => {
       });
     });
 
-    describe('multi level of route.path nesting', () => {
+    describe('nested routes', () => {
       let children: ApiMockRootRoute[];
 
       // This is required because deleteChildren() works mutable.
@@ -474,7 +465,7 @@ describe('HttpBackendService', () => {
         ];
       });
 
-      it('url with primary ID', () => {
+      it('url with primary key', () => {
         url = 'api/posts/123/comments-other/456';
         route = { path: 'api/posts/:postId', children };
         const dryMatch = service.getRouteDryMatch(url, route);
@@ -502,7 +493,7 @@ describe('HttpBackendService', () => {
         ]);
       });
 
-      it('url without primary ID', () => {
+      it('url without primary key', () => {
         url = 'api/posts/123/comments-other';
         route = { path: 'api/posts/:postId', children };
         const dryMatch = service.getRouteDryMatch(url, route);
@@ -545,7 +536,7 @@ describe('HttpBackendService', () => {
         expect(dryMatch.length).toBeFalsy();
       });
 
-      it('url with host and with primary ID', () => {
+      it('url with host and with primary key', () => {
         url = 'https://example.com/api/posts/123/comments-other/456';
         route = { host: 'https://example.com', path: 'api/posts/:postId', children };
         const dryMatch = service.getRouteDryMatch(url, route);
@@ -576,7 +567,7 @@ describe('HttpBackendService', () => {
         ]);
       });
 
-      it('url with host and without primary ID', () => {
+      it('url with host and without primary key', () => {
         url = 'https://example.com/api/posts/123/comments-other';
         route = { host: 'https://example.com', path: 'api/posts/:postId', children };
         const dryMatch = service.getRouteDryMatch(url, route);
@@ -632,7 +623,7 @@ describe('HttpBackendService', () => {
         ['api/posts-other/123', 'api/posts/:postId'],
         ['api-other/posts/123', 'api/posts/:postId'],
 
-        // Multi level nesting of route paths
+        // Nested routes nesting of route paths
         ['api/posts/123/comments/456', 'api/posts/:postId/comments-other/:commentId'],
         ['api/posts/123/comments/456', 'api-other/posts/:postId/comments/:commentId'],
         ['api/posts/123/comments-other/456', 'api/posts/:postId/comments/:commentId'],
@@ -729,7 +720,7 @@ describe('HttpBackendService', () => {
       });
     });
 
-    describe('Multi level nesting of route paths', () => {
+    describe('Nested routes', () => {
       it(`URL with restId`, () => {
         const url = 'api/posts/123/comments/456';
         const routePath = 'api/posts/:postId/comments/:commentId';

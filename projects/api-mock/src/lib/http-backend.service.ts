@@ -91,8 +91,8 @@ export class HttpBackendService implements HttpBackend {
     // Nested routes should to have route.dataCallback and primary keys.
     if (!isLastRoute && (!route.dataCallback || !pathWithPk.test(path))) {
       throw new Error(
-        `ApiMockModule detected wrong multi level route with path "${childPath}".
-With multi level route you should to use a primary key in nested route path,
+        `ApiMockModule detected wrong nested routes with path "${childPath}".
+With these routes you should to use a primary key in nested route path,
 for example "api/posts/:postId/comments", where ":postId" is a primary key of collection "api/posts".
 Also you should to have corresponding route.dataCallback.`
       );
@@ -102,7 +102,8 @@ Also you should to have corresponding route.dataCallback.`
     if ((route.dataCallback && !pathWithPk.test(path)) || (pathWithPk.test(path) && !route.dataCallback)) {
       throw new Error(
         `ApiMockModule detected wrong route with path "${childPath}".
-If you have route.dataCallback, you should to have corresponding a primary key, and vice versa.`
+If you have route.dataCallback, you should to have corresponding a primary key, and vice versa.
+Also you can remove route.dataCallback if you no need any data from this route.`
       );
     }
 
@@ -122,11 +123,10 @@ route.path should not to have trailing slash.`
     }
 
     // Checking a path.host
-    if (host && !/^https?:\/\/(?:[^\/]+\.)+[^\/]+$/.test(host)) {
+    if (host && (typeof host != 'string' || host.slice(-1) == '/')) {
       throw new Error(
         `ApiMockModule detected wrong host "${host}".
-Every host should match regexp "^https?:\/\/([^\/]+\.)+[^\/]+$",
-for example "https://example.com" (without a trailing slash)`
+Any host must have a string type, and should not end with trailing slash.`
       );
     }
 
@@ -144,7 +144,7 @@ for example "https://example.com" (without a trailing slash)`
 
     incomingRoutes.forEach(incomingRoute => {
       if (existingRoutes.includes(incomingRoute)) {
-        throw new Error(`ApiMockModule detected duplicate route with path: "${incomingRoute}"`);
+        throw new Error(`ApiMockModule detected duplicate route with path: '${incomingRoute}'`);
       }
       existingRoutes.push(incomingRoute);
     });
@@ -152,7 +152,7 @@ for example "https://example.com" (without a trailing slash)`
 
   protected getRootPaths(routes: (ApiMockRootRoute | ApiMockRoute)[]): PartialRoutes {
     const rootRoutes = routes.map((route, index) => {
-      // Transformation: `https://example.com/part1/part2/:paramName` -> `https://example.com/part1/part2`
+      // Transformation: `https:// example.com/part1/part2/:paramName` -> `https://example.com/part1/part2`
       const part = route.path.split('/:')[0];
       const path = [(route as ApiMockRootRoute).host, part].filter(s => s).join('/');
       const length = path.length;
@@ -560,13 +560,9 @@ for example "https://example.com" (without a trailing slash)`
     }
 
     if (!primaryKey) {
-      if (this.config.postNoAction) {
-        return { headers, status: Status.NO_CONTENT }; // successful; no content
-      } else {
-        const errMsg = `Error 400: Bad Request; POST forbidder on URI without primary key in the route`;
-        this.logErrorResponse(req, errMsg);
-        return this.makeError(req, Status.BAD_REQUEST, errMsg);
-      }
+      const errMsg = `Error 400: Bad Request; POST forbidder on URI without primary key in the route`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
     }
 
     if (item[primaryKey] === undefined) {
@@ -598,19 +594,14 @@ for example "https://example.com" (without a trailing slash)`
     chainParam: ChainParam,
     writeableData: ObjectAny[]
   ): ResponseOptions | HttpErrorResponse {
-    const noAction = req.method == 'PUT' ? this.config.putNoAction : this.config.patchNoAction;
     const update204 = req.method == 'PUT' ? this.config.putUpdate204 : this.config.patchUpdate204;
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = chainParam;
 
     if (!primaryKey) {
-      if (noAction) {
-        return { headers, status: Status.NO_CONTENT }; // successful; no content
-      } else {
-        const errMsg = `Error 400: Bad Request; ${req.method} forbidder on URI without primary key in the route`;
-        this.logErrorResponse(req, errMsg);
-        return this.makeError(req, Status.BAD_REQUEST, errMsg);
-      }
+      const errMsg = `Error 400: Bad Request; ${req.method} forbidder on URI without primary key in the route`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
     }
 
     if (item[primaryKey] == undefined) {
@@ -668,13 +659,9 @@ for example "https://example.com" (without a trailing slash)`
     const { primaryKey, restId: id } = chainParam;
 
     if (!primaryKey) {
-      if (this.config.deleteNoAction) {
-        return { headers, status: Status.NO_CONTENT }; // successful; no content
-      } else {
-        const errMsg = `Error 400: Bad Request; DELETE forbidder on URI without primary key in the route`;
-        this.logErrorResponse(req, errMsg);
-        return this.makeError(req, Status.BAD_REQUEST, errMsg);
-      }
+      const errMsg = `Error 400: Bad Request; DELETE forbidder on URI without primary key in the route`;
+      this.logErrorResponse(req, errMsg);
+      return this.makeError(req, Status.BAD_REQUEST, errMsg);
     }
 
     let itemIndex = -1;
