@@ -1,5 +1,12 @@
+<a name="1.1.0"></a>
+# [1.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.1.0) (2020-04-08)
+
+### Features
+
+* **ApiMockConfig:** Not need to set `*NoAction` option to have a successful response for routes without `dataCallback`. Now this functionality is "by default".
+
 <a name="0.0.0-beta.1"></a>
-# 0.0.0-beta.1 (2020-03-17)
+## 0.0.0-beta.1 (2020-03-17)
 
 ### Features
 
