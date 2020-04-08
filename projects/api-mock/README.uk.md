@@ -141,7 +141,7 @@ abstract class ApiMockService {
 }
 ```
 
-`ApiMockService` є інтерфейсом, який повинен впроваджувати будь-який сервіс модуля ` @ng-stack/api-mock`. Наприклад:
+`ApiMockService` є інтерфейсом, який повинен впроваджуватись будь-яким сервісом для роботи з ` @ng-stack/api-mock`. Наприклад:
 
 ```ts
 class SomeService implements ApiMockService {
@@ -205,10 +205,10 @@ class SomeService implements ApiMockService {
 які використовуються для виведення списку, що повертається функцією `dataCallback`.
 
 У прикладі, наведеному вище, функція `dataCallback` повертає елементи із типом `{ postId: number, body: string }`,
-і якщо ми маємо запит із `URL == '/api/posts/1'`, відповідь, що мітиться в аргументі `resBody`, буде мати тип `{ postId: number, body: string }`.
+і якщо ми маємо запит із `URL == '/api/posts/1'`, відповідь, що міститься в аргументі `resBody`, буде мати тип `{ postId: number, body: string }`.
 
 Але якщо ми маємо запит із `URL == '/api/posts'` (без primary key),
-відповідь, що мітиться в аргументі `resBody` буде мати тип `{ body: string }`,
+відповідь, що міститься в аргументі `resBody` буде мати тип `{ body: string }`,
 оскільки ми це вказали у властивості `propertiesForList: { body: null }` маршрута.
 
 ### dataCallback
@@ -256,7 +256,7 @@ interface ApiMockDataCallbackOptions<I, P> {
 }
 ```
 
-Отже, якщо ви встановлюєте усі можливі властивості `ApiMockDataCallbackOptions`, це буде схоже на цей приклад:
+Отже, якщо ви встановлюєте усі можливі властивості `ApiMockDataCallbackOptions`, це буде схоже на приклад:
 
 ```ts
 export class SomeService implements ApiMockService {
@@ -294,7 +294,7 @@ interface ApiMockResponseCallbackOptions<I, P> extends ApiMockDataCallbackOption
 }
 ```
 
-Отже, якщо ви встановлюєте усі можливі властивості `ApiMockResponseCallbackOptions`, це буде схоже на цей приклад:
+Отже, якщо ви встановлюєте усі можливі властивості `ApiMockResponseCallbackOptions`, це буде схоже на приклад:
 
 ```ts
 export class SomeService implements ApiMockService {
@@ -311,13 +311,13 @@ export class SomeService implements ApiMockService {
 
 ### ApiMockConfig
 
-`ApiMockConfig` визначає набір опцій. Додайте їх другим аргументом для `forRoot`:
+`ApiMockConfig` визначає набір опцій для `ApiMockModule`. Додайте їх другим аргументом для `forRoot`:
 
 ```ts
 ApiMockModule.forRoot(SimpleService, { delay: 1000 });
 ```
 
-Прогляньте клас `ApiMockConfig`, щоб вивчити цей набір опцій:
+Прогляньте клас `ApiMockConfig`, щоб вивчити усі можливі опції:
 
 ```ts
 class ApiMockConfig {

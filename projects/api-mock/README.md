@@ -57,7 +57,7 @@ Supporting any level of nesting routes.
 
 ## Basic setup
 
-Source code of this example see
+> Source code of this example see
 on [github](https://github.com/KostyaTretyak/angular-example-simple-service)
 or on [stackblitz](https://stackblitz.com/github/KostyaTretyak/angular-example-simple-service)
 
@@ -311,7 +311,7 @@ export class SomeService implements ApiMockService {
 
 ### ApiMockConfig
 
-The `ApiMockConfig` defines a set of options. Add them as the second `forRoot` argument:
+The `ApiMockConfig` defines a set of options for `ApiMockModule`. Add them as the second `forRoot` argument:
 
 ```ts
 ApiMockModule.forRoot(SimpleService, { delay: 1000 });
