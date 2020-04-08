@@ -231,7 +231,7 @@ The `dataCallback` it's property of `ApiMockRoute` that contains function, and i
   ```
   and if the request comes with `URL == 'api/posts/123/comments'`, it will first call `firstCallback()` with `httpMethod == 'GET'`, then in result of this call will search for the item with `postId == 123`. Then `secondCallback()` will be called according to the algorithm described in the first two points, but with the `parents` argument, where there will be an array with one element `postId == 123`.
 
-If your route does not have the `dataCallback` property and not have `responseCallback` property, you will always receive `{ status: 200 }` as response.
+If your route does not have the `dataCallback` property and not have `responseCallback` property, and not have primary key in the `path`, you will always receive `{ status: 200 }` as response.
 
 The `dataCallback` property must contain a function of the following type:
 
@@ -338,11 +338,6 @@ class ApiMockConfig {
    * By default `apiMockCachedData`.
    */
   localStorageKey? = 'apiMockCachedData';
-  /**
-   * - `true` - Search match should be case insensitive.
-   * - `false` - (default).
-   */
-  caseSensitiveSearch? = false;
   /**
    * Simulate latency by delaying response (in milliseconds).
    */

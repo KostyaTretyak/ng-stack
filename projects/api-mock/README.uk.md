@@ -231,7 +231,7 @@ class SomeService implements ApiMockService {
   ```
   та якщо запит йде із `URL == 'api/posts/123/comments'`, спочатку буде викликатись `firstCallback()` із `httpMethod == 'GET'`, потім у результаті цього виклику буде шукатись елемент із `postId == 123`. Після чого буде викликатись `secondCallback()` у відповідності із алгоритмом, описаним у перших двох пунктах, але із аргументом `parents`, де буде масив із одним елементом `postId == 123`.
 
-Якщо ваш маршрут не має властивості `dataCallback` та не має властивості `responseCallback`, ви завжди отримуватимете `{ status: 200 }` у якості відповіді.
+Якщо ваш маршрут не має властивості `dataCallback` та не має властивості `responseCallback`, і не має primary key у `path`, ви завжди отримуватимете `{ status: 200 }` у якості відповіді.
 
 Властивість `dataCallback` повинна містити функцію наступного типу:
 
@@ -335,11 +335,6 @@ class ApiMockConfig {
   showLog? = true;
   cacheFromLocalStorage? = false;
   localStorageKey? = 'apiMockCachedData';
-  /**
-   * - `true` - Пошук повинен бути чутливий до регістра літер (велика чи маленька буква).
-   * - `false` - (початково).
-   */
-  caseSensitiveSearch? = false;
   /**
    * Симуляція затримки відповіді (в мілісекундах).
    */
