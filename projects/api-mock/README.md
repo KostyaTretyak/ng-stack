@@ -309,6 +309,42 @@ export class SomeService implements ApiMockService {
 }
 ```
 
+The data returned by the `responseCallback` function is then substituted as a `body` property in the HTTP response. The exception to this rule applies to data of type `HttpResponse` or `HttpErrorResponse`, this data return as is - without changes.
+
+For example:
+
+```ts
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { ApiMockService, ApiMockRootRoute, ApiMockResponseCallback } from '@ng-stack/api-mock';
+
+export class SomeService implements ApiMockService {
+  getRoutes(): ApiMockRootRoute[] {
+    return [
+      {
+        path: 'api/login',
+        responseCallback: this.getResponseCallback(),
+      },
+    ];
+  }
+
+  private getResponseCallback(): ApiMockResponseCallback {
+    return ({ reqBody }) => {
+      const { login, password } = reqBody;
+
+      if (login != 'admin' || password != 'qwerty') {
+        return new HttpErrorResponse({
+          url: 'api/login',
+          status: 400,
+          statusText: 'some error message',
+          headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+          error: 'other description',
+        });
+      }
+    };
+  }
+}
+```
+
 ### ApiMockConfig
 
 The `ApiMockConfig` defines a set of options for `ApiMockModule`. Add them as the second `forRoot` argument:

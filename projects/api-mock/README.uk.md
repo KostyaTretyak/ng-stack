@@ -309,6 +309,43 @@ export class SomeService implements ApiMockService {
 }
 ```
 
+Дані, що повертає функція `responseCallback`, потім підставляються у `body` HTTP-відповіді.
+Вийняток із цього правила застосовується до даних із типом `HttpResponse` або `HttpErrorResponse`, такі дані повертаються у незміненому вигляді.
+
+Наприклад:
+
+```ts
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { ApiMockService, ApiMockRootRoute, ApiMockResponseCallback } from '@ng-stack/api-mock';
+
+export class SomeService implements ApiMockService {
+  getRoutes(): ApiMockRootRoute[] {
+    return [
+      {
+        path: 'api/login',
+        responseCallback: this.getResponseCallback(),
+      },
+    ];
+  }
+
+  private getResponseCallback(): ApiMockResponseCallback {
+    return ({ reqBody }) => {
+      const { login, password } = reqBody;
+
+      if (login != 'admin' || password != 'qwerty') {
+        return new HttpErrorResponse({
+          url: 'api/login',
+          status: 400,
+          statusText: 'some error message',
+          headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+          error: 'other description',
+        });
+      }
+    };
+  }
+}
+```
+
 ### ApiMockConfig
 
 `ApiMockConfig` визначає набір опцій для `ApiMockModule`. Додайте їх другим аргументом для `forRoot`:

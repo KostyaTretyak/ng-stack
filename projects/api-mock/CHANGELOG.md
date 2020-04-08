@@ -3,7 +3,8 @@
 
 ### Features
 
-* **ApiMockConfig:** Not need to set `*NoAction` option to have a successful response for routes without `dataCallback`. Now this functionality is "by default".
+* **ApiMockConfig:** Not need to set `*NoAction` option to have a successful response for routes without `dataCallback`.
+Now this functionality is "by default". See [this commit](https://github.com/KostyaTretyak/ng-stack/commit/269be2d).
 
 <a name="0.0.0-beta.1"></a>
 ## 0.0.0-beta.1 (2020-03-17)
