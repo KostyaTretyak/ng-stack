@@ -31,11 +31,6 @@ export class ApiMockConfig {
    */
   localStorageKey? = 'apiMockCachedData';
   /**
-   * - `true` - Search match should be case insensitive.
-   * - `false` - (default).
-   */
-  caseSensitiveSearch? = false;
-  /**
    * Simulate latency by delaying response (in milliseconds).
    */
   delay? = 500;
