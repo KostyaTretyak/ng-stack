@@ -309,7 +309,7 @@ export class SomeService implements ApiMockService {
 }
 ```
 
-The data returned by the `responseCallback` function is then substituted as a `body` property in the HTTP response. The exception to this rule applies to data of type `HttpResponse` or `HttpErrorResponse`, this data return as is - without changes.
+The data returned by the `responseCallback` function is then substituted as a `body` property in the HTTP response. The exception to this rule applies to data of type `HttpResponse` or `HttpErrorResponse`, this data returns as is - without changes.
 
 For example:
 
