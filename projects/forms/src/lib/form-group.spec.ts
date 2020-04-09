@@ -22,6 +22,7 @@ describe('FormGroup', () => {
   class Profile {
     firstName: string;
     address: Control<Address>;
+    someControlArray?: Control<string[]>;
     someGroup: SomeGroup;
     someArray: number[];
     someBoolean?: boolean;
@@ -45,6 +46,7 @@ describe('FormGroup', () => {
           value: { other: 'some value', city: 'Kyiv', street: 'Khreshchatyk' },
           disabled: false,
         }),
+        someControlArray: new FormControl([]),
         someGroup: new FormGroup({ children: new FormControl(2) }),
         someArray: new FormArray<number>([
           new FormControl(1),

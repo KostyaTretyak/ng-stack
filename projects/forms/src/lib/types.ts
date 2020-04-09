@@ -57,10 +57,10 @@ type ExtractAny<T> = T extends Extract<T, string & number & boolean & object & n
  */
 export type ControlType<T, V extends object = ValidatorsModel> = [T] extends [ExtractAny<T>]
   ? FormGroup<any, V> | FormControl<any, V> | FormArray<any, V>
-  : [T] extends [Array<infer Item>]
-  ? FormArray<Item, V>
   : [T] extends [Control<infer ControlModel>]
   ? FormControl<ControlModel, V>
+  : [T] extends [Array<infer Item>]
+  ? FormArray<Item, V>
   : [T] extends [object]
   ? FormGroup<T, V>
   : FormControl<T, V>;
@@ -70,10 +70,10 @@ export type ControlType<T, V extends object = ValidatorsModel> = [T] extends [Ex
  */
 export type FbControlConfig<T, V extends object = ValidatorsModel> = [T] extends [ExtractAny<T>]
   ? FormGroup<any, V> | FbControl<any, V> | FormArray<any, V>
-  : [T] extends [Array<infer Item>]
-  ? FormArray<Item, V>
   : [T] extends [Control<infer ControlModel>]
   ? FbControl<ControlModel, V>
+  : [T] extends [Array<infer Item>]
+  ? FormArray<Item, V>
   : [T] extends [object]
   ? FormGroup<T, V>
   : FbControl<T, V>;

@@ -24,6 +24,11 @@ xdescribe('checking types only', () => {
       const formControl: FormControl<Model> = valueWithType;
     });
 
+    it('should return FormControl<string[]>', () => {
+      let valueWithType: ControlType<Control<string[]>>;
+      const formControl: FormControl<string[]> = valueWithType;
+    });
+
     it('should return FormGroup<Model>', () => {
       let valueWithType: ControlType<Model>;
       const formGroup: FormGroup<Model> = valueWithType;
