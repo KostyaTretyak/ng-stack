@@ -1,3 +1,5 @@
+import { Control } from '@ng-stack/forms';
+
 export class Address {
   region?: string;
   district?: string;
@@ -11,6 +13,8 @@ export class UserForm {
   password: string;
   addresses?: Address;
   someArray: SomeArray[];
+  birthday?: Control<Date>;
+  someControlWithArray?: Control<string[]>;
 }
 
 export class SomeArray {

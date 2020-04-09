@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { FormGroup, FormControl, FormBuilder } from '@ng-stack/forms';
+import { FormGroup, FormControl, FormBuilder, Validators } from '@ng-stack/forms';
 
 import { UserForm } from '../../models/user-form';
 
@@ -12,7 +12,7 @@ import { UserForm } from '../../models/user-form';
 export class FormsComponent implements OnInit {
   formGroup: FormGroup<UserForm>;
 
-  constructor(private formBuilder: FormBuilder) {}
+  constructor(private fb: FormBuilder) {}
 
   get userName() {
     return this.formGroup.get('userName');
@@ -54,19 +54,21 @@ export class FormsComponent implements OnInit {
     //   ]),
     // });
 
-    const fb = new FormBuilder();
-
-    this.formGroup = this.formBuilder.group<UserForm>({
+    this.formGroup = this.fb.group<UserForm>({
       userName: 'SomeOne',
       userEmail: new FormControl('some-one@gmail.com'),
-      password: fb.control('123456'),
-      addresses: fb.group({ city: 'Kyiv' }),
-      someArray: fb.array([
-        fb.group({ item1: 'value1' }),
-        fb.group({ item1: 'value2' }),
-        fb.group({ item1: 'value3' }),
-        fb.group({ item1: 'value4' }),
+      password: this.fb.control('123456'),
+      addresses: this.fb.group({ city: 'Kyiv' }),
+      someArray: this.fb.array([
+        this.fb.group({ item1: 'value1' }),
+        this.fb.group({ item1: 'value2' }),
+        this.fb.group({ item1: 'value3' }),
+        this.fb.group({ item1: 'value4' }),
       ]),
+      birthday: new Date(),
+      someControlWithArray: [['one', 'two'], Validators.required],
     });
+
+    console.log(this.formGroup.value);
   }
 }

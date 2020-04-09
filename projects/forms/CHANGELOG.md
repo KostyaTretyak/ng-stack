@@ -1,5 +1,12 @@
+<a name="2.0.0-beta.3"></a>
+# [2.0.0-beta.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.3) (2020-04-09)
+
+### Bug Fixes
+
+- **auto detecting controls types** Fixed issue with `Control<any[]>`. (Closes https://github.com/KostyaTretyak/ng-stack/issues/64).
+
 <a name="2.0.0-beta.2"></a>
-# [2.0.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.2) (2020-03-28)
+## [2.0.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.2) (2020-03-28)
 
 ### Bug Fixes
 
