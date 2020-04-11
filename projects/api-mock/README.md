@@ -18,7 +18,7 @@ You can also view the [Ukrainian version of the documentation](./README.uk.md).
 
 ## Use cases
 
-- When Angular applications are developed faster than the API backend for these applications. This module allows you to simulate the data as if they were on the backend. Later, when the required functionality is implemented on a real dev/test server, this module can be switched off seamlessly, thus directing requests to the real backend.
+- When Angular applications are developed faster than the API backend for these applications. This module allows you to simulate the data as if it were on the backend. Later, when the required functionality is implemented on a real dev/test server, this module can be switched off seamlessly, thus directing requests to the real backend.
 - Demo apps that need to simulate CRUD data persistence operations without a real server. You won't have to build and start a test server.
 - Whip up prototypes and proofs of concept.
 - Share examples with the community in a web coding environment such as [StackBlitz](https://stackblitz.com/) or [CodePen](https://codepen.io/). Create Angular issues and StackOverflow answers supported by live code.
