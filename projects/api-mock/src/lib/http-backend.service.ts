@@ -882,20 +882,4 @@ Any host must have a string type, and should not end with trailing slash.`
     }
     this.cachedData[chainParam.cacheKey].readonlyData = readonlyData;
   }
-
-  /**
-   * Determine whether the given HTTP method may include a body.
-   */
-  protected mightHaveBody(method: string): boolean {
-    switch (method) {
-      case 'DELETE':
-      case 'GET':
-      case 'HEAD':
-      case 'OPTIONS':
-      case 'JSONP':
-        return false;
-      default:
-        return true;
-    }
-  }
 }
