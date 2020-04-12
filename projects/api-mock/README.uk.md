@@ -253,6 +253,10 @@ interface ApiMockDataCallbackOptions<I, P> {
    * Тіло запиту.
    */
   reqBody?: any;
+  /**
+   * Заголовки запиту.
+   */
+  reqHeaders?: any;
 }
 ```
 
@@ -264,7 +268,7 @@ export class SomeService implements ApiMockService {
     return [
       {
         path: 'api/heroes/:id',
-        dataCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody }) => [],
+        dataCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody, reqHeaders }) => [],
       },
     ];
   }

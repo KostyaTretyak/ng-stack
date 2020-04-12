@@ -1,5 +1,12 @@
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.2.0) (2020-04-12)
+
+### Features
+
+* **ApiMockDataCallbackOptions:** Added `reqHeaders` [#65](https://github.com/KostyaTretyak/ng-stack/issues/65).
+
 <a name="1.1.0"></a>
-# [1.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.1.0) (2020-04-08)
+## [1.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.1.0) (2020-04-08)
 
 ### Features
 

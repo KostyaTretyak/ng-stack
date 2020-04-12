@@ -205,9 +205,9 @@ And `propertiesForList` contains an object with initialized properties,
 it is used for the list of items returned from `dataCallback` function.
 
 In the example above, the `dataCallback` function returns items with type `{ postId: number, body: string }`,
-and if we have a request with a `URL == '/api/posts/1'`, the response returned in the `resBody` argument will have type `{ postId: number, body: string }`.
+and if we have a request with an `URL == '/api/posts/1'`, the response returned in the `resBody` argument will have type `{ postId: number, body: string }`.
 
-But if we have a request with a `URL == '/api/posts'` (without primary key),
+But if we have a request with an `URL == '/api/posts'` (without primary key),
 the response returned in the `resBody` argument will have type `{ body: string }`
 because we have `propertiesForList: { body: null }` in the route.
 
@@ -253,6 +253,10 @@ interface ApiMockDataCallbackOptions<I, P> {
    * Request body.
    */
   reqBody?: any;
+  /**
+   * Request headers.
+   */
+  reqHeaders?: any;
 }
 ```
 
@@ -264,7 +268,7 @@ export class SomeService implements ApiMockService {
     return [
       {
         path: 'api/heroes/:id',
-        dataCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody }) => [],
+        dataCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody, reqHeaders }) => [],
       },
     ];
   }
