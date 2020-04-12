@@ -120,6 +120,7 @@ export interface ApiMockDataCallbackOptions<I extends ObjectAny[] = ObjectAny[],
    * Request body.
    */
   reqBody?: any;
+  reqHeaders?: ObjectAny;
 }
 
 export interface ApiMockResponseCallbackOptions<

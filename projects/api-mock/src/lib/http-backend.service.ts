@@ -1,5 +1,5 @@
 import { Injectable, Optional } from '@angular/core';
-import { Router, Params, NavigationStart, NavigationEnd, DefaultUrlSerializer } from '@angular/router';
+import { Router, Params, NavigationStart, NavigationEnd, DefaultUrlSerializer, UrlSerializer } from '@angular/router';
 import {
   HttpBackend,
   HttpErrorResponse,
@@ -53,6 +53,7 @@ export class HttpBackendService implements HttpBackend {
     protected apiMockService: ApiMockService,
     protected config: ApiMockConfig,
     protected xhrFactory: XhrFactory,
+    protected urlSerializer: UrlSerializer,
     @Optional() protected router: Router
   ) {}
 
@@ -301,7 +302,7 @@ Any host must have a string type, and should not end with trailing slash.`
      */
     splitedRoute.forEach((part, i) => {
       if (part.charAt(0) == ':') {
-        const restId = splitedUrl[i];
+        const restId = splitedUrl[i] || undefined;
         const primaryKey = part.slice(1);
         /**
          * cacheKey should be without a restId at the end of URL, e.g. `posts` or `posts/123/comments`,
@@ -337,8 +338,12 @@ Any host must have a string type, and should not end with trailing slash.`
     }
   }
 
-  protected parseUrl(url: string) {
-    return new DefaultUrlSerializer().parse(url);
+  protected getQueryParams(url: string) {
+    const urlTree = this.urlSerializer.parse(url);
+    if (!Object.keys(urlTree.queryParams).length) {
+      return undefined;
+    }
+    return urlTree.queryParams;
   }
 
   /**
@@ -347,7 +352,7 @@ Any host must have a string type, and should not end with trailing slash.`
    * - calls `responseCallback()` from matched route and returns a result.
    */
   protected sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]): Observable<HttpResponse<any>> {
-    const queryParams = this.parseUrl(req.urlWithParams).queryParams;
+    const queryParams = this.getQueryParams(req.urlWithParams);
     const httpMethod = req.method as HttpMethod;
     /** Last chain param */
     const chainParam = chainParams[chainParams.length - 1];
@@ -363,7 +368,7 @@ Any host must have a string type, and should not end with trailing slash.`
     let responseOptions = {} as ResponseOptions;
 
     if (chainParam.route.dataCallback) {
-      const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body);
+      const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body, req.headers);
       responseOptions = this.callRequestMethod(req, chainParam, mockData);
 
       if (responseOptions instanceof HttpErrorResponse) {
@@ -378,6 +383,7 @@ Any host must have a string type, and should not end with trailing slash.`
           parents,
           queryParams,
           reqBody: req.body,
+          reqHeaders: this.transformHeaders(req.headers),
         };
         const writeableData = chainParam.route.dataCallback(opts);
 
@@ -396,7 +402,13 @@ Any host must have a string type, and should not end with trailing slash.`
    * If cached data no exists, calls `dataCallback()` with `GET` HTTP method,
    * cache the result and returns it.
    */
-  protected cacheDataWithGetMethod(chainParam: ChainParam, parents?: ObjectAny[], queryParams?: Params, body?: any) {
+  protected cacheDataWithGetMethod(
+    chainParam: ChainParam,
+    parents?: ObjectAny[],
+    queryParams?: Params,
+    body?: any,
+    headers?: HttpHeaders
+  ) {
     if (this.config.cacheFromLocalStorage && !chainParam.route.ignoreDataFromLocalStorage) {
       this.applyDataFromLocalStorage(chainParam);
     }
@@ -409,6 +421,7 @@ Any host must have a string type, and should not end with trailing slash.`
         parents,
         queryParams,
         reqBody: body,
+        reqHeaders: this.transformHeaders(headers),
       };
       const writeableData = chainParam.route.dataCallback(opts);
       if (!Array.isArray(writeableData)) {
@@ -458,13 +471,14 @@ Any host must have a string type, and should not end with trailing slash.`
   }
 
   protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
-    const queryParams = this.parseUrl(req.urlWithParams).queryParams;
+    const queryParams = this.getQueryParams(req.urlWithParams);
     const parents: ObjectAny[] = [];
 
     // for() without last chainParam.
     for (let i = 0; i < chainParams.length - 1; i++) {
       const chainParam = chainParams[i];
-      const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body);
+      const currParents = parents.length ? parents : undefined;
+      const mockData = this.cacheDataWithGetMethod(chainParam, currParents, queryParams, req.body, req.headers);
       const primaryKey = chainParam.primaryKey;
       const restId = chainParam.restId;
       const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
@@ -479,7 +493,7 @@ Any host must have a string type, and should not end with trailing slash.`
       parents.push(item);
     }
 
-    return parents;
+    return parents.length ? parents : undefined;
   }
 
   protected callRequestMethod(
@@ -697,7 +711,7 @@ Any host must have a string type, and should not end with trailing slash.`
       body = Array.isArray(anyBody) ? anyBody : [anyBody];
     }
 
-    const restId = chainParam.restId || '';
+    const restId = chainParam.restId;
     const httpMethod = req.method as HttpMethod;
     const clonedBody: any[] = this.clone(body);
     /**
@@ -713,6 +727,7 @@ Any host must have a string type, and should not end with trailing slash.`
         parents: this.clone(parents),
         queryParams,
         reqBody: this.clone(req.body),
+        reqHeaders: this.transformHeaders(req.headers),
         resBody: responseOptions.body,
       };
       resOrBody = chainParam.route.responseCallback(opts);
@@ -781,7 +796,7 @@ Any host must have a string type, and should not end with trailing slash.`
     let body: any;
     try {
       logHeaders = this.transformHeaders(req.headers);
-      queryParams = this.parseUrl(req.urlWithParams).queryParams;
+      queryParams = this.getQueryParams(req.urlWithParams);
       if (isFormData(req.body)) {
         body = [];
         req.body.forEach((value, key) => body.push({ [key]: value }));
@@ -798,13 +813,13 @@ Any host must have a string type, and should not end with trailing slash.`
       queryParams?: ObjectAny;
       body?: ObjectAny;
     } = {};
-    if (JSON.stringify(logHeaders) != '{}') {
+    if (logHeaders !== undefined) {
       log.headers = logHeaders;
     }
-    if (JSON.stringify(queryParams) != '{}') {
+    if (queryParams !== undefined) {
       log.queryParams = queryParams;
     }
-    if (body) {
+    if (body !== undefined) {
       log.body = body;
     }
     if (JSON.stringify(log) == '{}') {
@@ -818,10 +833,10 @@ Any host must have a string type, and should not end with trailing slash.`
   }
 
   protected logResponse(res: ResponseOptionsLog) {
-    if (!Object.keys(res.headers).length) {
+    if (res.headers && !Object.keys(res.headers).length) {
       delete res.headers;
     }
-    if (!Object.keys(res.body).length) {
+    if (res.body && !Object.keys(res.body).length) {
       delete res.body;
     }
     console.log('%cres:', `color: blue;`, res);
@@ -846,6 +861,9 @@ Any host must have a string type, and should not end with trailing slash.`
   }
 
   protected transformHeaders(headers: HttpHeaders) {
+    if (!headers || !headers.keys().length) {
+      return undefined;
+    }
     const logHeaders: ObjectAny = {};
     headers.keys().forEach(header => {
       let values: string | string[] = headers.getAll(header);
@@ -856,7 +874,7 @@ Any host must have a string type, and should not end with trailing slash.`
   }
 
   protected clone(data: any) {
-    return JSON.parse(JSON.stringify(data));
+    return data === undefined ? undefined : JSON.parse(JSON.stringify(data));
   }
 
   protected makeError(req: HttpRequest<any>, status: Status, errMsg: string) {
