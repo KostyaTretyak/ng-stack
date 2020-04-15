@@ -3,44 +3,37 @@
 Даний модуль є альтернативою [angular-in-memory-web-api](https://github.com/angular/in-memory-web-api), призначений для демо-версій Angular застосунків та для тестів, що симулюють CRUD операції, спрямовані до REST API. Він перехоплює запити від Angular `HttpClient`, що мають йти на сервер, і переспрямовує їх до підготовлених даних, збережених у сервісах `@ng-stack/api-mock`.
 
 ## Зміст
-- [Коли використовується](#use-cases)
-- [Встановлення](#install)
-- [Обробка HTTP-запитів](#http-request-handling)
-- [Базове налаштування](#basic-setup)
-- [Імпорт `@ng-stack/api-mock`](#import-the-ng-stackapi-mock-module)
+- [Коли використовується](#коли-використовується)
+- [Встановлення](#встановлення)
+- [Обробка HTTP-запитів](#обробка-http-запитів)
+- [Базове налаштування](#базове-налаштування)
+- [Імпорт `@ng-stack/api-mock`](#імпорт-модуля-ng-stackapi-mock)
 - [API](#api)
-  - [ApiMockService and ApiMockRoute](#apimockservice-and-apimockroute)
+  - [ApiMockService та ApiMockRoute](#apimockservice-та-apimockroute)
   - [dataCallback](#datacallback)
   - [responseCallback](#responsecallback)
   - [ApiMockConfig](#apimockconfig)
 
-## Use cases
+## Коли використовується
 
 - Коли Angular-застосунки розробляються швидше, ніж бекенд API для цих застосунків. Даний модуль дозволяє симулювати роботу з даними так, начебто вони знаходяться на бекенді. Пізніше, коли на реальному dev/test сервері потрібна функціональність буде впроваджена, цей модуль можна буде безшовно вимкнути, спрямувавши таким чином запити на реальний бекенд.
 - Демо-застосунки, що потребують симуляції CRUD-операцій без реального сервера.
 - Створення прототипів Angular-застосунків та [Proof of concept](https://en.wikipedia.org/wiki/Proof_of_concept).
 - Поширення прикладів в інтернеті, якими можна ділитись з іншими людьми за допомогою [StackBlitz](https://stackblitz.com/) чи [CodePen](https://codepen.io/).
 - Написання юніт-тестів, що читають та записують дані. Модуль `@ng-stack/api-mock` може перевстановлювати дані для кожного окремого теста.
-
 - End-to-end тестування. Якщо ви переключите ваш застосунок для роботи із `@ng-stack/api-mock`, ви не будете надокучати реальній базі даних. Це може бути особливо корисним у випадку зі збірками CI (continuous integration).
 
-## Install
+## Встановлення
 
 ```bash
 npm i -D @ng-stack/api-mock
 ```
 
-ЧИ
+де `-D` означає - "зберегти у `devDependencies` у package.json".
 
-```bash
-yarn add -D @ng-stack/api-mock
-```
+## Обробка HTTP-запитів
 
-де `-D` означеє - "зберегти у `devDependencies` у package.json".
-
-## HTTP request handling
-
-`@ng-stack/api-mock` обробляє HTTP-запити та повертає `Observable` об'єкт так, як це прийнято у REST web api.
+`@ng-stack/api-mock` обробляє HTTP-запити так, як це прийнято у REST web api.
 
 Наприклад:
 
@@ -54,7 +47,7 @@ GET api/one/two/three         // інші маршрути, що не мають
 
 Підтримується будь-який рівень вкладеності маршрутів.
 
-## Basic setup
+## Базове налаштування
 
 > Сирцевий код із наведених тут прикладів можете проглянути
 на [github](https://github.com/KostyaTretyak/angular-example-simple-service)
@@ -62,7 +55,7 @@ GET api/one/two/three         // інші маршрути, що не мають
 
 Створіть клас `SimpleService`, що впроваджує `ApiMockService`.
 
-Цей клас, як мінімум, повинен мати метод `getRoutes()`, що повертає масив із маршрутами та відповідними даними.
+Цей клас, як мінімум, повинен мати метод `getRoutes()`, що повертає масив із маршрутами.
 Наприклад:
 
 ```ts
@@ -103,7 +96,7 @@ export class SimpleService implements ApiMockService {
 }
 ```
 
-## Import the `@ng-stack/api-mock` module
+## Імпорт модуля `@ng-stack/api-mock`
 
 Зареєструйте `SimpleService` за допомогою `ApiMockModule` в масиві `imports` викликаючи статичний метод `forRoot` із `SimpleService` та опціональним конфігураційним об'єктом:
 
@@ -133,7 +126,7 @@ export class AppModule { }
 
 ## API
 
-### ApiMockService and ApiMockRoute
+### ApiMockService та ApiMockRoute
 
 ```ts
 abstract class ApiMockService {
@@ -213,9 +206,11 @@ class SomeService implements ApiMockService {
 
 ### dataCallback
 
-`dataCallback` - являє собою властивість інтерфейсу `ApiMockRoute`, що містить функцію, яка викликається:
-- один раз, якщо HTTP-запит має `httpMethod == 'GET'`.
-- двічі, якщо HTTP-запит має `httpMethod != 'GET'`. Перший виклик автоматично йде із `httpMethod == 'GET'` та із пустим масивом в аргументі `items`. Далі результат із першого виклику передається масивом в аргумент `items` для подальших викликів з оригінальним HTTP-методом. Тобто, наприклад, якщо на бекенд приходить запит із методом `POST`, то спочатку колбек викликається із методом `GET`, а потім із методом `POST`, причому в аргументі `items` міститься результат повернутий від першого виклику.
+`dataCallback` містить функцію, яка викликається по конкретному маршруту для самого першого `HttpClient` запиту:
+- один раз, якщо `httpMethod == 'GET'`.
+- двічі, якщо `httpMethod != 'GET'`. Перший виклик автоматично йде із `httpMethod == 'GET'` та із пустим масивом в аргументі `items`. Далі, результат із першого виклику передається масивом в аргумент `items` із елементами, що **можна змінювати**, для подальших викликів з оригінальним HTTP-методом.
+  
+  Тобто, наприклад, якщо на бекенд приходить `HttpClient` запит із методом `POST`, то спочатку `dataCallback` викликається із методом `GET`, а потім із методом `POST`, причому в аргументі `items` міститься результат, повернутий від першого виклику.
 - якщо ми маємо маршрут із вкладеністю, наприклад:
   ```ts
   {
@@ -229,9 +224,15 @@ class SomeService implements ApiMockService {
     ]
   }
   ```
-  та якщо запит йде із `URL == 'api/posts/123/comments'`, спочатку буде викликатись `firstCallback()` із `httpMethod == 'GET'`, потім у результаті цього виклику буде шукатись елемент із `postId == 123`. Після чого буде викликатись `secondCallback()` у відповідності із алгоритмом, описаним у перших двох пунктах, але із аргументом `parents`, де буде масив із одним елементом `postId == 123`.
+  та якщо `HttpClient` запит йде із `URL == 'api/posts/123/comments'`, спочатку буде викликатись `firstCallback()` із `httpMethod == 'GET'`, потім у результаті цього виклику буде шукатись елемент із `postId == 123`. Після чого буде викликатись `secondCallback()` у відповідності із алгоритмом, описаним у перших двох пунктах, але із аргументом `parents`, де буде масив із одним елементом `postId == 123`.
 
-Якщо ваш маршрут не має властивості `dataCallback` та не має властивості `responseCallback`, і не має primary key у `path`, ви завжди отримуватимете `{ status: 200 }` у якості відповіді.
+Нагадаємо - так працюватиме `dataCallback` лише для самого першого `HttpClient` запиту по конкретному маршруту. Для другого і подальших запитів, якщо `httpMethod == 'GET'`, дані будуть братись із кешу (або із `localStorage`, при наявності відповідного налаштування).
+
+Наприклад, якщо вже раніше був `HttpClient` запит із `URL == 'api/posts/:postId'`, то другий і наступні рази `dataCallback` вже не буде викликатись по цьому ж маршруту із `httpMethod == 'GET'`.
+
+Те саме стосується і вкладених маршрутів із прикладу, наведеному вище. Якщо перший `HttpClient` запит йде із `URL == 'api/posts/:postId/comments/:commentId'`, а наступний із `URL == 'api/posts/:postId'` та із `httpMethod == 'GET'`, то у цьому наступному запиті вже не буде викликатись `firstCallback()`, бо дані будуть братись із кешу.
+
+Також варто зазначити - якщо ваш маршрут не має властивості `dataCallback` та не має властивості `responseCallback`, і не має primary key у `path`, ви завжди отримуватимете `{ status: 200 }` у якості відповіді.
 
 Властивість `dataCallback` повинна містити функцію наступного типу:
 
@@ -306,7 +307,7 @@ export class SomeService implements ApiMockService {
     return [
       {
         path: 'api/login',
-        responseCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody, resBody }) => [],
+        responseCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody, reqHeaders, resBody }) => [],
       },
     ];
   }

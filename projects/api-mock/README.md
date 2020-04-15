@@ -31,17 +31,11 @@ You can also view the [Ukrainian version of the documentation](./README.uk.md).
 npm i -D @ng-stack/api-mock
 ```
 
-OR
-
-```bash
-yarn add -D @ng-stack/api-mock
-```
-
 where switch `-D` mean - "save to devDependencies in package.json".
 
 ## HTTP request handling
 
-`@ng-stack/api-mock` processes an HTTP request and returns an `Observable` of HTTP `Response` object in the manner of a RESTy web api.
+`@ng-stack/api-mock` processes an HTTP request in the manner of a RESTy web api.
 
 Examples:
 
@@ -213,9 +207,11 @@ because we have `propertiesForList: { body: null }` in the route.
 
 ### dataCallback
 
-The `dataCallback` it's property of `ApiMockRoute` that contains function, and it's called:
-- once if the HTTP request has `httpMethod == 'GET'`.
-- twice if the HTTP request has `httpMethod != 'GET'`. The first call automatically comes with `httpMethod == 'GET'` and with an empty array in the `items` argument. The result from the first call is then passed to an array by the `items` argument with **mutable** elements for further calls with the original HTTP method. That is, for example, if the backend receives a request with the `POST` method, first the callback is called with the `GET` method and then with the `POST` method, and the `items` argument contains the result returned from the first call.
+`dataCallback` contains a function that is called on a specific route for the very first `HttpClient` request:
+- once if `httpMethod == 'GET'`.
+- twice if `httpMethod != 'GET'`. The first call automatically comes with `httpMethod == 'GET'` and with an empty array in the `items` argument. The result from the first call is then passed to an array by the `items` argument with **mutable** elements for further calls with the original HTTP method.
+  
+  That is, for example, if the backend receives `HttpClient` request with the `POST` method, first `dataCallback` is called with the `GET` method and then with the `POST` method, and the `items` argument contains the result returned from the first call.
 - if we have a nesting route, for example:
   ```ts
   {
@@ -229,9 +225,15 @@ The `dataCallback` it's property of `ApiMockRoute` that contains function, and i
     ]
   }
   ```
-  and if the request comes with `URL == 'api/posts/123/comments'`, it will first call `firstCallback()` with `httpMethod == 'GET'`, then in result of this call will search for the item with `postId == 123`. Then `secondCallback()` will be called according to the algorithm described in the first two points, but with the `parents` argument, where there will be an array with one element `postId == 123`.
+  and if `HttpClient` request comes with `URL == 'api/posts/123/comments'`, it will first call `firstCallback()` with `httpMethod == 'GET'`, then in result of this call will search for the item with `postId == 123`. Then `secondCallback()` will be called according to the algorithm described in the first two points, but with the `parents` argument, where there will be an array with one element `postId == 123`.
 
-If your route does not have the `dataCallback` property and not have `responseCallback` property, and not have primary key in the `path`, you will always receive `{ status: 200 }` as response.
+Recall - so will work `dataCallback` only for the very first `HttpClient` request on a specific route. For the second and subsequent requests, if `httpMethod == 'GET'`, the data will be retrieved from the cache (or from `localStorage`, if configured).
+
+For example, if `HttpClient` had a request to `URL == 'api/posts/:postId'` before, then `dataCallback` would no longer be called along the same route with `httpMethod == 'GET'`.
+
+The same applies to nested routes from the example above. If the first `HttpClient` request comes to `URL == 'api/posts/:postId/comments/:commentId'`, next - to `URL == 'api/posts/:postId'` with  `httpMethod == 'GET'`, then this second request will no longer be called `firstCallback()` because the data will be retrieved from the cache.
+
+Also worth noting - if your route does not have the `dataCallback` property and not have `responseCallback` property, and not have primary key in the `path`, you will always receive `{ status: 200 }` as response.
 
 The `dataCallback` property must contain a function of the following type:
 
@@ -306,7 +308,7 @@ export class SomeService implements ApiMockService {
     return [
       {
         path: 'api/login',
-        responseCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody, resBody }) => [],
+        responseCallback: ({ httpMethod, items, itemId, parents, queryParams, reqBody, reqHeaders, resBody }) => [],
       },
     ];
   }
