@@ -198,10 +198,10 @@ class SomeService implements ApiMockService {
 які використовуються для виведення списку, що повертається функцією `dataCallback`.
 
 У прикладі, наведеному вище, функція `dataCallback` повертає елементи із типом `{ postId: number, body: string }`,
-і якщо ми маємо запит із `URL == '/api/posts/1'`, відповідь, що міститься в аргументі `resBody`, буде мати тип `{ postId: number, body: string }`.
+і якщо ми маємо запит із `URL == '/api/posts/1'`, елементи, що містяться в аргументі `resBody`, будуть мати тип `{ postId: number, body: string }`.
 
 Але якщо ми маємо запит із `URL == '/api/posts'` (без primary key),
-відповідь, що міститься в аргументі `resBody` буде мати тип `{ body: string }`,
+елементи, що містяться в аргументі `resBody` будуть мати тип `{ body: string }`,
 оскільки ми це вказали у властивості `propertiesForList: { body: null }` маршрута.
 
 ### dataCallback
