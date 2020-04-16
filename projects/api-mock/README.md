@@ -194,7 +194,7 @@ class SomeService implements ApiMockService {
 }
 ```
 
-Where `:postId` indicates that this key should be used as the "primary key" for the items returned from `dataCallback` function.
+Where `:postId` in `path` property indicates that this key should be used as the "primary key" for the items returned from `dataCallback` function.
 And `propertiesForList` contains an object with initialized properties,
 it is used for the list of items returned from `dataCallback` function.
 
