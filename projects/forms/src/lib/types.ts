@@ -9,11 +9,11 @@ import { FormControl } from './form-control';
 /**
  * This type marks a property of a form model as property
  * which is intended for an instance of `FormControl`.
- * 
+ *
  * If a property of your form model have a primitive type,
  * in appropriate form field the instance of `FormControl` will be automatically assigned.
  * But if the property have a type that extends `object` - you need `Control<T>`.
- * 
+ *
  * ### Example:
 ```ts
 import { FormBuilder, Control } from '@ng-stack/forms';
@@ -82,8 +82,12 @@ export type FbControlConfig<T, V extends object = ValidatorsModel> = [T] extends
  * Form builder control.
  */
 export type FbControl<T, V extends object = ValidatorsModel> =
-  | T
-  | [T, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
+  | (T | { value: T; disabled: boolean })
+  | [
+      T | { value: T; disabled: boolean },
+      (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?,
+      (AsyncValidatorFn | AsyncValidatorFn[])?
+    ]
   | FormControl<T, V>;
 
 /**
@@ -148,9 +152,9 @@ export type ValidationErrors<T extends object = any> = T;
 /**
  * The default validators model, it includes almost all properties of `typeof Validators`,
  * excludes: `prototype`, `compose`, `composeAsync` and `nullValidator`.
- * 
+ *
  * ### Usage
- * 
+ *
 ```ts
 const formControl = new FormControl<string, ValidatorsModel>('some value');
 // OR
