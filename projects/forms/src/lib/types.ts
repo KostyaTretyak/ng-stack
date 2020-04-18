@@ -82,18 +82,13 @@ export type FbControlConfig<T, V extends object = ValidatorsModel> = [T] extends
  * Form builder control.
  */
 export type FbControl<T, V extends object = ValidatorsModel> =
-  | FbControlValue<T>
-  | [FbControlValue<T>, (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?, (AsyncValidatorFn | AsyncValidatorFn[])?]
+  | (T | { value: T; disabled: boolean })
+  | [
+      T | { value: T; disabled: boolean },
+      (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?,
+      (AsyncValidatorFn | AsyncValidatorFn[])?
+    ]
   | FormControl<T, V>;
-
-/**
- * Value accepted by form builder control
- */
-type FbControlValue<T> = T | {
-  value: T;
-  disabled: boolean;
-};
-
 
 /**
  * The validation status of the control. There are four possible
