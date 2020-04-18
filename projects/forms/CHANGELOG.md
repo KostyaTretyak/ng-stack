@@ -1,5 +1,20 @@
+<a name="2.0.0-beta.4"></a>
+# [2.0.0-beta.4](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.4) (2020-04-18)
+
+### Feature
+
+- **Form builder** Added support for this signature:
+```ts
+fb.group<Model>({
+  id: {value: 1, disabled: true}
+  name: [{value: '', disabled: false}]
+})
+```
+
+(See [#67](https://github.com/KostyaTretyak/ng-stack/pull/67)).
+
 <a name="2.0.0-beta.3"></a>
-# [2.0.0-beta.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.3) (2020-04-09)
+## [2.0.0-beta.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.3) (2020-04-09)
 
 ### Bug Fixes
 
