@@ -15,7 +15,7 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/KostyaTretyak/ng-stack/issues"
+    "url": "https://github.com/KostyaTretyak/ng-stack/issues?q=label%3A%22project%3A+contenteditable%22"
   },
   "peerDependencies": {
     "@angular/core": ">=4.0.0"
