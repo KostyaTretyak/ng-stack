@@ -1,5 +1,5 @@
 import { Injectable, Optional } from '@angular/core';
-import { Router, Params, NavigationStart, NavigationEnd, DefaultUrlSerializer, UrlSerializer } from '@angular/router';
+import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
 import {
   HttpBackend,
   HttpErrorResponse,
@@ -53,21 +53,20 @@ export class HttpBackendService implements HttpBackend {
     protected apiMockService: ApiMockService,
     protected config: ApiMockConfig,
     protected xhrFactory: XhrFactory,
-    protected urlSerializer: UrlSerializer,
     @Optional() protected router: Router
   ) {}
 
   protected init() {
     // Merge with default configs.
     this.config = new ApiMockConfig(this.config);
-    this.routes = this.apiMockService.getRoutes().filter(r => r);
-    this.routes.forEach(route => this.checkRoute(route));
+    this.routes = this.apiMockService.getRoutes().filter((r) => r);
+    this.routes.forEach((route) => this.checkRoute(route));
     this.checkRootDuplicates(this.routes);
     this.rootRoutes = this.getRootPaths(this.routes);
 
     if (this.config.showLog && this.config.clearPrevLog && this.router) {
       let isLoadedApp = false;
-      this.router.events.subscribe(event => {
+      this.router.events.subscribe((event) => {
         if (isLoadedApp && event instanceof NavigationStart) {
           console.clear();
         } else if (event instanceof NavigationEnd) {
@@ -87,7 +86,7 @@ export class HttpBackendService implements HttpBackend {
      * Path with a primary key, like `one/two/:id`.
      */
     const pathWithPk = /^(?:[\w-]+\/)+:\w+$/;
-    const childPath = [parentPath, route.path].filter(s => s).join(' -> ');
+    const childPath = [parentPath, route.path].filter((s) => s).join(' -> ');
 
     // Nested routes should to have route.dataCallback and primary keys.
     if (!isLastRoute && (!route.dataCallback || !pathWithPk.test(path))) {
@@ -132,18 +131,18 @@ Any host must have a string type, and should not end with trailing slash.`
     }
 
     if (!isLastRoute) {
-      route.children.forEach(child => this.checkRoute(child, childPath));
+      route.children.forEach((child) => this.checkRoute(child, childPath));
     }
   }
 
   protected checkRootDuplicates(routes: (ApiMockRootRoute | ApiMockRoute)[]) {
     const existingRoutes: string[] = [];
-    const incomingRoutes = routes.map(route => {
+    const incomingRoutes = routes.map((route) => {
       const rootPath = route.path.split(':')[0];
-      return [(route as ApiMockRootRoute).host, rootPath].filter(s => s).join(' -> ');
+      return [(route as ApiMockRootRoute).host, rootPath].filter((s) => s).join(' -> ');
     });
 
-    incomingRoutes.forEach(incomingRoute => {
+    incomingRoutes.forEach((incomingRoute) => {
       if (existingRoutes.includes(incomingRoute)) {
         throw new Error(`ApiMockModule detected duplicate route with path: '${incomingRoute}'`);
       }
@@ -155,7 +154,7 @@ Any host must have a string type, and should not end with trailing slash.`
     const rootRoutes = routes.map((route, index) => {
       // Transformation: `https:// example.com/part1/part2/:paramName` -> `https://example.com/part1/part2`
       const part = route.path.split('/:')[0];
-      const path = [(route as ApiMockRootRoute).host, part].filter(s => s).join('/');
+      const path = [(route as ApiMockRootRoute).host, part].filter((s) => s).join('/');
       const length = path.length;
       return { path, length, index };
     });
@@ -244,7 +243,7 @@ Any host must have a string type, and should not end with trailing slash.`
     ): RouteDryMatch | void {
       routes = (routes || []).slice();
       routes.push(route);
-      pathOfRoute = [pathOfRoute, route.path].filter(s => s).join('/');
+      pathOfRoute = [pathOfRoute, route.path].filter((s) => s).join('/');
       const splitedRoute = pathOfRoute.split('/');
       let hasLastRestId: boolean;
       let lastPrimaryKey: string;
@@ -254,7 +253,7 @@ Any host must have a string type, and should not end with trailing slash.`
       const countPartOfRoute = splitedRoute.length;
 
       if (countPartOfUrl > countPartOfRoute) {
-        (route.children || []).forEach(child => setRouteDryMatch(child, pathOfRoute, routes));
+        (route.children || []).forEach((child) => setRouteDryMatch(child, pathOfRoute, routes));
         return;
       } else if (countPartOfUrl < countPartOfRoute - 1) {
         // URL not matched to defined route path.
@@ -338,12 +337,18 @@ Any host must have a string type, and should not end with trailing slash.`
     }
   }
 
-  protected getQueryParams(url: string) {
-    const urlTree = this.urlSerializer.parse(url);
-    if (!Object.keys(urlTree.queryParams).length) {
+  protected getQueryParams(req: HttpRequest<any>) {
+    const keys = req.params.keys();
+    if (!keys.length) {
       return undefined;
     }
-    return urlTree.queryParams;
+    const queryParams: ObjectAny = {};
+    keys.forEach((key) => {
+      let values: string | string[] = req.params.getAll(key);
+      values = values.length == 1 ? values[0] : values;
+      queryParams[key] = values;
+    });
+    return queryParams;
   }
 
   /**
@@ -352,7 +357,7 @@ Any host must have a string type, and should not end with trailing slash.`
    * - calls `responseCallback()` from matched route and returns a result.
    */
   protected sendResponse(req: HttpRequest<any>, chainParams: ChainParam[]): Observable<HttpResponse<any>> {
-    const queryParams = this.getQueryParams(req.urlWithParams);
+    const queryParams = this.getQueryParams(req);
     const httpMethod = req.method as HttpMethod;
     /** Last chain param */
     const chainParam = chainParams[chainParams.length - 1];
@@ -471,7 +476,7 @@ Any host must have a string type, and should not end with trailing slash.`
   }
 
   protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
-    const queryParams = this.getQueryParams(req.urlWithParams);
+    const queryParams = this.getQueryParams(req);
     const parents: ObjectAny[] = [];
 
     // for() without last chainParam.
@@ -481,7 +486,7 @@ Any host must have a string type, and should not end with trailing slash.`
       const mockData = this.cacheDataWithGetMethod(chainParam, currParents, queryParams, req.body, req.headers);
       const primaryKey = chainParam.primaryKey;
       const restId = chainParam.restId;
-      const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
+      const item = mockData.writeableData.find((obj) => obj[primaryKey] && obj[primaryKey] == restId);
 
       if (!item) {
         const message = `Error 404: item.${primaryKey}=${restId} not found, searched in:`;
@@ -532,7 +537,7 @@ Any host must have a string type, and should not end with trailing slash.`
     let body: ObjectAny[] = [];
 
     if (restId !== undefined) {
-      const item = mockData.writeableData.find(obj => obj[primaryKey] && obj[primaryKey] == restId);
+      const item = mockData.writeableData.find((obj) => obj[primaryKey] && obj[primaryKey] == restId);
 
       if (!item) {
         const message = `Error 404: item.${primaryKey}=${restId} not found, searched in:`;
@@ -560,12 +565,7 @@ Any host must have a string type, and should not end with trailing slash.`
   ): ResponseOptions | HttpErrorResponse {
     const item: ObjectAny = this.clone(req.body || {});
     const { primaryKey, restId } = chainParam;
-    const resourceUrl = restId
-      ? req.url
-          .split('/')
-          .slice(0, -1)
-          .join('/')
-      : req.url;
+    const resourceUrl = restId ? req.url.split('/').slice(0, -1).join('/') : req.url;
 
     if (restId != undefined) {
       const errMsg = `Error 405: Method not allowed; POST forbidder on this URI, try on "${resourceUrl}"`;
@@ -641,7 +641,7 @@ Any host must have a string type, and should not end with trailing slash.`
     if (itemIndex != -1) {
       if (req.method == 'PUT') {
         const keysFromNewItem = Object.keys(item);
-        Object.keys(writeableData[itemIndex]).forEach(k => {
+        Object.keys(writeableData[itemIndex]).forEach((k) => {
           if (!keysFromNewItem.includes(k)) {
             delete writeableData[itemIndex][k];
           }
@@ -796,7 +796,7 @@ Any host must have a string type, and should not end with trailing slash.`
     let body: any;
     try {
       logHeaders = this.transformHeaders(req.headers);
-      queryParams = this.getQueryParams(req.urlWithParams);
+      queryParams = this.getQueryParams(req);
       if (isFormData(req.body)) {
         body = [];
         req.body.forEach((value, key) => body.push({ [key]: value }));
@@ -865,7 +865,7 @@ Any host must have a string type, and should not end with trailing slash.`
       return undefined;
     }
     const logHeaders: ObjectAny = {};
-    headers.keys().forEach(header => {
+    headers.keys().forEach((header) => {
       let values: string | string[] = headers.getAll(header);
       values = values.length == 1 ? values[0] : values;
       logHeaders[header] = values;
@@ -894,9 +894,9 @@ Any host must have a string type, and should not end with trailing slash.`
     let readonlyData: ObjectAny[];
     const pickObj = chainParam.route.propertiesForList;
     if (pickObj) {
-      readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(this.clone(pickObj), d));
+      readonlyData = writeableData.map((d) => pickAllPropertiesAsGetters(this.clone(pickObj), d));
     } else {
-      readonlyData = writeableData.map(d => pickAllPropertiesAsGetters(d));
+      readonlyData = writeableData.map((d) => pickAllPropertiesAsGetters(d));
     }
     this.cachedData[chainParam.cacheKey].readonlyData = readonlyData;
   }

@@ -1,5 +1,12 @@
+<a name="1.2.1"></a>
+# [1.2.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.2.1) (2020-04-23)
+
+### Bug Fixes
+
+* **queryParams:** fixed issue which incorrectly parses the absolute URL.
+
 <a name="1.2.0"></a>
-# [1.2.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.2.0) (2020-04-12)
+## [1.2.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.2.0) (2020-04-12)
 
 ### Features
 

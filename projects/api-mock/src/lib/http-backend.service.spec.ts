@@ -1,5 +1,5 @@
 import 'zone.js/dist/zone-patch-rxjs-fake-async';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
@@ -352,7 +352,8 @@ describe('HttpBackendService', () => {
 
     describe('logRequest()', () => {
       it(`queryParams only`, () => {
-        const req = new HttpRequest<any>('GET', 'any/url/here?one=1&two=2&arr=3&arr=4');
+        const params = new HttpParams({ fromObject: { one: '1', two: '2', arr: ['3', '4'] } });
+        const req = new HttpRequest<any>('GET', 'any/url/here', { params });
         const result = service.logRequest(req);
         expect(result).toEqual({ queryParams: { one: '1', two: '2', arr: ['3', '4'] }, body: null });
       });
@@ -370,8 +371,10 @@ describe('HttpBackendService', () => {
       });
 
       it(`headers and queryParams only`, () => {
-        const headers = { headers: new HttpHeaders({ one: '1', two: '2' }) };
-        const req = new HttpRequest<any>('GET', 'any/url/here?one=1&two=2&arr=3&arr=4', headers);
+        const params = new HttpParams({ fromObject: { one: '1', two: '2', arr: ['3', '4'] } });
+        const headers = new HttpHeaders({ one: '1', two: '2' });
+        const config = { headers, params };
+        const req = new HttpRequest<any>('GET', 'any/url/here', config);
         const result = service.logRequest(req);
         expect(result).toEqual({
           headers: { one: '1', two: '2' },
@@ -386,7 +389,7 @@ describe('HttpBackendService', () => {
       let route: ApiMockRootRoute;
 
       function deleteChildren(routes: any[]) {
-        return routes.map(r => {
+        return routes.map((r) => {
           delete r.children;
           return r;
         });
@@ -1104,7 +1107,7 @@ describe('HttpBackendService', () => {
         const res = service.sendResponse(req, chainParam);
         expect(res instanceof Observable).toBe(true);
         let result: HttpResponse<any> = null;
-        res.subscribe(r => (result = r));
+        res.subscribe((r) => (result = r));
         expect(result).toBeNull();
 
         tick(service.config.delay);
@@ -1128,7 +1131,7 @@ describe('HttpBackendService', () => {
         const res = service.sendResponse(req, chainParam);
         expect(res instanceof Observable).toBe(true);
         let result: HttpResponse<any> = null;
-        res.subscribe(r => (result = r));
+        res.subscribe((r) => (result = r));
         expect(result).toBeNull();
 
         tick(service.config.delay);
@@ -1153,8 +1156,8 @@ describe('HttpBackendService', () => {
         expect(res instanceof Observable).toBe(true);
         let result: HttpResponse<any> = null;
         res.subscribe(
-          r => fail,
-          err => (result = err)
+          (r) => fail,
+          (err) => (result = err)
         );
         expect(result instanceof HttpErrorResponse).toBe(true);
         expect(result.status).toBe(Status.NOT_FOUND);
@@ -1218,7 +1221,7 @@ describe('HttpBackendService', () => {
       }
 
       private getResponseCallback1(): ApiMockResponseCallback {
-        return opts => {
+        return (opts) => {
           expect(opts).toEqual({
             items: [],
             itemId: undefined,
@@ -1235,7 +1238,7 @@ describe('HttpBackendService', () => {
       }
 
       private getDataCallback2(): ApiMockDataCallback {
-        return opts => {
+        return (opts) => {
           expect(opts).toEqual({
             items: [],
             itemId: itemId2,
@@ -1250,7 +1253,7 @@ describe('HttpBackendService', () => {
       }
 
       private getResponseCallback2(): ApiMockResponseCallback {
-        return opts => {
+        return (opts) => {
           expect(opts).toEqual({
             items: posts,
             itemId: itemId2,
@@ -1267,7 +1270,7 @@ describe('HttpBackendService', () => {
       }
 
       private getDataCallback3(): ApiMockDataCallback {
-        return opts => {
+        return (opts) => {
           expect(opts).toEqual({
             items: [],
             itemId: itemId3,
@@ -1282,7 +1285,7 @@ describe('HttpBackendService', () => {
       }
 
       private getResponseCallback3(): ApiMockResponseCallback {
-        return opts => {
+        return (opts) => {
           expect(opts).toEqual({
             items: comments,
             itemId: itemId3,
@@ -1317,42 +1320,42 @@ describe('HttpBackendService', () => {
       httpTestingController.verify();
     });
 
-    it(`case 1`, done => {
-      httpClient.get('/api/login').subscribe(data => {
+    it(`case 1`, (done) => {
+      httpClient.get('/api/login').subscribe((data) => {
         expect(data).toBe(null);
         done();
       });
       httpTestingController.expectNone('/api/login', 'No request to a real server');
     });
 
-    it(`case 2`, done => {
+    it(`case 2`, (done) => {
       itemId2 = undefined;
-      httpClient.get('/api/posts', { headers: new HttpHeaders({ auth: 'some-token' }) }).subscribe(data => {
+      httpClient.get('/api/posts', { headers: new HttpHeaders({ auth: 'some-token' }) }).subscribe((data) => {
         expect(data).toEqual(posts);
         done();
       });
       httpTestingController.expectNone('/api/posts', 'No request to a real server');
     });
 
-    it(`case 3`, done => {
+    it(`case 3`, (done) => {
       itemId2 = '1';
       itemId3 = '2';
       httpClient
         .get('/api/posts/1/comments/2', { headers: new HttpHeaders({ auth: 'some-token' }) })
-        .subscribe(data => {
+        .subscribe((data) => {
           expect(data).toEqual(comments);
           done();
         });
       httpTestingController.expectNone('/api/posts/1/comments/2', 'No request to a real server');
     });
 
-    it(`case 4`, done => {
+    it(`case 4`, (done) => {
       itemId2 = '1';
       itemId3 = '123';
       httpClient
         .get('/api/posts/1/comments/123', { headers: new HttpHeaders({ auth: 'some-token' }) })
-        .pipe(catchError(error => of(error)))
-        .subscribe(error => {
+        .pipe(catchError((error) => of(error)))
+        .subscribe((error) => {
           expect(error.status).toBe(404);
           done();
         });
