@@ -35,6 +35,36 @@ const form = fb.group<Person>({
 
 const birthDate: Date = form.value.birthDate;
 ```
+ * ## External form model
+ * 
+ * If the form model interface comes from an external library, you can do the following:
+ *
+```ts
+import { FormBuilder, Control } from '@ng-stack/forms';
+
+const fb = new FormBuilder();
+
+// External Form Model
+interface ExternalPerson {
+  id: number;
+  name: string;
+  birthDate: Date;
+}
+
+const configForm: ExternalPerson = {
+  id: 123,
+  name: 'John Smith',
+  birthDate: new Date(1977, 6, 30),
+};
+
+interface Person extends ExternalPerson {
+  birthDate: Control<Date>;
+}
+
+const form = fb.group<Person>(configForm); // `Control<Date>` type is compatible with `Date` type.
+
+const birthDate: Date = form.value.birthDate; // `Control<Date>` type is compatible with `Date` type.
+```
  */
 export type Control<T extends object> = T & UniqToken;
 

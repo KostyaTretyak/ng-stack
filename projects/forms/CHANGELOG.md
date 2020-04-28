@@ -1,5 +1,12 @@
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0) (2020-04-28)
+
+### Notes
+
+- Release of stable version.
+
 <a name="2.0.0-beta.4"></a>
-# [2.0.0-beta.4](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.4) (2020-04-18)
+## [2.0.0-beta.4](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0-beta.4) (2020-04-18)
 
 ### Feature
 
