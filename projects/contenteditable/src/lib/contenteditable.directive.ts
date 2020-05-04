@@ -4,7 +4,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Directive({
   // tslint:disable-next-line:directive-selector
-  selector: '[contenteditable]',
+  selector: '[contenteditable][formControlName],[contenteditable][formControl],[contenteditable][ngModel]',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ContenteditableDirective), multi: true }],
 })
 export class ContenteditableDirective implements ControlValueAccessor {
