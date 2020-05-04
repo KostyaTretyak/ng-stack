@@ -1,5 +1,5 @@
 <a name="1.0.2"></a>
-# 1.0.2 (2019-05-04)[https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.0.2]
+# [1.0.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.0.2) (2019-05-04)
 
 ### Fix
 
