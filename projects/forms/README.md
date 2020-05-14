@@ -156,7 +156,7 @@ interface ExternalPerson {
   birthDate: Date;
 }
 
-const configForm: ExternalPerson = {
+const formConfig: ExternalPerson = {
   id: 123,
   name: 'John Smith',
   birthDate: new Date(1977, 6, 30),
@@ -166,7 +166,7 @@ interface Person extends ExternalPerson {
   birthDate: Control<Date>;
 }
 
-const form = fb.group<Person>(configForm); // `Control<Date>` type is compatible with `Date` type.
+const form = fb.group<Person>(formConfig); // `Control<Date>` type is compatible with `Date` type.
 
 const birthDate: Date = form.value.birthDate; // `Control<Date>` type is compatible with `Date` type.
 ```
