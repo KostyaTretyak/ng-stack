@@ -9,6 +9,9 @@
   - [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls)
   - [Typed Validations](#typed-validations)
   - [Support input[type="file"]](#support-input-with-type-file)
+- [Known issues](#known-issues)
+  - [Known issues with ValidatorFn](#known-issues-with-validatorfn)
+  - [Known issues with data type infer](#known-issues-with-data-type-infer)
 - [How does it works](#how-does-it-works)
 - [Changes API](#api-changes)
 
@@ -42,7 +45,7 @@ import { NgStackFormsModule } from '@ng-stack/forms';
 
 // ...
 
-});
+})
 ```
 Then you should be able just import and using classes from `@ng-stack/forms`.
 
@@ -248,26 +251,7 @@ class ValidatorsModel {
   fileMaxSize: { requiredSize: number; actualSize: number; file: File };
 }
 ```
-
-#### Known issues
-
-For now, the functionality - when a match between a validation model and actually entered validator's functions is checked - is not supported.
-
-For example:
-
-```ts
-interface ValidationModel {
-  someErrorCode: { returnedValue: 123 };
-}
-const control = new FormControl<string, ValidationModel>('some value');
-const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: { returnedValue: 456 } });
-
-control.setValidators(validatorFn);
-// Without error, but it's not checking
-// match between `someErrorCode` and `otherErrorCode`
-```
-
-See: [bug(forms): issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
+See also [Known issues with ValidatorFn](#known-issues-with-validatorFn).
 
 ### Support input with type "file"
 
@@ -325,6 +309,45 @@ if (validErr) {
 
 A more complete example can be seen on github [example-input-file](https://github.com/KostyaTretyak/example-input-file)
 and on [stackblitz](https://stackblitz.com/github/KostyaTretyak/example-input-file).
+
+
+## Known issues
+
+#### Known issues with ValidatorFn
+
+For now, the functionality - when a match between a validation model and actually entered validator's functions is checked - is not supported.
+
+For example:
+
+```ts
+interface ValidationModel {
+  someErrorCode: { returnedValue: 123 };
+}
+const control = new FormControl<string, ValidationModel>('some value');
+const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: { returnedValue: 456 } });
+
+control.setValidators(validatorFn);
+// Without error, but it's not checking
+// match between `someErrorCode` and `otherErrorCode`
+```
+
+See: [bug(forms): issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
+
+#### Known issues with data type infer
+
+Without a data type hint for an external form control, there is a limitation of the TypeScript that does not allow you to correctly infer the data type for nested form controls based on the usage:
+
+```ts
+import { FormControl, FormGroup, FormArray } from '@ng-stack/forms';
+
+const formGroup1 = new FormGroup({ prop: new FormControl('') }); // OK
+const formGroup2 = new FormGroup({ prop: new FormGroup({}) }); // OK
+
+const formGroup3 = new FormGroup({ prop: new FormArray([]) }); // Error
+const formGroup4 = new FormGroup<{ prop: any[] }>({ prop: new FormArray([]) }); // OK
+```
+
+See [bug(generics): errors of inferring types for an array](https://github.com/microsoft/TypeScript/issues/30207).
 
 ## How does it works
 
