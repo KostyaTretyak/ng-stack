@@ -343,8 +343,31 @@ import { FormControl, FormGroup, FormArray } from '@ng-stack/forms';
 const formGroup1 = new FormGroup({ prop: new FormControl('') }); // OK
 const formGroup2 = new FormGroup({ prop: new FormGroup({}) }); // OK
 
-const formGroup3 = new FormGroup({ prop: new FormArray([]) }); // Error
+const formGroup3 = new FormGroup({ prop: new FormArray([]) }); // Error, but it's wrong
 const formGroup4 = new FormGroup<{ prop: any[] }>({ prop: new FormArray([]) }); // OK
+
+interface NestedModel {
+  one: number;
+}
+
+interface Model {
+  prop: NestedModel;
+}
+
+const formGroup5 = new FormGroup<Model>({ prop: new FormGroup({ one: new FormControl(123) }) }); // OK
+
+// Here is an error, but it's OK, because the nested `FormGroup` does not have the `one` property as required by the `Model`.
+const formGroup6 = new FormGroup<Model>({ prop: new FormGroup({ other: new FormControl(123) }) });
+
+// Here without errors, but it's wrong, because the nested `FormGroup` does not have the `two` property in the `Model`.
+const formGroup7 = new FormGroup<Model>({
+  prop: new FormGroup({ one: new FormControl(123), two: new FormControl('') }),
+});
+
+// To fix the previous example, add a type hint for the nested FormGroup:
+const formGroup8 = new FormGroup<Model>({
+  prop: new FormGroup<NestedModel>({ one: new FormControl(123), two: new FormControl('') }),
+});
 ```
 
 See [bug(generics): errors of inferring types for an array](https://github.com/microsoft/TypeScript/issues/30207).
