@@ -150,7 +150,7 @@ console.log(arr.value);   // ['Nancy', null]
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  patchValue(value: Partial<Item>[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  patchValue(value: Item[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.patchValue(value, options);
   }
 
