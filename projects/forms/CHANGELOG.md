@@ -1,5 +1,12 @@
+<a name="2.0.1"></a>
+# [2.0.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.1) (2020-06-03)
+
+### Bug Fixes
+
+- Fixed first parameter type for `formArray.patchValue()` (value: `Partial<Item>[]` -> `value: Item[]`), see [5bf943b](https://github.com/KostyaTretyak/ng-stack/commit/5bf943bfad4770e5ba26b4132ee6c53049922dde)
+
 <a name="2.0.0"></a>
-# [2.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0) (2020-04-28)
+## [2.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.0) (2020-04-28)
 
 ### Notes
 
