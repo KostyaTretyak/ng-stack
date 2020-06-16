@@ -150,8 +150,6 @@ If the form model interface comes from an external library, you can do the follo
 ```ts
 import { FormBuilder, Control } from '@ng-stack/forms';
 
-const fb = new FormBuilder();
-
 // External Form Model
 interface ExternalPerson {
   id: number;
@@ -169,6 +167,8 @@ interface Person extends ExternalPerson {
   birthDate: Control<Date>;
 }
 
+
+const fb = new FormBuilder();
 const form = fb.group<Person>(formConfig); // `Control<Date>` type is compatible with `Date` type.
 
 const birthDate: Date = form.value.birthDate; // `Control<Date>` type is compatible with `Date` type.
