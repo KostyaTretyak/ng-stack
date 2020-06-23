@@ -19,7 +19,13 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputFileDirective), multi: true }],
 })
 export class InputFileDirective implements ControlValueAccessor {
-  @HostBinding('attr.multiple') @Input() multiple: boolean | string;
+  private _multiple: boolean | string;
+  @HostBinding('attr.multiple') @Input() get multiple(): boolean | string {
+    return this._multiple !== undefined && this._multiple !== false && this._multiple !== 'false' ? '' : undefined;
+  }
+  set multiple(value: boolean | string) {
+    this._multiple = value;
+  }
   @HostBinding('attr.preserveValue') @Input() preserveValue: boolean | string;
   @Output() select = new EventEmitter<File[]>();
   private onChange = (value: FormData) => {};
