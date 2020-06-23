@@ -1,6 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 
 import { FormGroup, FormControl, FormBuilder, Validators } from '@ng-stack/forms';
+import {
+  FormGroup as NativeFormGroup,
+  FormArray as NativeFormArray,
+  FormControl as NativeFormControl,
+  FormBuilder as NativeFormBuilder,
+  Validators as NativeValidators,
+} from '@angular/forms';
 
 import { UserForm } from '../../models/user-form';
 
@@ -11,6 +18,7 @@ import { UserForm } from '../../models/user-form';
 })
 export class FormsComponent implements OnInit {
   formGroup: FormGroup<UserForm>;
+  formControl: FormControl<FormData>;
 
   constructor(private fb: FormBuilder) {}
 
@@ -69,6 +77,10 @@ export class FormsComponent implements OnInit {
       someControlWithArray: [['one', 'two'], Validators.required],
     });
 
-    console.log(this.formGroup.value);
+    this.formControl = this.fb.control();
+
+    console.log('NativeFormControl:', new NativeFormArray([]).value);
   }
+
+  onSelect(files: File[]) {}
 }

@@ -9,6 +9,7 @@
   - [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls)
   - [Typed Validations](#typed-validations)
   - [Support input[type="file"]](#support-input-with-type-file)
+    - [`preserveValue` option](#preserveValue-option)
 - [Known issues](#known-issues)
   - [Known issues with ValidatorFn](#known-issues-with-validatorfn)
   - [Known issues with data type infer](#known-issues-with-data-type-infer)
@@ -310,6 +311,24 @@ if (validErr) {
 A more complete example can be seen on github [example-input-file](https://github.com/KostyaTretyak/example-input-file)
 and on [stackblitz](https://stackblitz.com/github/KostyaTretyak/example-input-file).
 
+#### `preserveValue` option
+
+Since version 2.1.0, with `input[type=file]` you can also pass `preserveValue` attribute to preserve the field's native value of HTML form control:
+
+```html
+<input type="file" [formControl]="formControl" preserveValue/>
+```
+
+Without `preserveValue`, you may see unwanted text near the input control - "No file chosen". As a workaround, you can do the following:
+
+```html
+<label for="files" class="here-class-for-your-button">Select Image</label>
+<input ... id="files" style="display:none"/>
+```
+
+So you can change the output text to the desired one.
+
+By default `preserveValue="false"` but if you want set `preserveValue="true"`, keep in mind that when you need to re-select the same file after changing it in the file system (for example, reduce the size of the avatar image), you will not be able to see the changes. This is how the browser cache works.
 
 ## Known issues
 

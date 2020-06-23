@@ -7,3 +7,6 @@
 <pre>
   {{ formGroup.value | json }}
 </pre>
+
+<hr>
+<input type="file" accept=".jpg,.jpeg,.png" (select)="onSelect($event)" [formControl]="formControl" [multiple]="true" preserveValue/>

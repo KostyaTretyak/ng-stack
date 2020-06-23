@@ -1,4 +1,14 @@
-import { Directive, ElementRef, Renderer2, HostListener, forwardRef, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  Renderer2,
+  HostListener,
+  forwardRef,
+  Input,
+  Output,
+  EventEmitter,
+  HostBinding,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Directive({
@@ -9,7 +19,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputFileDirective), multi: true }],
 })
 export class InputFileDirective implements ControlValueAccessor {
-  @Input() multiple: boolean | string;
+  @HostBinding('attr.multiple') @Input() multiple: boolean | string;
+  @HostBinding('attr.preserveValue') @Input() preserveValue: boolean | string;
   @Output() select = new EventEmitter<File[]>();
   private onChange = (value: FormData) => {};
   private onTouched = () => {};
@@ -30,11 +41,13 @@ export class InputFileDirective implements ControlValueAccessor {
     if (this.multiple !== undefined && this.multiple !== false && this.multiple !== 'false') {
       formInputName += '[]';
     }
-    files.forEach(file => formData.append(formInputName, file));
+    files.forEach((file) => formData.append(formInputName, file));
 
     this.onChange(formData);
     this.select.next(files);
-    event.target.value = null;
+    if (this.preserveValue === undefined || this.preserveValue === false || this.preserveValue === 'false') {
+      event.target.value = null;
+    }
   }
 
   /**

@@ -1,5 +1,16 @@
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.1.0) (2020-06-23)
+
+### Bug Fixes
+
+- Fixed `<input type="file" [multiple]="true"/>` feature, see [#75](https://github.com/KostyaTretyak/ng-stack/issues/75).
+
+### Features
+
+- Added `preserveValue` option, see [docs](./README.md#preserveValue-option) and [#74](https://github.com/KostyaTretyak/ng-stack/issues/74)
+
 <a name="2.0.1"></a>
-# [2.0.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.1) (2020-06-03)
+## [2.0.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.0.1) (2020-06-03)
 
 ### Bug Fixes
 
