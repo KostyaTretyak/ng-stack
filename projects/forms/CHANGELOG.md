@@ -1,5 +1,12 @@
+<a name="2.1.1"></a>
+# [2.1.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.1.1) (2020-06-23)
+
+### Bug Fixes
+
+- Fixed `<input type="file" [multiple]="false"/>` feature, see [#75](https://github.com/KostyaTretyak/ng-stack/issues/75).
+
 <a name="2.1.0"></a>
-# [2.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.1.0) (2020-06-23)
+## [2.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.1.0) (2020-06-23)
 
 ### Bug Fixes
 
