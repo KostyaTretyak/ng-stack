@@ -21,5 +21,8 @@
     "@angular/core": ">=8.0.0 <11.0.0",
     "@angular/forms": ">=8.0.0 <11.0.0",
     "typescript": ">=2.8"
+  },
+  "dependencies": {
+    "tslib": "^2.0.0"
   }
 }

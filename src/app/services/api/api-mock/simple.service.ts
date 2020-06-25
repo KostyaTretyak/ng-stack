@@ -1,10 +1,12 @@
 import { ApiMockService, ApiMockDataCallback, ApiMockRootRoute } from '@ng-stack/api-mock';
+import { Injectable } from '@angular/core';
 
 interface Model {
   id: number;
   name: string;
 }
 
+@Injectable()
 export class SimpleService implements ApiMockService {
   getRoutes(): ApiMockRootRoute[] {
     return [
