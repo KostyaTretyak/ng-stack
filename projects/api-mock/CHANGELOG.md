@@ -1,5 +1,12 @@
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.3.0) (2020-06-25)
+
+### Features
+
+* **peer dependencies:** added support for Angular v10.
+
 <a name="1.2.1"></a>
-# [1.2.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.2.1) (2020-04-23)
+## [1.2.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/api-mock%401.2.1) (2020-04-23)
 
 ### Bug Fixes
 
