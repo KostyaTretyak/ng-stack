@@ -18,8 +18,8 @@
     "url": "https://github.com/KostyaTretyak/ng-stack/issues?q=label%3A%22project%3A+forms%22"
   },
   "peerDependencies": {
-    "@angular/core": ">=8.0.0 <10.0.0",
-    "@angular/forms": ">=8.0.0 <10.0.0",
+    "@angular/core": ">=8.0.0 <11.0.0",
+    "@angular/forms": ">=8.0.0 <11.0.0",
     "typescript": ">=2.8"
   }
 }

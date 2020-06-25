@@ -1,5 +1,12 @@
+<a name="2.2.0"></a>
+# [2.2.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.0) (2020-06-25)
+
+### Features
+
+- **peer dependencies:** added support for Angular v10.
+
 <a name="2.1.1"></a>
-# [2.1.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.1.1) (2020-06-23)
+## [2.1.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.1.1) (2020-06-23)
 
 ### Bug Fixes
 
