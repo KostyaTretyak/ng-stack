@@ -241,13 +241,9 @@ describe('FormGroup', () => {
           array: new FormArray([new FormControl('v4'), new FormControl('v5')]),
         });
 
-        fg.get('group')
-          .get('c3')
-          .disable();
+        fg.get('group').get('c3').disable();
 
-        fg.get('array')
-          .at(1)
-          .disable();
+        fg.get('array').at(1).disable();
 
         expect(fg.getRawValue()).toEqual({ c1: 'v1', group: { c2: 'v2', c3: 'v3' }, array: ['v4', 'v5'] });
       });
@@ -355,13 +351,13 @@ describe('FormGroup', () => {
         });
 
         it('should not fire an event when explicitly specified', fakeAsync(() => {
-          form.valueChanges.subscribe(value => {
+          form.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
-          g.valueChanges.subscribe(value => {
+          g.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
-          c.valueChanges.subscribe(value => {
+          c.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
 
@@ -475,13 +471,13 @@ describe('FormGroup', () => {
         });
 
         it('should not fire an event when explicitly specified', fakeAsync(() => {
-          form.valueChanges.subscribe(value => {
+          form.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
-          g.valueChanges.subscribe(value => {
+          g.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
-          c.valueChanges.subscribe(value => {
+          c.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
 
@@ -690,13 +686,13 @@ describe('FormGroup', () => {
         });
 
         it('should not fire an event when explicitly specified', fakeAsync(() => {
-          form.valueChanges.subscribe(value => {
+          form.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
-          g.valueChanges.subscribe(value => {
+          g.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
-          c.valueChanges.subscribe(value => {
+          c.valueChanges.subscribe((value) => {
             throw new Error('Should not happen');
           });
 
