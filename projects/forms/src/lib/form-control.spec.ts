@@ -2,11 +2,11 @@ import { FormControl } from './form-control';
 import { isString, isNumber, isArray, isObject } from './assert';
 import { FormGroup } from './form-group';
 import { AbstractControl } from '@angular/forms';
-import { ValidatorFn } from './types';
+import { ValidatorFn, Control } from './types';
 
 describe('FormControl', () => {
   xdescribe('checking types only', () => {
-    it('constructor()', () => {
+    describe('constructor()', () => {
       isString(new FormControl('').value);
       isString(new FormControl<string>().value);
       isNumber(new FormControl(1).value);
@@ -33,7 +33,7 @@ describe('FormControl', () => {
       isObject(control4.value);
     });
 
-    it('setValue(), patchValue(), reset()', () => {
+    describe('setValue()', () => {
       new FormControl().setValue(10);
 
       const control1 = new FormControl('');
@@ -43,31 +43,11 @@ describe('FormControl', () => {
       // control1.setValue([]);
       // control1.setValue({});
 
-      control1.patchValue('');
-      // control1.patchValue(2);
-      // control1.patchValue([]);
-      // control1.patchValue({});
-
-      control1.reset('');
-      // control1.reset(2);
-      // control1.reset([]);
-      // control1.reset({});
-
       const control2 = new FormControl(2);
       control2.setValue(2);
       // control2.setValue('');
       // control2.setValue([]);
       // control2.setValue({});
-
-      control2.patchValue(2);
-      // control2.patchValue('');
-      // control2.patchValue([]);
-      // control2.patchValue({});
-
-      control2.reset(2);
-      // control2.reset('');
-      // control2.reset([]);
-      // control2.reset({});
 
       const formState3 = { value: '', disabled: false };
       const control3 = new FormControl(formState3);
@@ -76,32 +56,12 @@ describe('FormControl', () => {
       // control3.setValue([]);
       // control3.setValue({});
 
-      control3.patchValue('');
-      // control3.patchValue(2);
-      // control3.patchValue([]);
-      // control3.patchValue({});
-
-      control3.reset('');
-      // control3.reset(2);
-      // control3.reset([]);
-      // control3.reset({});
-
       const formState4 = { value: 2, disabled: false };
       const control4 = new FormControl(formState4);
       control4.setValue(2);
       // control4.setValue('');
       // control4.setValue([]);
       // control4.setValue({});
-
-      control4.patchValue(2);
-      // control4.patchValue('');
-      // control4.patchValue([]);
-      // control4.patchValue({});
-
-      control4.reset(2);
-      // control4.reset('');
-      // control4.reset([]);
-      // control4.reset({});
 
       class FormModel {
         requiredProp: string;
@@ -117,11 +77,97 @@ describe('FormControl', () => {
       // control5.setValue(2);
       // control5.setValue('');
       // control5.setValue([]);
+    });
+
+    describe('patchValue()', () => {
+      new FormControl().setValue(10);
+
+      const control1 = new FormControl('');
+
+      control1.patchValue('');
+      // control1.patchValue(2);
+      // control1.patchValue([]);
+      // control1.patchValue({});
+
+      const control2 = new FormControl(2);
+
+      control2.patchValue(2);
+      // control2.patchValue('');
+      // control2.patchValue([]);
+      // control2.patchValue({});
+
+      const formState3 = { value: '', disabled: false };
+      const control3 = new FormControl(formState3);
+
+      control3.patchValue('');
+      // control3.patchValue(2);
+      // control3.patchValue([]);
+      // control3.patchValue({});
+
+      const formState4 = { value: 2, disabled: false };
+      const control4 = new FormControl(formState4);
+
+      control4.patchValue(2);
+      // control4.patchValue('');
+      // control4.patchValue([]);
+      // control4.patchValue({});
+
+      class FormModel {
+        requiredProp: string;
+        optionalProp1?: number;
+        optionalProp2?: any[];
+      }
+
+      const formState5 = { requiredProp: 'some string', optionalProp1: 123, optionalProp2: [] };
+      const control5 = new FormControl<FormModel>(formState5);
 
       // control5.patchValue({ prop22: 456 });
       // control5.patchValue(2);
       // control5.patchValue('');
       // control5.patchValue([]);
+    });
+
+    describe('reset()', () => {
+      new FormControl().setValue(10);
+
+      const control1 = new FormControl('');
+
+      control1.reset('');
+      // control1.reset(2);
+      // control1.reset([]);
+      // control1.reset({});
+
+      const control2 = new FormControl(2);
+
+      control2.reset(2);
+      // control2.reset('');
+      // control2.reset([]);
+      // control2.reset({});
+
+      const formState3 = { value: '', disabled: false };
+      const control3 = new FormControl(formState3);
+
+      control3.reset('');
+      // control3.reset(2);
+      // control3.reset([]);
+      // control3.reset({});
+
+      const formState4 = { value: 2, disabled: false };
+      const control4 = new FormControl(formState4);
+
+      control4.reset(2);
+      // control4.reset('');
+      // control4.reset([]);
+      // control4.reset({});
+
+      class FormModel {
+        requiredProp: string;
+        optionalProp1?: number;
+        optionalProp2?: any[];
+      }
+
+      const formState5 = { requiredProp: 'some string', optionalProp1: 123, optionalProp2: [] };
+      const control5 = new FormControl<FormModel>(formState5);
 
       control5.reset({ requiredProp: 'other string', optionalProp1: 456, optionalProp2: [] });
       // control5.reset({ requiredProp: 2, optionalProp1: 2, optionalProp2: 2 });
