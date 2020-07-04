@@ -1,8 +1,9 @@
+import { AbstractControl } from '@angular/forms';
+
 import { FormControl } from './form-control';
 import { isString, isNumber, isArray, isObject } from './assert';
 import { FormGroup } from './form-group';
-import { AbstractControl } from '@angular/forms';
-import { ValidatorFn, Control } from './types';
+import { ValidatorFn, Control, ExtractControlValue } from './types';
 
 describe('FormControl', () => {
   xdescribe('checking types only', () => {
@@ -17,15 +18,15 @@ describe('FormControl', () => {
       isObject(new FormControl<object>().value);
 
       const formState1 = { value: '', disabled: false };
-      const control1 = new FormControl(formState1);
+      const control1 = new FormControl<string>(formState1);
       isString(control1.value);
 
       const formState2 = { value: 2, disabled: false };
-      const control2 = new FormControl(formState2);
+      const control2 = new FormControl<number>(formState2);
       isNumber(control2.value);
 
       const formState3 = { value: [], disabled: false };
-      const control3 = new FormControl(formState3);
+      const control3 = new FormControl<string[]>(formState3);
       isArray(control3.value);
 
       const formState4 = { value: {}, disabled: false };
@@ -50,14 +51,14 @@ describe('FormControl', () => {
       // control2.setValue({});
 
       const formState3 = { value: '', disabled: false };
-      const control3 = new FormControl(formState3);
+      const control3 = new FormControl<string>(formState3);
       control3.setValue('');
       // control3.setValue(2);
       // control3.setValue([]);
       // control3.setValue({});
 
       const formState4 = { value: 2, disabled: false };
-      const control4 = new FormControl(formState4);
+      const control4 = new FormControl<number>(formState4);
       control4.setValue(2);
       // control4.setValue('');
       // control4.setValue([]);
@@ -77,6 +78,12 @@ describe('FormControl', () => {
       // control5.setValue(2);
       // control5.setValue('');
       // control5.setValue([]);
+
+      it('', () => {
+        const formControl = new FormControl<Control<string[]>>();
+        formControl.setValue(['one', 'two']);
+        const val: string[] = formControl.value;
+      });
     });
 
     describe('patchValue()', () => {
@@ -97,7 +104,7 @@ describe('FormControl', () => {
       // control2.patchValue({});
 
       const formState3 = { value: '', disabled: false };
-      const control3 = new FormControl(formState3);
+      const control3 = new FormControl<string>(formState3);
 
       control3.patchValue('');
       // control3.patchValue(2);
@@ -105,7 +112,7 @@ describe('FormControl', () => {
       // control3.patchValue({});
 
       const formState4 = { value: 2, disabled: false };
-      const control4 = new FormControl(formState4);
+      const control4 = new FormControl<number>(formState4);
 
       control4.patchValue(2);
       // control4.patchValue('');
@@ -125,6 +132,12 @@ describe('FormControl', () => {
       // control5.patchValue(2);
       // control5.patchValue('');
       // control5.patchValue([]);
+
+      it('', () => {
+        const formControl = new FormControl<Control<string[]>>();
+        formControl.patchValue(['one', 'two']);
+        const val: string[] = formControl.value;
+      });
     });
 
     describe('reset()', () => {
@@ -145,7 +158,7 @@ describe('FormControl', () => {
       // control2.reset({});
 
       const formState3 = { value: '', disabled: false };
-      const control3 = new FormControl(formState3);
+      const control3 = new FormControl<string>(formState3);
 
       control3.reset('');
       // control3.reset(2);
@@ -153,7 +166,7 @@ describe('FormControl', () => {
       // control3.reset({});
 
       const formState4 = { value: 2, disabled: false };
-      const control4 = new FormControl(formState4);
+      const control4 = new FormControl<number>(formState4);
 
       control4.reset(2);
       // control4.reset('');
@@ -175,6 +188,12 @@ describe('FormControl', () => {
       // control5.reset(2);
       // control5.reset('');
       // control5.reset([]);
+
+      it('', () => {
+        const formControl = new FormControl<Control<string[]>>();
+        formControl.reset(['one', 'two']);
+        const val: string[] = formControl.value;
+      });
     });
 
     it('setValidators() with unappropriate ValidatorFn to a validation model', () => {

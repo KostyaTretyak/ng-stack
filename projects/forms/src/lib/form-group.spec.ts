@@ -1,7 +1,8 @@
+import { tick, fakeAsync } from '@angular/core/testing';
+
 import { FormGroup } from './form-group';
 import { FormArray } from './form-array';
 import { FormControl } from './form-control';
-import { tick, fakeAsync } from '@angular/core/testing';
 import { isString, isNumber, isObject, isArray } from './assert';
 import { Control } from './types';
 
@@ -33,7 +34,7 @@ describe('FormGroup', () => {
   xdescribe('checking types only', () => {
     let formGroup: FormGroup<Profile>;
 
-    it('constructor()', () => {
+    describe('constructor()', () => {
       formGroup = new FormGroup<Profile>({
         firstName: new FormControl('Kostia'),
         // firstName: new FormControl(2),
@@ -42,11 +43,11 @@ describe('FormGroup', () => {
         // firstName: new FormControl({}),
         // firstName: new FormGroup({}),
         // firstName: new FormArray([]),
-        address: new FormControl({
-          value: { other: 'some value', city: 'Kyiv', street: 'Khreshchatyk' },
+        address: new FormControl<Address>({
+          value: { city: 'Kyiv', street: 'Khreshchatyk' },
           disabled: false,
         }),
-        someControlArray: new FormControl([]),
+        someControlArray: new FormControl(['one', 'two']),
         someGroup: new FormGroup({ children: new FormControl(2) }),
         someArray: new FormArray<number>([
           new FormControl(1),
@@ -77,7 +78,15 @@ describe('FormGroup', () => {
 
       const formGroup1 = new FormGroup<MyInterface>({
         fieldOne: new FormControl(),
-        fieldTwo: new FormControl(SomeEnum.first),
+        fieldTwo: new FormControl<SomeEnum>(SomeEnum.first),
+      });
+
+      it('ControlValue should clear value inside form model', () => {
+        interface FormModel {
+          one: Control<string[]>;
+        }
+        let formGroup: FormGroup<FormModel>;
+        const arr1: string[] = formGroup.value.one;
       });
     });
 
@@ -147,6 +156,12 @@ describe('FormGroup', () => {
       // formGroup.get('someNumber').setValue([`it's wrong value`]);
       // formGroup.get('firstName').setValue({});
       // formGroup.setValue({ firstName: '' });
+
+      const formGroup2 = new FormGroup<{ skills: Control<string[]> }>({
+        skills: new FormControl(['a', 'b', 'c']),
+      });
+
+      formGroup2.setValue({ skills: ['1', '2', '3'] });
     });
 
     it('patchValue()', () => {
@@ -157,6 +172,12 @@ describe('FormGroup', () => {
       // formGroup.get('firstName').patchValue(123);
       // formGroup.patchValue({ firstName: 123 });
       // formGroup.patchValue(new Address());
+
+      const formGroup2 = new FormGroup<{ skills: Control<string[]> }>({
+        skills: new FormControl(['a', 'b', 'c']),
+      });
+
+      formGroup2.patchValue({ skills: ['one'] });
     });
 
     it('reset()', () => {
