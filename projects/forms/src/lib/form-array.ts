@@ -11,11 +11,13 @@ import {
   ValidationErrors,
   AbstractControlOptions,
   StringKeys,
+  ExtractModelValue,
+  FormControlState,
 } from './types';
 
 export class FormArray<Item = any, V extends object = ValidatorsModel> extends NativeFormArray {
-  readonly value: Item[];
-  readonly valueChanges: Observable<Item[]>;
+  readonly value: ExtractModelValue<Item>[];
+  readonly valueChanges: Observable<ExtractModelValue<Item>[]>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
   readonly errors: ValidationErrors<V> | null;
@@ -113,7 +115,7 @@ console.log(arr.value);   // ['Nancy', 'Drew']
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  setValue(value: Item[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  setValue(value: ExtractModelValue<Item>[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.setValue(value, options);
   }
 
@@ -150,7 +152,7 @@ console.log(arr.value);   // ['Nancy', null]
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  patchValue(value: Item[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  patchValue(value: ExtractModelValue<Item>[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.patchValue(value, options);
   }
 
@@ -199,10 +201,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  reset(
-    value: (Item | { value: Item; disabled: boolean })[] = [],
-    options: { onlySelf?: boolean; emitEvent?: boolean } = {}
-  ) {
+  reset(value: FormControlState<Item>[] = [], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.reset(value, options);
   }
 
@@ -213,7 +212,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * For enabled controls only, the `value` property is the best way to get the value of the array.
    */
   getRawValue() {
-    return super.getRawValue() as Item[];
+    return super.getRawValue() as ExtractModelValue<Item>[];
   }
 
   /**

@@ -95,6 +95,40 @@ export type ControlType<T, V extends object = ValidatorsModel> = [T] extends [Ex
   ? FormGroup<T, V>
   : FormControl<T, V>;
 
+export type FormControlState<T> =
+  | null
+  | ExtractModelValue<T>
+  | {
+      value: null | ExtractModelValue<T>;
+      disabled: boolean;
+    };
+
+/**
+ * Clears the form model from `Control<T>` type.
+ */
+export type ExtractModelValue<T> = [T] extends [ExtractAny<T>]
+  ? any
+  : [T] extends [Array<infer Item>]
+  ? Array<ExtractModelValue<Item>>
+  : [T] extends [Control<infer ControlModel>]
+  ? ControlModel
+  : [T] extends [object]
+  ? ExtractGroupValue<T>
+  : T;
+
+export type ExtractControlValue<T> = [T] extends [Control<infer ControlModel>] ? ControlModel : T;
+
+/**
+ * Clears the form model (as object) from `Control<T>` type.
+ */
+export type ExtractGroupValue<T extends object> = {
+  [P in keyof T]: ExtractModelValue<T[P]>;
+};
+
+export type ExtractGroupStateValue<T extends object> = {
+  [P in keyof T]: FormControlState<T[P]>;
+};
+
 /**
  * Form builder control config.
  */
@@ -112,9 +146,10 @@ export type FbControlConfig<T, V extends object = ValidatorsModel> = [T] extends
  * Form builder control.
  */
 export type FbControl<T, V extends object = ValidatorsModel> =
-  | (T | { value: T; disabled: boolean })
+  | ExtractModelValue<T>
+  | FormControlState<T>
   | [
-      T | { value: T; disabled: boolean },
+      FormControlState<T>,
       (ValidatorFn | ValidatorFn[] | AbstractControlOptions)?,
       (AsyncValidatorFn | AsyncValidatorFn[])?
     ]

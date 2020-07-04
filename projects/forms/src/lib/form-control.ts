@@ -10,11 +10,13 @@ import {
   AsyncValidatorFn,
   AbstractControlOptions,
   ValidatorsModel,
+  ExtractControlValue,
+  FormControlState,
 } from './types';
 
 export class FormControl<T = any, V extends object = ValidatorsModel> extends NativeFormControl {
-  readonly value: T;
-  readonly valueChanges: Observable<T>;
+  readonly value: ExtractControlValue<T>;
+  readonly valueChanges: Observable<ExtractControlValue<T>>;
   readonly status: Status;
   readonly statusChanges: Observable<Status>;
   readonly errors: ValidationErrors<V> | null;
@@ -33,7 +35,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    *
    */
   constructor(
-    formState: T | { value: T; disabled: boolean } = null,
+    formState: FormControlState<T> = null,
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
@@ -64,7 +66,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    *
    */
   setValue(
-    value: T,
+    value: ExtractControlValue<T>,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
@@ -85,7 +87,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    * See also: `setValue` for options
    */
   patchValue(
-    value: T,
+    value: ExtractControlValue<T>,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;
@@ -115,7 +117,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    *
    */
   reset(
-    formState: T | { value: T; disabled: boolean } = null,
+    formState: FormControlState<T> = null,
     options: {
       onlySelf?: boolean;
       emitEvent?: boolean;

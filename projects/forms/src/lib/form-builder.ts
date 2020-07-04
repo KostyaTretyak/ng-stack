@@ -8,6 +8,9 @@ import {
   ValidatorFn,
   AsyncValidatorFn,
   ValidatorsModel,
+  FormControlState,
+  ExtractModelValue,
+  ExtractControlValue,
 } from './types';
 import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
@@ -78,7 +81,7 @@ export class DisabledFormControlComponent {
 ```
    */
   control<T = any, V extends object = ValidatorsModel>(
-    formState: T | { value: T; disabled: boolean } = null,
+    formState: FormControlState<T> = null,
     validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ): FormControl<T, V> {

@@ -16,4 +16,5 @@ export {
   AbstractControlOptions,
   ValidatorsModel,
   Control,
+  ExtractModelValue,
 } from './lib/types';
