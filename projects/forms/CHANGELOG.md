@@ -1,5 +1,12 @@
+<a name="2.2.1"></a>
+# [2.2.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.1) (2020-07-04)
+
+### Bug Fixes
+
+- Fixed clearing form model from `Control<T>`, closes [#76](https://github.com/KostyaTretyak/ng-stack/issues/76)
+
 <a name="2.2.0"></a>
-# [2.2.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.0) (2020-06-25)
+## [2.2.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.0) (2020-06-25)
 
 ### Features
 

@@ -332,29 +332,9 @@ By default `preserveValue="false"` but if you want set `preserveValue="true"`, k
 
 ## Known issues
 
-#### Known issues with ValidatorFn
-
-For now, the functionality - when a match between a validation model and actually entered validator's functions is checked - is not supported.
-
-For example:
-
-```ts
-interface ValidationModel {
-  someErrorCode: { returnedValue: 123 };
-}
-const control = new FormControl<string, ValidationModel>('some value');
-const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: { returnedValue: 456 } });
-
-control.setValidators(validatorFn);
-// Without error, but it's not checking
-// match between `someErrorCode` and `otherErrorCode`
-```
-
-See: [bug(forms): issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
-
 #### Known issues with data type infer
 
-Without a data type hint for an external form control, there is a limitation of the TypeScript that does not allow you to correctly infer the data type for nested form controls based on the usage:
+Without a data type hint, there is a limitation of the TypeScript that does not allow you to correctly infer the data type for nested form controls based on the usage:
 
 ```ts
 import { FormControl, FormGroup, FormArray } from '@ng-stack/forms';
@@ -387,9 +367,38 @@ const formGroup7 = new FormGroup<Model>({
 const formGroup8 = new FormGroup<Model>({
   prop: new FormGroup<NestedModel>({ one: new FormControl(123), two: new FormControl('') }),
 });
+
+const formState = { value: 2, disabled: false };
+const control = new FormControl(formState);
+control.patchValue(2); // Argument of type '2' is not assignable to parameter of type '{ value: number; disabled: boolean; }'
+
+// To fix previous example, add a type hint for the FormControl generic:
+const formState = { value: 2, disabled: false };
+const control = new FormControl<number>(formState);
+control.patchValue(2); // OK
 ```
 
 See [bug(generics): errors of inferring types for an array](https://github.com/microsoft/TypeScript/issues/30207).
+
+#### Known issues with ValidatorFn
+
+For now, the functionality - when a match between a validation model and actually entered validator's functions is checked - is not supported.
+
+For example:
+
+```ts
+interface ValidationModel {
+  someErrorCode: { returnedValue: 123 };
+}
+const control = new FormControl<string, ValidationModel>('some value');
+const validatorFn: ValidatorFn = (c: AbstractControl) => ({ otherErrorCode: { returnedValue: 456 } });
+
+control.setValidators(validatorFn);
+// Without error, but it's not checking
+// match between `someErrorCode` and `otherErrorCode`
+```
+
+See: [bug(forms): issue with interpreting of a validation model](https://github.com/KostyaTretyak/ng-stack/issues/15).
 
 ## How does it works
 
