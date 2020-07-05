@@ -9,13 +9,15 @@ describe('FormControl', () => {
   xdescribe('checking types only', () => {
     describe('constructor()', () => {
       isString(new FormControl('').value);
-      isString(new FormControl<string>().value);
+      isString(new FormControl<string>('').value);
       isNumber(new FormControl(1).value);
-      isNumber(new FormControl<number>().value);
+      isNumber(new FormControl<number>(1).value);
       isArray(new FormControl([]).value);
-      isArray(new FormControl<number[]>().value);
+      isArray(
+        new FormControl<number[]>([1]).value
+      );
       isObject(new FormControl({}).value);
-      isObject(new FormControl<object>().value);
+      isObject(new FormControl<object>({}).value);
 
       const formState1 = { value: '', disabled: false };
       const control1 = new FormControl<string>(formState1);
