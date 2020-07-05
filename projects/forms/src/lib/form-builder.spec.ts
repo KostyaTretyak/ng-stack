@@ -2,6 +2,7 @@ import { FormBuilder } from './form-builder';
 import { FormControl } from './form-control';
 import { Validators } from './validators';
 import { AbstractControl } from '@angular/forms';
+import { FormGroup } from './form-group';
 
 describe('FormBuilder', () => {
   xdescribe('checking types only', () => {
@@ -97,8 +98,30 @@ describe('FormBuilder', () => {
     });
   });
 
-  describe(`checking runtime work`, () => {
-    describe(`constructor()`, () => {});
-    describe(`other methods`, () => {});
+  fdescribe(`checking runtime work`, () => {
+    describe(`control()`, () => {
+      it('case 1', () => {
+        const fb = new FormBuilder();
+        expect(fb.control('one').value).toBe('one');
+        expect(fb.control({ value: 'two', disabled: false }).value).toBe('two');
+      });
+    });
+
+    describe(`array()`, () => {
+      it('case 1', () => {
+        const fb = new FormBuilder();
+        let control = new FormControl('one');
+        expect(fb.array([control]).value).toEqual(['one']);
+        control = new FormControl({ value: 'two', disabled: false });
+        expect(fb.array([control]).value).toEqual(['two']);
+      });
+
+      it('case 2', () => {
+        const fb = new FormBuilder();
+        const control = new FormControl('one');
+        const group = new FormGroup({ one: control });
+        expect(fb.array([group]).value).toEqual([{ one: 'one' }]);
+      });
+    });
   });
 });

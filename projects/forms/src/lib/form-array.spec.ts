@@ -75,5 +75,14 @@ describe('FormArray', () => {
     });
   });
 
-  describe(`checking runtime work`, () => {});
+  describe(`checking runtime work`, () => {
+    it('case 1', () => {
+      const formArray = new FormArray<string>([new FormControl()]);
+      formArray.reset(['one']);
+      expect(formArray.value).toEqual(['one']);
+
+      formArray.reset([{ value: 'two', disabled: false }]);
+      expect(formArray.value).toEqual(['two']);
+    });
+  });
 });

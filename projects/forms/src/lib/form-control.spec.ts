@@ -3,7 +3,7 @@ import { AbstractControl } from '@angular/forms';
 import { FormControl } from './form-control';
 import { isString, isNumber, isArray, isObject } from './assert';
 import { FormGroup } from './form-group';
-import { ValidatorFn, Control, ExtractControlValue } from './types';
+import { ValidatorFn, Control } from './types';
 
 describe('FormControl', () => {
   xdescribe('checking types only', () => {
