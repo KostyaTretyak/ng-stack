@@ -12,7 +12,6 @@ import {
   AbstractControlOptions,
   ControlType,
   ExtractGroupValue,
-  ExtractGroupStateValue,
 } from './types';
 
 export class FormGroup<T extends object = any, V extends object = ValidatorsModel> extends NativeFormGroup {
@@ -139,7 +138,7 @@ console.log(form.value);   // {first: 'Nancy', last: 'Drew'}
    * observables emit events with the latest status and value when the control value is updated.
    * When false, no events are emitted.
    */
-  setValue(value: ExtractGroupStateValue<T>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  setValue(value: ExtractGroupValue<T>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.setValue(value, options);
   }
 
@@ -175,7 +174,7 @@ console.log(form.value);   // {first: 'Nancy', last: null}
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  patchValue(value: Partial<ExtractGroupStateValue<T>>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  patchValue(value: Partial<ExtractGroupValue<T>>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.patchValue(value, options);
   }
 
@@ -235,7 +234,7 @@ console.log(this.form.value);  // {first: 'name', last: 'last name'}
 console.log(this.form.get('first').status);  // 'DISABLED'
 ```
    */
-  reset(value: ExtractGroupStateValue<T> = {} as any, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  reset(value: ExtractGroupValue<T> = {} as any, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
     return super.reset(value, options);
   }
 
