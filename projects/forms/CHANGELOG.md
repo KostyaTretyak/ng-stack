@@ -3,7 +3,7 @@
 
 ### Bug Fixes
 
-- Fixed fixed FormGroup API (see [70ea07](https://github.com/KostyaTretyak/ng-stack/commit/70ea0737bcf))
+- Fixed FormGroup API (see [70ea07](https://github.com/KostyaTretyak/ng-stack/commit/70ea0737bcf))
 
 <a name="2.2.1"></a>
 ## [2.2.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.1) (2020-07-04)
