@@ -8,7 +8,7 @@
   - [Using form model](#using-form-model)
   - [Automatically detect appropriate types for form controls](#automatically-detect-appropriate-types-for-form-controls)
   - [Typed Validations](#typed-validations)
-  - [Support input[type="file"]](#support-input-with-type-file)
+  - [Support input[type="file"]](#support-input-with-file-type)
     - [`preserveValue` option](#preserveValue-option)
 - [Known issues](#known-issues)
   - [Known issues with ValidatorFn](#known-issues-with-validatorfn)
@@ -128,14 +128,14 @@ For example:
 ```ts
 import { FormBuilder, Control } from '@ng-stack/forms';
 
-const fb = new FormBuilder();
-
 // Form Model
 interface Person {
   id: number;
   name: string;
   birthDate: Control<Date>; // Here should be FormControl, instead of a FormGroup
 }
+
+const fb = new FormBuilder();
 
 const form = fb.group<Person>({
   id: 123,
@@ -254,7 +254,7 @@ class ValidatorsModel {
 ```
 See also [Known issues with ValidatorFn](#known-issues-with-validatorFn).
 
-### Support input with type "file"
+### Support input with "file" type
 
 Since version 1.1.0, `@ng-stack/forms` supports `input[type=file]`.
 

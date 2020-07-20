@@ -1,15 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
 import { FormGroup, FormControl, FormBuilder, Validators } from '@ng-stack/forms';
-import {
-  FormGroup as NativeFormGroup,
-  FormArray as NativeFormArray,
-  FormControl as NativeFormControl,
-  FormBuilder as NativeFormBuilder,
-  Validators as NativeValidators,
-} from '@angular/forms';
 
-import { UserForm } from '../../models/user-form';
+import { UserForm, SomeArray } from '../../models/user-form';
 
 @Component({
   selector: 'app-forms',
@@ -67,7 +60,7 @@ export class FormsComponent implements OnInit {
       userEmail: new FormControl('some-one@gmail.com'),
       password: this.fb.control('123456'),
       addresses: this.fb.group({ city: 'Kyiv' }),
-      someArray: this.fb.array([
+      someArray: this.fb.array<SomeArray>([
         this.fb.group({ item1: 'value1' }),
         this.fb.group({ item1: 'value2' }),
         this.fb.group({ item1: 'value3' }),
@@ -78,8 +71,6 @@ export class FormsComponent implements OnInit {
     });
 
     this.formControl = this.fb.control();
-
-    console.log('NativeFormControl:', new NativeFormArray([]).value);
   }
 
   onSelect(files: File[]) {}
