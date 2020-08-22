@@ -1,15 +1,15 @@
-# What is this library?
+## What is this library?
 
 This is micro Angular v4+ contenteditable directive for integration with Angular forms.
 It just implements [ControlValueAccessor](https://angular.io/api/forms/ControlValueAccessor) for this purpose.
 
-# Install
+## Install
 
 ```bash
 npm install @ng-stack/contenteditable --save
 ```
 
-# Usage
+## Usage
 
 Import and add `ContenteditableModule` to your project:
 
@@ -74,7 +74,9 @@ export class MyComponent implements OnInit {
 </pre>
 ```
 
-# Options
+## Options
+
+### propValueAccessor
 
 With `contenteditable` directive you can pass optional `@Input` value for `propValueAccessor`:
 
@@ -86,7 +88,7 @@ With `contenteditable` directive you can pass optional `@Input` value for `propV
   ></p>
 ```
 
-In `ContenteditableDirective` this value use like this:
+Internally, `ContenteditableDirective` uses this value as follows:
 
 ```ts
 this.elementRef.nativeElement[this.propValueAccessor]
@@ -94,7 +96,7 @@ this.elementRef.nativeElement[this.propValueAccessor]
 
 By default it using `textContent`.
 
-# `contenteditable` as @Input property
+### `contenteditable` as @Input property
 
 Since version 1.0.0, `@ng-stack/contenteditable` accepts `contenteditable` as @Input property (note the square brackets):
 
@@ -103,3 +105,17 @@ Since version 1.0.0, `@ng-stack/contenteditable` accepts `contenteditable` as @I
 ```
 
 where `isContenteditable` is a boolean variable.
+
+### unformattedPaste
+
+Since version 1.1.0, `@ng-stack/contenteditable` takes into account `unformattedPaste` attribute:
+
+```html
+<p
+  contenteditable="true"
+  unformattedPaste
+  [formControl]="myControl"
+  ></p>
+```
+
+This allow copy formated text (from anywhere) and paste unformated text into HTML element with `contenteditable` attribute.
