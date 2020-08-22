@@ -6,7 +6,7 @@
     "prestart": "npm run build-libs",
     "start": "ng serve",
     "build": "npm run build-libs && ng build",
-    "build-libs": "ng build contenteditable && ng build api-mock && ng build forms",
+    "build-libs": "ng build contenteditable --prod && ng build api-mock --prod && ng build forms --prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
