@@ -1,7 +1,8 @@
-import { Directive, ElementRef, Renderer2, HostListener, HostBinding, forwardRef, Input } from '@angular/core';
-
+import { Directive, ElementRef, Renderer2, HostListener, HostBinding, forwardRef, Input, Inject } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { DOCUMENT } from '@angular/common';
 
+/** @dynamic */
 @Directive({
   // tslint:disable-next-line:directive-selector
   selector: '[contenteditable][formControlName],[contenteditable][formControl],[contenteditable][ngModel]',
@@ -10,12 +11,17 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 export class ContenteditableDirective implements ControlValueAccessor {
   @Input() propValueAccessor = 'textContent';
   @HostBinding('attr.contenteditable') @Input() contenteditable = true;
+  @HostBinding('attr.unformattedPaste') @Input() unformattedPaste: boolean | string = false;
 
   private onChange: (value: string) => void;
   private onTouched: () => void;
   private removeDisabledState: () => void;
 
-  constructor(private elementRef: ElementRef, private renderer: Renderer2) {}
+  constructor(
+    private elementRef: ElementRef,
+    private renderer: Renderer2,
+    @Inject(DOCUMENT) private document: Document
+  ) {}
 
   @HostListener('input')
   callOnChange() {
@@ -80,6 +86,16 @@ export class ContenteditableDirective implements ControlValueAccessor {
         this.removeDisabledState();
       }
     }
+  }
+
+  @HostListener('paste', ['$event'])
+  preventFormatedPaste(event: ClipboardEvent) {
+    if (this.unformattedPaste === false || this.unformattedPaste === 'false') {
+      return;
+    }
+    event.preventDefault();
+    const text = event.clipboardData.getData('text/plain');
+    this.document.execCommand('insertHTML', false, text);
   }
 
   private listenerDisabledState(e: KeyboardEvent) {
