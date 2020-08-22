@@ -3,7 +3,7 @@
 
 ### Features
 
-- Added new directive with `selector: [contenteditable][unformattedPaste]` that allow copy formated text (from anywhere) and paste unformated text into HTML element with `contenteditable="true"` attribute.
+- Added `[unformattedPaste]` attribute that allow copy formated text (from anywhere) and paste unformated text into HTML element with `contenteditable="true"` attribute.
 
 <a name="1.0.2"></a>
 ## [1.0.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.0.2) (2019-05-04)
