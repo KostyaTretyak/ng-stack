@@ -3,7 +3,7 @@
 
 ### Bug Fixes
 
-- Fixed peerDependencies (see #79). `@ng-stack/forms` with version > 2.1.0 is not compatible with Angular v8 and below.
+- Fixed peerDependencies (see [#79](https://github.com/KostyaTretyak/ng-stack/issues/79)). `@ng-stack/forms` with version > 2.1.0 is not compatible with Angular v8 and below.
 
 <a name="2.2.2"></a>
 ## [2.2.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.2) (2020-07-05)
