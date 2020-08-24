@@ -1,5 +1,12 @@
+<a name="2.2.3"></a>
+# [2.2.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.3) (2020-08-24)
+
+### Bug Fixes
+
+- Fixed peerDependencies (see #79). `@ng-stack/forms` with version > 2.1.0 is not compatible with Angular v8 and below.
+
 <a name="2.2.2"></a>
-# [2.2.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.2) (2020-07-05)
+## [2.2.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.2) (2020-07-05)
 
 ### Bug Fixes
 
