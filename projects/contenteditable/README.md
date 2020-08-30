@@ -108,7 +108,7 @@ where `isContenteditable` is a boolean variable.
 
 ### unformattedPaste
 
-Since version 1.1.0, `@ng-stack/contenteditable` takes into account `unformattedPaste` attribute:
+Since version 1.1.0, `@ng-stack/contenteditable` takes into account experimental `unformattedPaste` attribute:
 
 ```html
 <p
@@ -119,3 +119,5 @@ Since version 1.1.0, `@ng-stack/contenteditable` takes into account `unformatted
 ```
 
 This allow copy formated text (from anywhere) and paste unformated text into HTML element with `contenteditable` attribute.
+
+`unformattedPaste` attribute is experimental because here is used obsolete [document.execCommand()](https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand) method to write unformated text. So far no good alternative for this method has been found.
