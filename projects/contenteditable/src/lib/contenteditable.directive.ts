@@ -11,7 +11,7 @@ import { DOCUMENT } from '@angular/common';
 export class ContenteditableDirective implements ControlValueAccessor {
   @Input() propValueAccessor = 'textContent';
   @HostBinding('attr.contenteditable') @Input() contenteditable = true;
-  @HostBinding('attr.unformattedPaste') @Input() unformattedPaste: boolean | string = false;
+  @Input() unformattedPaste: boolean | string = false;
 
   private onChange: (value: string) => void;
   private onTouched: () => void;
@@ -94,8 +94,9 @@ export class ContenteditableDirective implements ControlValueAccessor {
       return;
     }
     event.preventDefault();
-    const text = event.clipboardData.getData('text/plain');
-    this.document.execCommand('insertHTML', false, text);
+    const { clipboardData } = event;
+    const text = clipboardData.getData('text/plain') || clipboardData.getData('text');
+    this.document?.execCommand('insertText', false, text);
   }
 
   private listenerDisabledState(e: KeyboardEvent) {
