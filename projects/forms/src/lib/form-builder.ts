@@ -9,8 +9,6 @@ import {
   AsyncValidatorFn,
   ValidatorsModel,
   FormControlState,
-  ExtractModelValue,
-  ExtractControlValue,
 } from './types';
 import { FormGroup } from './form-group';
 import { FormControl } from './form-control';
