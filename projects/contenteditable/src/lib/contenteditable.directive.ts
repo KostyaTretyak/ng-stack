@@ -1,4 +1,14 @@
-import { Directive, ElementRef, Renderer2, HostListener, HostBinding, forwardRef, Input, Inject } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  Renderer2,
+  HostListener,
+  HostBinding,
+  forwardRef,
+  Input,
+  Inject,
+  Attribute,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DOCUMENT } from '@angular/common';
 
@@ -11,7 +21,6 @@ import { DOCUMENT } from '@angular/common';
 export class ContenteditableDirective implements ControlValueAccessor {
   @Input() propValueAccessor = 'textContent';
   @HostBinding('attr.contenteditable') @Input() contenteditable = true;
-  @Input() unformattedPaste: boolean | string = false;
 
   private onChange: (value: string) => void;
   private onTouched: () => void;
@@ -20,6 +29,7 @@ export class ContenteditableDirective implements ControlValueAccessor {
   constructor(
     private elementRef: ElementRef,
     private renderer: Renderer2,
+    @Attribute('unformattedPaste') private unformattedPaste: string,
     @Inject(DOCUMENT) private document: Document
   ) {}
 
@@ -90,7 +100,7 @@ export class ContenteditableDirective implements ControlValueAccessor {
 
   @HostListener('paste', ['$event'])
   preventFormatedPaste(event: ClipboardEvent) {
-    if (this.unformattedPaste === false || this.unformattedPaste === 'false') {
+    if (this.unformattedPaste == 'false') {
       return;
     }
     event.preventDefault();
