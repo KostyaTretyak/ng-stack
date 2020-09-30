@@ -215,7 +215,7 @@ export type AsyncValidatorFn<T extends object = any> = (
 export type ValidationErrors<T extends object = any> = T;
 
 /**
- * The default validators model, it includes almost all properties of `typeof Validators`,
+ * The default validators model, it includes almost all static properties of `Validators`,
  * excludes: `prototype`, `compose`, `composeAsync` and `nullValidator`.
  *
  * ### Usage
