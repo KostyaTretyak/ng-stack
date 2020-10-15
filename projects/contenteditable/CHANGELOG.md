@@ -1,5 +1,12 @@
+<a name="1.1.1"></a>
+# [1.1.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.1.1) (2020-10-15)
+
+### Fix
+
+- Refactoring of the method to support the `unformattedPaste` attribute.
+
 <a name="1.1.0"></a>
-# [1.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.1.0) (2020-08-22)
+## [1.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.1.0) (2020-08-22)
 
 ### Features
 

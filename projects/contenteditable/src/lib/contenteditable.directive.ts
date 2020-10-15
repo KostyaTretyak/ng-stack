@@ -100,13 +100,13 @@ export class ContenteditableDirective implements ControlValueAccessor {
 
   @HostListener('paste', ['$event'])
   preventFormatedPaste(event: ClipboardEvent) {
-    if (this.unformattedPaste == 'false') {
+    if (this.unformattedPaste === null || this.unformattedPaste == 'false' || !this.document.execCommand) {
       return;
     }
     event.preventDefault();
     const { clipboardData } = event;
     const text = clipboardData.getData('text/plain') || clipboardData.getData('text');
-    this.document?.execCommand('insertText', false, text);
+    this.document.execCommand('insertText', false, text);
   }
 
   private listenerDisabledState(e: KeyboardEvent) {

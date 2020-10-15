@@ -3,6 +3,7 @@
 <form #templateDrivenForm="ngForm">
   <p
     [contenteditable]="isContenteditable"
+    unformattedPaste
     name="myFormName"
     [(ngModel)]="templateDrivenFormText"
     [ngClass]="{'is-editable': isContenteditable, 'is-not-editable': !isContenteditable}"
