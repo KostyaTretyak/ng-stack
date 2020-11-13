@@ -22,7 +22,7 @@
     "url": "https://github.com/KostyaTretyak/ng-stack/issues?q=label%3A%22project%3A+api-mock%22"
   },
   "peerDependencies": {
-    "@angular/core": ">=4.3.6 <11.0.0",
+    "@angular/core": ">=4.3.6 <12.0.0",
     "rxjs": ">=6.0.0"
   },
   "dependencies": {
