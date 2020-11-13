@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick, waitForAsync } from '@angular/core/testing';
 
 import { ContenteditableComponent } from './contenteditable.component';
 import { ContenteditableModule } from '../../contenteditable.module';
@@ -9,11 +9,13 @@ describe('ContenteditableComponent', () => {
   const defaultText1 = 'This is contenteditable text for template-driven form';
   const defaultText2 = 'This is contenteditable text for reactive form';
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      imports: [ContenteditableModule],
-    }).compileComponents();
-  }));
+  beforeEach(
+    waitForAsync(() => {
+      TestBed.configureTestingModule({
+        imports: [ContenteditableModule],
+      }).compileComponents();
+    })
+  );
 
   beforeEach(() => {
     fixture = TestBed.createComponent(ContenteditableComponent);
