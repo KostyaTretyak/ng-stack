@@ -1,5 +1,12 @@
+<a name="2.3.0"></a>
+# [2.3.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.3.0) (2020-11-14)
+
+### Features
+
+- Changed `peerDependencies` to support angular v11.
+
 <a name="2.2.3"></a>
-# [2.2.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.3) (2020-08-24)
+## [2.2.3](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms%402.2.3) (2020-08-24)
 
 ### Bug Fixes
 
