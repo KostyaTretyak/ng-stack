@@ -339,11 +339,10 @@ Without a data type hint, there is a limitation of the TypeScript that does not 
 ```ts
 import { FormControl, FormGroup, FormArray } from '@ng-stack/forms';
 
-const formGroup1 = new FormGroup({ prop: new FormControl('') }); // OK
-const formGroup2 = new FormGroup({ prop: new FormGroup({}) }); // OK
+// Next block code tested with TypeScript 4.1.2
 
-const formGroup3 = new FormGroup({ prop: new FormArray([]) }); // Error, but it's wrong
-const formGroup4 = new FormGroup<{ prop: any[] }>({ prop: new FormArray([]) }); // OK
+const formGroup1 = new FormGroup({ prop: new FormArray([]) }); // Error, but it's wrong
+const formGroup2 = new FormGroup<{ prop: any[] }>({ prop: new FormArray([]) }); // OK
 
 interface NestedModel {
   one: number;
@@ -353,29 +352,30 @@ interface Model {
   prop: NestedModel;
 }
 
-const formGroup5 = new FormGroup<Model>({ prop: new FormGroup({ one: new FormControl(123) }) }); // OK
+// Here error "Type 'number' is not assignable to type '123'"
+// because design limitation, see https://github.com/microsoft/TypeScript/issues/22596
+const formGroup3 = new FormGroup<Model>({ prop: new FormGroup({ one: new FormControl(123) }) });
+const formGroup4 = new FormGroup<Model>({ prop: new FormGroup({ one: new FormControl<number>(123) }) }); // OK
 
-// Here is an error, but it's OK, because the nested `FormGroup` does not have the `one` property as required by the `Model`.
-const formGroup6 = new FormGroup<Model>({ prop: new FormGroup({ other: new FormControl(123) }) });
-
-// Here without errors, but it's wrong, because the nested `FormGroup` does not have the `two` property in the `Model`.
-const formGroup7 = new FormGroup<Model>({
-  prop: new FormGroup({ one: new FormControl(123), two: new FormControl('') }),
+// Here without errors, but it's wrong,
+// because the nested `FormGroup` does not have the `two` property in the `Model`.
+const formGroup5 = new FormGroup<Model>({
+  prop: new FormGroup({ one: new FormControl<number>(123), two: new FormControl('') }),
 });
 
-// To fix the previous example, add a type hint for the nested FormGroup:
+// To see error in the previous example, add a type hint for the nested FormGroup:
 const formGroup8 = new FormGroup<Model>({
-  prop: new FormGroup<NestedModel>({ one: new FormControl(123), two: new FormControl('') }),
+  prop: new FormGroup<NestedModel>({ one: new FormControl<number>(123), two: new FormControl('') }),
 });
 
-const formState = { value: 2, disabled: false };
-const control = new FormControl(formState);
-control.patchValue(2); // Argument of type '2' is not assignable to parameter of type '{ value: number; disabled: boolean; }'
+const formState1 = { value: 2, disabled: false };
+const control1 = new FormControl(formState1);
+control1.patchValue(2); // Argument of type '2' is not assignable to parameter of type '{ value: number; disabled: boolean; }'
 
 // To fix previous example, add a type hint for the FormControl generic:
-const formState = { value: 2, disabled: false };
-const control = new FormControl<number>(formState);
-control.patchValue(2); // OK
+const formState2 = { value: 2, disabled: false };
+const control2 = new FormControl<number>(formState2);
+control2.patchValue(2); // OK
 ```
 
 See [bug(generics): errors of inferring types for an array](https://github.com/microsoft/TypeScript/issues/30207).
