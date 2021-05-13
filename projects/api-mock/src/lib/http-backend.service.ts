@@ -1,15 +1,7 @@
 import { Injectable, Optional } from '@angular/core';
 import { Router, Params, NavigationStart, NavigationEnd } from '@angular/router';
-import {
-  HttpBackend,
-  HttpErrorResponse,
-  HttpEvent,
-  HttpRequest,
-  HttpResponse,
-  HttpXhrBackend,
-  XhrFactory,
-  HttpHeaders,
-} from '@angular/common/http';
+import { XhrFactory } from '@angular/common';
+import { HttpBackend, HttpErrorResponse, HttpEvent, HttpRequest, HttpResponse, HttpXhrBackend, HttpHeaders } from '@angular/common/http';
 
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
