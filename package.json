@@ -3,15 +3,24 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "prestart": "npm run build-libs",
+    "prestart": "yarn build-libs",
     "start": "ng serve",
-    "build": "npm run build-libs && ng build",
+    "build": "yarn build-libs && ng build",
     "build-libs": "ng build contenteditable --prod && ng build api-mock --prod && ng build forms --prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
   "private": true,
+  "resolutions": {
+    "postcss": "^8.2.10",
+    "hosted-git-info": "^3.0.8",
+    "ua-parser-js": "^0.7.24",
+    "xmlhttprequest-ssl": "^1.6.2",
+    "ssri": "^8.0.1",
+    "is-svg": "^4.2.2",
+    "ini": "^1.3.6"
+  },
   "dependencies": {
     "@angular/animations": "~11.0.0",
     "@angular/common": "~11.0.0",
