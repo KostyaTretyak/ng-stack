@@ -1,6 +1,6 @@
 {
   "name": "@ng-stack/forms",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/KostyaTretyak/ng-stack/tree/master/projects/forms"
@@ -18,8 +18,8 @@
     "url": "https://github.com/KostyaTretyak/ng-stack/issues?q=label%3A%22project%3A+forms%22"
   },
   "peerDependencies": {
-    "@angular/core": ">=9.0.0 <12.0.0",
-    "@angular/forms": ">=9.0.0 <12.0.0",
+    "@angular/core": ">=9.0.0 <13.0.0",
+    "@angular/forms": ">=9.0.0 <13.0.0",
     "typescript": ">=3.8.3"
   },
   "dependencies": {
