@@ -90,7 +90,7 @@ export type ControlType<T, V extends object = ValidatorsModel> = [T] extends [Ex
   : [T] extends [Control<infer ControlModel>]
   ? FormControl<ControlModel, V>
   : [T] extends [Array<infer Item>]
-  ? FormArray<Item, V>
+  ? FormArray<Item, V> | FormControl<T, V>
   : [T] extends [object]
   ? FormGroup<T, V>
   : FormControl<T, V>;
