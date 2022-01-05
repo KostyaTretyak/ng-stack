@@ -1,4 +1,3 @@
-import 'zone.js/dist/zone-patch-rxjs-fake-async';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { Injectable } from '@angular/core';
@@ -1091,77 +1090,6 @@ describe('HttpBackendService', () => {
         expect(headers.has('Location')).toBe(false, 'has not header "Location"');
         expect(headers.has('Content-Type')).toBe(false, 'has not header "Content-Type"');
       });
-    });
-
-    describe('sendResponse()', () => {
-      it('should returns result of calling dataCallback()', fakeAsync(() => {
-        const dataCallback: ApiMockDataCallback = () => [{ some: 1 }];
-        const chainParam: ChainParam[] = [
-          {
-            cacheKey: 'anyCacheKey',
-            primaryKey: '',
-            route: { path: 'any/path', dataCallback },
-          },
-        ];
-        const req = new HttpRequest<any>('GET', 'any/url/here');
-        const res = service.sendResponse(req, chainParam);
-        expect(res instanceof Observable).toBe(true);
-        let result: HttpResponse<any> = null;
-        res.subscribe((r) => (result = r));
-        expect(result).toBeNull();
-
-        tick(service.config.delay);
-
-        expect(result instanceof HttpResponse).toBe(true);
-        expect(Array.isArray(result.body)).toBe(true);
-        expect(result.body).toEqual(dataCallback());
-      }));
-
-      it('should returns searched item with given primaryKey and restId inside result of calling dataCallback()', fakeAsync(() => {
-        const dataCallback: ApiMockDataCallback = () => [{ somePrimaryKey: 23, some: 1 }];
-        const chainParam: ChainParam[] = [
-          {
-            cacheKey: 'anyCacheKey',
-            primaryKey: 'somePrimaryKey',
-            restId: '23',
-            route: { path: '', dataCallback },
-          },
-        ];
-        const req = new HttpRequest<any>('GET', 'any/url/here');
-        const res = service.sendResponse(req, chainParam);
-        expect(res instanceof Observable).toBe(true);
-        let result: HttpResponse<any> = null;
-        res.subscribe((r) => (result = r));
-        expect(result).toBeNull();
-
-        tick(service.config.delay);
-
-        expect(result instanceof HttpResponse).toBe(true);
-        expect(Array.isArray(result.body)).toBe(true);
-        expect(result.body).toEqual(dataCallback());
-      }));
-
-      it('should returns undefined when search inside result of calling dataCallback()', fakeAsync(() => {
-        const dataCallback = () => [{ some: 1 }];
-        const chainParam: ChainParam[] = [
-          {
-            cacheKey: 'api/posts',
-            primaryKey: 'somePrimaryKey',
-            restId: 'someRestId',
-            route: { path: '', dataCallback },
-          },
-        ];
-        const req = new HttpRequest<any>('GET', 'any/url/here');
-        const res = service.sendResponse(req, chainParam);
-        expect(res instanceof Observable).toBe(true);
-        let result: HttpResponse<any> = null;
-        res.subscribe(
-          (r) => fail,
-          (err) => (result = err)
-        );
-        expect(result instanceof HttpErrorResponse).toBe(true);
-        expect(result.status).toBe(Status.NOT_FOUND);
-      }));
     });
 
     describe('genId()', () => {

@@ -110,10 +110,11 @@ describe('FormBuilder', () => {
     describe(`array()`, () => {
       it('case 1', () => {
         const fb = new FormBuilder();
-        let control = new FormControl('one');
-        expect(fb.array([control]).value).toEqual(['one']);
-        control = new FormControl({ value: 'two', disabled: false });
-        expect(fb.array([control]).value).toEqual(['two']);
+        const controlOne = new FormControl('one');
+        expect(fb.array([controlOne]).value).toEqual(['one']);
+
+        const controlTwo = new FormControl({ value: 'two', disabled: false });
+        expect(fb.array([controlTwo]).value).toEqual(['two']);
       });
 
       it('case 2', () => {

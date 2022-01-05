@@ -99,18 +99,6 @@
               "src/assets"
             ]
           }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
         }
       }
     },
@@ -129,15 +117,6 @@
             "production": {
               "devServerTarget": "ng-stack:serve:production"
             }
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": "e2e/tsconfig.e2e.json",
-            "exclude": [
-              "**/node_modules/**"
-            ]
           }
         }
       }
@@ -167,18 +146,6 @@
             "tsConfig": "projects/contenteditable/tsconfig.spec.json",
             "karmaConfig": "projects/contenteditable/karma.conf.js"
           }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/contenteditable/tsconfig.lib.json",
-              "projects/contenteditable/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
         }
       }
     },
@@ -207,18 +174,6 @@
             "tsConfig": "projects/api-mock/tsconfig.spec.json",
             "karmaConfig": "projects/api-mock/karma.conf.js"
           }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/api-mock/tsconfig.lib.json",
-              "projects/api-mock/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
         }
       }
     },
@@ -246,18 +201,6 @@
             "main": "projects/forms/src/test.ts",
             "tsConfig": "projects/forms/tsconfig.spec.json",
             "karmaConfig": "projects/forms/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/forms/tsconfig.lib.json",
-              "projects/forms/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
           }
         }
       }
