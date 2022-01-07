@@ -16,14 +16,32 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   input[type=file][ngModel],
   input[type=file][formControl],
   input[type=file][formControlName]`,
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => InputFileDirective), multi: true }],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => InputFileDirective),
+      multi: true,
+    },
+  ],
 })
 export class InputFileDirective implements ControlValueAccessor {
-  private _multiple: boolean | string;
-  @HostBinding('attr.multiple') @Input() get multiple(): boolean | string {
-    return this._multiple !== undefined && this._multiple !== false && this._multiple !== 'false' ? '' : undefined;
+  private _multiple: boolean | string | undefined;
+
+  @HostBinding('attr.multiple')
+  @Input()
+  get multiple(): boolean | string | undefined {
+    if (
+      this._multiple !== undefined &&
+      this._multiple !== false &&
+      this._multiple !== 'false'
+    ) {
+      return '';
+    } else {
+      return undefined;
+    }
   }
-  set multiple(value: boolean | string) {
+
+  set multiple(value: boolean | string | undefined) {
     this._multiple = value;
   }
   @HostBinding('attr.preserveValue') @Input() preserveValue: boolean | string;
@@ -44,14 +62,22 @@ export class InputFileDirective implements ControlValueAccessor {
     const formData = new FormData();
 
     let formInputName = this.elementRef.nativeElement.name || 'uploadFile';
-    if (this.multiple !== undefined && this.multiple !== false && this.multiple !== 'false') {
+    if (
+      this.multiple !== undefined &&
+      this.multiple !== false &&
+      this.multiple !== 'false'
+    ) {
       formInputName += '[]';
     }
     files.forEach((file) => formData.append(formInputName, file));
 
     this.onChange(formData);
     this.select.next(files);
-    if (this.preserveValue === undefined || this.preserveValue === false || this.preserveValue === 'false') {
+    if (
+      this.preserveValue === undefined ||
+      this.preserveValue === false ||
+      this.preserveValue === 'false'
+    ) {
       event.target.value = null;
     }
   }
@@ -65,7 +91,9 @@ export class InputFileDirective implements ControlValueAccessor {
    */
   writeValue(fileList: FileList): void {
     if (fileList && !(fileList instanceof FileList)) {
-      throw new TypeError('Value for input[type=file] must be an instance of FileList');
+      throw new TypeError(
+        'Value for input[type=file] must be an instance of FileList'
+      );
     }
     this.renderer.setProperty(this.elementRef.nativeElement, 'files', fileList);
   }

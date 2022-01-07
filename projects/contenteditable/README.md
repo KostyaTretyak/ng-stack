@@ -1,123 +1,24 @@
-## What is this library?
+# Contenteditable
 
-This is micro Angular v4+ contenteditable directive for integration with Angular forms.
-It just implements [ControlValueAccessor](https://angular.io/api/forms/ControlValueAccessor) for this purpose.
+This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.1.0.
 
-## Install
+## Code scaffolding
 
-```bash
-npm install @ng-stack/contenteditable --save
-```
+Run `ng generate component component-name --project contenteditable` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project contenteditable`.
+> Note: Don't forget to add `--project contenteditable` or else it will be added to the default project in your `angular.json` file. 
 
-## Usage
+## Build
 
-Import and add `ContenteditableModule` to your project:
+Run `ng build contenteditable` to build the project. The build artifacts will be stored in the `dist/` directory.
 
-```ts
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ContenteditableModule } from '@ng-stack/contenteditable';
+## Publishing
 
-// ...
+After building your library with `ng build contenteditable`, go to the dist folder `cd dist/contenteditable` and run `npm publish`.
 
-@NgModule({
-  // ...
-  imports: [
-    // Import this module to get available work angular with `contenteditable`
-    ContenteditableModule,
-    // Import one or both of this modules
-    FormsModule,
-    ReactiveFormsModule
-  ]
+## Running unit tests
 
-// ...
+Run `ng test contenteditable` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-})
-```
+## Further help
 
-And then you can to use it in [template-driven forms](https://angular.io/guide/forms)
-or [reactive forms](https://angular.io/guide/reactive-forms) like this:
-
-```ts
-// In your component
-import { Component, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
-
-export class MyComponent implements OnInit {
-  templateDrivenForm = 'This is contenteditable text for template-driven form';
-  myControl = new FormControl();
-
-  ngOnInit() {
-    this.myControl.setValue(`This is contenteditable text for reactive form`);
-  }
-}
-```
-
-```html
-<form #testForm="ngForm">
-  <p
-    contenteditable="true"
-    name="myFormName"
-    [(ngModel)]="templateDrivenForm"
-    ></p>
-</form>
- 
-<pre>
-  {{ testForm.value | json }}
-</pre>
-
-<hr>
-
-<p contenteditable="true" [formControl]="myControl"></p>
-
-<pre>
-  {{ myControl.value | json }}
-</pre>
-```
-
-## Options
-
-### propValueAccessor
-
-With `contenteditable` directive you can pass optional `@Input` value for `propValueAccessor`:
-
-```html
-<p
-  contenteditable="true"
-  propValueAccessor="innerHTML"
-  [formControl]="myControl"
-  ></p>
-```
-
-Internally, `ContenteditableDirective` uses this value as follows:
-
-```ts
-this.elementRef.nativeElement[this.propValueAccessor]
-```
-
-By default it using `textContent`.
-
-### `contenteditable` as @Input property
-
-Since version 1.0.0, `@ng-stack/contenteditable` accepts `contenteditable` as @Input property (note the square brackets):
-
-```html
-<p [contenteditable]="isContenteditable"></p>
-```
-
-where `isContenteditable` is a boolean variable.
-
-### unformattedPaste
-
-Since version 1.1.0, `@ng-stack/contenteditable` takes into account experimental `unformattedPaste` attribute:
-
-```html
-<p
-  contenteditable="true"
-  unformattedPaste
-  [formControl]="myControl"
-  ></p>
-```
-
-This allow copy formated text (from anywhere) and paste unformated text into HTML element with `contenteditable` attribute.
-
-`unformattedPaste` attribute is experimental because here is used obsolete [document.execCommand()](https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand) method to write unformated text. So far no good alternative for this method has been found.
+To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.

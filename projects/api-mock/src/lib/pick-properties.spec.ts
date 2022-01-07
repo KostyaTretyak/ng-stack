@@ -52,7 +52,7 @@ describe('pickPropertiesAsGetters', () => {
   it('signature1: result = pickPropertiesAsGetters(targetObj, null, sourceObj)', () => {
     const targetObj: any = { one: null };
     const sourceObj = { one: 1, two: 2 };
-    const result = pickPropertiesAsGetters(targetObj, null, sourceObj);
+    const result = pickPropertiesAsGetters(targetObj, {}, sourceObj);
     expect(targetObj).toBe(result);
     expect(sourceObj).toEqual({ one: 1, two: 2 });
     expect(targetObj.one).toBe(1);

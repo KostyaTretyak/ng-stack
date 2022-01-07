@@ -14,12 +14,15 @@ import {
   ExtractGroupValue,
 } from './types';
 
-export class FormGroup<T extends object = any, V extends object = ValidatorsModel> extends NativeFormGroup {
-  readonly value: ExtractGroupValue<T>;
-  readonly valueChanges: Observable<ExtractGroupValue<T>>;
-  readonly status: Status;
-  readonly statusChanges: Observable<Status>;
-  readonly errors: ValidationErrors<V> | null;
+export class FormGroup<
+  T extends object = any,
+  V extends object = ValidatorsModel
+> extends NativeFormGroup {
+  override readonly value: ExtractGroupValue<T>;
+  override readonly valueChanges: Observable<ExtractGroupValue<T>>;
+  override readonly status: Status;
+  override readonly statusChanges: Observable<Status>;
+  override readonly errors: ValidationErrors<V> | null;
 
   /**
    * Creates a new `FormGroup` instance.
@@ -36,8 +39,12 @@ export class FormGroup<T extends object = any, V extends object = ValidatorsMode
    * @todo Chechout how to respect optional and require properties modifyers for the controls.
    */
   constructor(
-    public controls: { [P in keyof T]: ControlType<T[P], V> },
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    public override controls: { [P in keyof T]: ControlType<T[P], V> },
+    validatorOrOpts?:
+      | ValidatorFn
+      | ValidatorFn[]
+      | AbstractControlOptions
+      | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     super(controls, validatorOrOpts, asyncValidator);
@@ -52,10 +59,10 @@ export class FormGroup<T extends object = any, V extends object = ValidatorsMode
    * @param name The control name to register in the collection
    * @param control Provides the control for the given name
    */
-  registerControl<K extends StringKeys<T>, CV extends object = ValidatorsModel>(
-    name: K,
-    control: ControlType<T[K], CV>
-  ) {
+  override registerControl<
+    K extends StringKeys<T>,
+    CV extends object = ValidatorsModel
+  >(name: K, control: ControlType<T[K], CV>) {
     return super.registerControl(name, control) as ControlType<T[K], CV>;
   }
 
@@ -67,7 +74,10 @@ export class FormGroup<T extends object = any, V extends object = ValidatorsMode
    * @param name The control name to add to the collection
    * @param control Provides the control for the given name
    */
-  addControl<K extends StringKeys<T>, CV extends object = ValidatorsModel>(name: K, control: ControlType<T[K], CV>) {
+  override addControl<
+    K extends StringKeys<T>,
+    CV extends object = ValidatorsModel
+  >(name: K, control: ControlType<T[K], CV>) {
     return super.addControl(name, control);
   }
 
@@ -76,7 +86,7 @@ export class FormGroup<T extends object = any, V extends object = ValidatorsMode
    *
    * @param name The control name to remove from the collection
    */
-  removeControl<K extends StringKeys<T>>(name: K) {
+  override removeControl<K extends StringKeys<T>>(name: K) {
     return super.removeControl(name);
   }
 
@@ -86,7 +96,10 @@ export class FormGroup<T extends object = any, V extends object = ValidatorsMode
    * @param name The control name to replace in the collection
    * @param control Provides the control for the given name
    */
-  setControl<K extends StringKeys<T>, CV extends object = ValidatorsModel>(name: K, control: ControlType<T[K], CV>) {
+  override setControl<
+    K extends StringKeys<T>,
+    CV extends object = ValidatorsModel
+  >(name: K, control: ControlType<T[K], CV>) {
     return super.setControl(name, control);
   }
 
@@ -100,7 +113,7 @@ export class FormGroup<T extends object = any, V extends object = ValidatorsMode
    *
    * @returns false for disabled controls, true otherwise.
    */
-  contains<K extends StringKeys<T>>(name: K) {
+  override contains<K extends StringKeys<T>>(name: K) {
     return super.contains(name);
   }
 
@@ -138,7 +151,10 @@ console.log(form.value);   // {first: 'Nancy', last: 'Drew'}
    * observables emit events with the latest status and value when the control value is updated.
    * When false, no events are emitted.
    */
-  setValue(value: ExtractGroupValue<T>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  override setValue(
+    value: ExtractGroupValue<T>,
+    options: { onlySelf?: boolean; emitEvent?: boolean } = {}
+  ) {
     return super.setValue(value, options);
   }
 
@@ -174,7 +190,10 @@ console.log(form.value);   // {first: 'Nancy', last: null}
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  patchValue(value: Partial<ExtractGroupValue<T>>, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  override patchValue(
+    value: Partial<ExtractGroupValue<T>>,
+    options: { onlySelf?: boolean; emitEvent?: boolean } = {}
+  ) {
     return super.patchValue(value, options);
   }
 
@@ -234,7 +253,10 @@ console.log(this.form.value);  // {first: 'name', last: 'last name'}
 console.log(this.form.get('first').status);  // 'DISABLED'
 ```
    */
-  reset(value: ExtractGroupValue<T> = {} as any, options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  override reset(
+    value: ExtractGroupValue<T> = {} as any,
+    options: { onlySelf?: boolean; emitEvent?: boolean } = {}
+  ) {
     return super.reset(value, options);
   }
 
@@ -245,7 +267,7 @@ console.log(this.form.get('first').status);  // 'DISABLED'
    * The `value` property is the best way to get the value of the group, because
    * it excludes disabled controls in the `FormGroup`.
    */
-  getRawValue() {
+  override getRawValue() {
     return super.getRawValue() as ExtractGroupValue<T>;
   }
 
@@ -259,7 +281,9 @@ console.log(this.form.get('first').status);  // 'DISABLED'
 this.form.get('person').get('name');
 ```
    */
-  get<K extends StringKeys<T>, CV extends object = ValidatorsModel>(controlName: K): ControlType<T[K], CV> | null {
+  override get<K extends StringKeys<T>, CV extends object = ValidatorsModel>(
+    controlName: K
+  ): ControlType<T[K], CV> | null {
     return super.get(controlName) as ControlType<T[K], CV> | null;
   }
 
@@ -267,7 +291,7 @@ this.form.get('person').get('name');
    * Sets the synchronous validators that are active on this control. Calling
    * this overwrites any existing sync validators.
    */
-  setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
+  override setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
     return super.setValidators(newValidator);
   }
 
@@ -275,7 +299,9 @@ this.form.get('person').get('name');
    * Sets the async validators that are active on this control. Calling this
    * overwrites any existing async validators.
    */
-  setAsyncValidators(newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null) {
+  override setAsyncValidators(
+    newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null
+  ) {
     return super.setAsyncValidators(newValidator);
   }
 
@@ -300,7 +326,10 @@ this.form.get('person').get('name');
    * expect(login.valid).toEqual(true);
    * ```
    */
-  setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
+  override setErrors(
+    errors: ValidationErrors | null,
+    opts: { emitEvent?: boolean } = {}
+  ) {
     return super.setErrors(errors, opts);
   }
 
@@ -330,7 +359,10 @@ form.get('address').getError('someErrorCode', 'street');
    * @returns error data for that particular error. If the control or error is not present,
    * null is returned.
    */
-  getError<P extends StringKeys<V>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
+  override getError<P extends StringKeys<V>, K extends StringKeys<T>>(
+    errorCode: P,
+    controlName?: K
+  ) {
     return super.getError(errorCode, controlName) as V[P] | null;
   }
 
@@ -362,7 +394,10 @@ form.get('address').hasError('someErrorCode', 'street');
    *
    * If the control is not present, false is returned.
    */
-  hasError<P extends StringKeys<V>, K extends StringKeys<T>>(errorCode: P, controlName?: K) {
+  override hasError<P extends StringKeys<V>, K extends StringKeys<T>>(
+    errorCode: P,
+    controlName?: K
+  ) {
     return super.hasError(errorCode, controlName);
   }
 }

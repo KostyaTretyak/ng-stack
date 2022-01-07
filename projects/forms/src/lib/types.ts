@@ -188,14 +188,6 @@ export interface AbstractControlOptions<T extends object = any> {
 }
 
 /**
- * Form builder legacy control options.
- */
-export interface LegacyControlOptions {
-  validator: ValidatorFn | ValidatorFn[] | null;
-  asyncValidator: AsyncValidatorFn | AsyncValidatorFn[] | null;
-}
-
-/**
  * A function that receives a control and synchronously returns a map of
  * validation errors if present, otherwise null.
  */

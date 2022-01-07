@@ -26,74 +26,74 @@ xdescribe('checking types only', () => {
   describe('Control of FormGroup', () => {
     describe('ControlType', () => {
       it('should return FormArray<Model> type', () => {
-        let valueWithType: ControlType<Model[]>;
+        let valueWithType: ControlType<Model[]> = {} as any;
         const formArray: FormArray<Model> = valueWithType;
       });
 
       it('should return FormControl<Model>', () => {
-        let valueWithType: ControlType<Control<Model>>;
+        let valueWithType: ControlType<Control<Model>> = {} as any;
         const formControl: FormControl<Model> = valueWithType;
       });
 
       it('should return FormControl<string[]>', () => {
-        let valueWithType: ControlType<Control<string[]>>;
+        let valueWithType: ControlType<Control<string[]>> = {} as any;
         const formControl: FormControl<string[]> = valueWithType;
       });
 
       it('should return FormGroup<Model>', () => {
-        let valueWithType: ControlType<Model>;
+        let valueWithType: ControlType<Model> = {} as any;
         const formGroup: FormGroup<Model> = valueWithType;
       });
 
       it('should return FormControl<string>', () => {
-        let valueWithType: ControlType<string>;
+        let valueWithType: ControlType<string> = {} as any;
         const formControl: FormControl<string> = valueWithType;
       });
     });
 
     describe('ExtractControlValue', () => {
       it('case 1', () => {
-        let value: ExtractControlValue<string>;
+        let value: ExtractControlValue<string> = '';
         const val: string = value;
       });
 
       it('case 2', () => {
-        let value: ExtractControlValue<string[]>;
+        let value: ExtractControlValue<string[]> = [''];
         const val: string[] = value;
       });
 
       it('case 3', () => {
-        let value: ExtractControlValue<boolean>;
+        let value: ExtractControlValue<boolean> = true;
         const val: boolean = value;
       });
 
       it('case 4', () => {
-        let value: ExtractControlValue<boolean[]>;
+        let value: ExtractControlValue<boolean[]> = [true];
         const val: boolean[] = value;
       });
 
       it('case 5', () => {
-        let value: ExtractControlValue<{ one: string }>;
+        let value: ExtractControlValue<{ one: string }> = {one: ''};
         const val: { one: string } = value;
       });
 
       it('case 6', () => {
-        let value: ExtractControlValue<Control<string[]>>;
+        let value: ExtractControlValue<Control<string[]>> = ['one'];
         const val: string[] = value;
       });
 
       it('case 7', () => {
-        let value: ExtractControlValue<Control<boolean[]>>;
+        let value: ExtractControlValue<Control<boolean[]>> = [true];
         const val: boolean[] = value;
       });
 
       it('case 8', () => {
-        let value: ExtractControlValue<Control<{ one: string }>>;
+        let value: ExtractControlValue<Control<{ one: string }>> = { one: 'val' };
         const val: { one: string } = value;
       });
 
       it('case 9', () => {
-        let value: ExtractControlValue<{ one: Control<string[]> }>;
+        let value: ExtractControlValue<{ one: Control<string[]> }> = { one: [''] } as any;
         const val: { one: string[] } = value;
       });
     });
@@ -109,7 +109,7 @@ xdescribe('checking types only', () => {
         interface FormModel {
           one: string;
         }
-        let value: ExtractGroupValue<Control<FormModel>>;
+        let value: ExtractGroupValue<Control<FormModel>> = {} as any;
         const obj1: FormModel = value;
         const str1: string = value.one;
         const control = new FormControl<FormModel>(value);
@@ -121,7 +121,7 @@ xdescribe('checking types only', () => {
         interface FormModel {
           one: Control<string[]>;
         }
-        let value: ExtractGroupValue<FormModel>;
+        let value: ExtractGroupValue<FormModel>= {} as any;
         const arr1: string[] = value.one;
       });
     });
@@ -136,12 +136,12 @@ xdescribe('checking types only', () => {
       });
 
       it('case 2', () => {
-        let value: ExtractModelValue<string>;
+        let value: ExtractModelValue<string> = '';
         const val: string = value;
       });
 
       it('case 3', () => {
-        let value: ExtractModelValue<string[]>;
+        let value: ExtractModelValue<string[]> = ['one']
         const val: string[] = value;
       });
 
@@ -149,7 +149,7 @@ xdescribe('checking types only', () => {
         interface FormModel {
           one: string[];
         }
-        let value: ExtractModelValue<Control<FormModel>[]>;
+        let value: ExtractModelValue<Control<FormModel>[]> = {} as any;
         const val: FormModel[] = value;
       });
 
@@ -157,7 +157,7 @@ xdescribe('checking types only', () => {
         interface FormModel {
           one: Control<string[]>;
         }
-        let value: ExtractModelValue<FormModel>;
+        let value: ExtractModelValue<FormModel> = ['one'] as any;
         const val: string[] = value.one;
       });
 
@@ -166,14 +166,14 @@ xdescribe('checking types only', () => {
           value: { other: string; city: string; street: string };
           disabled: false;
         }
-        let value: ExtractModelValue<FormModel>;
+        let value: ExtractModelValue<FormModel> = {} as any;
         const val: FormModel = value;
       });
     });
 
     describe('FormGroupState', () => {
       it('case 1', () => {
-        let some: ExtractGroupStateValue<{ one: number }>;
+        let some: ExtractGroupStateValue<{ one: number }> = {} as any;;
         some.one = 1;
         some.one = { value: 1, disabled: true };
       });
@@ -188,23 +188,23 @@ xdescribe('checking types only', () => {
 
   describe('Control of FormBuilder', () => {
     it('should return FormArray<Model> type', () => {
-      let valueWithType: FbControlConfig<Model[]>;
+      let valueWithType: FbControlConfig<Model[]> = {} as any;
       const formArray: FormArray<Model> = valueWithType;
     });
 
     it('should return FbControl<Model>', () => {
-      let valueWithType: FbControlConfig<Control<Model>>;
+      let valueWithType: FbControlConfig<Control<Model>> = {} as any;
       const formControl: FbControl<Model> = valueWithType;
     });
 
     it('should return FormGroup<Model>', () => {
       let valueWithType: FbControlConfig<Model>;
-      const formGroup: FormGroup<Model> = valueWithType;
+      const formGroup: FormGroup<Model> = valueWithType = {} as any;
     });
 
     it('should return FbControl<string>', () => {
       let valueWithType: FbControlConfig<string>;
-      const fbControl: FbControl<string> = valueWithType;
+      const fbControl: FbControl<string> = valueWithType = {} as any;
     });
 
     type T1 = FbControlConfig<any>;

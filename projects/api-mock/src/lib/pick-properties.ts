@@ -29,9 +29,9 @@ targetObject = JSON.parse(JSON.stringify(targetObject));
  */
 export function pickAllPropertiesAsGetters<T extends ObjectAny>(targetObject: T, ...sourceObjects: ObjectAny[]) {
   if (sourceObjects.length) {
-    return pickPropertiesAsGetters(targetObject, null, ...sourceObjects);
+    return pickPropertiesAsGetters(targetObject, {}, ...sourceObjects);
   }
-  return pickPropertiesAsGetters(targetObject, null, targetObject);
+  return pickPropertiesAsGetters(targetObject, {}, targetObject);
 }
 
 /**
@@ -64,7 +64,7 @@ export function pickPropertiesAsGetters<T extends ObjectAny, K extends Extract<k
   sourceObjects.forEach(sourceObj => {
     sourceObj = sourceObj || {};
     Object.keys(targetObject)
-      .filter(callback)
+      .filter(callback as any)
       .forEach(prop => {
         if (sourceObj.hasOwnProperty(prop)) {
           Object.defineProperty(targetObject, prop, {

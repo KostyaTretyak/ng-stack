@@ -170,7 +170,7 @@ export class CacheData {
 
 export type PartialRoutes = Array<{ path: string; length: number; index: number }>;
 
-export class RouteDryMatch {
+export interface RouteDryMatch {
   splitedUrl: string[];
   splitedRoute: string[];
   routes: ApiMockRoute[];
@@ -189,7 +189,7 @@ export interface ChainParam {
   restId?: string;
 }
 
-export class MockData {
+export interface MockData {
   /**
    * Array of full version of items from REST resource,
    * it is a single resource of true for given REST resource.

@@ -15,11 +15,11 @@ import {
 } from './types';
 
 export class FormControl<T = any, V extends object = ValidatorsModel> extends NativeFormControl {
-  readonly value: ExtractControlValue<T>;
-  readonly valueChanges: Observable<ExtractControlValue<T>>;
-  readonly status: Status;
-  readonly statusChanges: Observable<Status>;
-  readonly errors: ValidationErrors<V> | null;
+  override readonly value: ExtractControlValue<T>;
+  override readonly valueChanges: Observable<ExtractControlValue<T>>;
+  override readonly status: Status;
+  override readonly statusChanges: Observable<Status>;
+  override readonly errors: ValidationErrors<V> | null;
 
   /**
    * Creates a new `FormControl` instance.
@@ -65,7 +65,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    * event to update the model.
    *
    */
-  setValue(
+   override setValue(
     value: ExtractControlValue<T>,
     options: {
       onlySelf?: boolean;
@@ -86,7 +86,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    *
    * See also: `setValue` for options
    */
-  patchValue(
+   override patchValue(
     value: ExtractControlValue<T>,
     options: {
       onlySelf?: boolean;
@@ -116,7 +116,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    * When false, no events are emitted.
    *
    */
-  reset(
+   override reset(
     formState: FormControlState<T> = null,
     options: {
       onlySelf?: boolean;
@@ -129,7 +129,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
   /**
    * In `FormControl`, this method always returns `null`.
    */
-  get(): null {
+   override get(): null {
     return null;
   }
 
@@ -137,7 +137,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    * Sets the synchronous validators that are active on this control. Calling
    * this overwrites any existing sync validators.
    */
-  setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
+   override setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
     return super.setValidators(newValidator);
   }
 
@@ -145,7 +145,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    * Sets the async validators that are active on this control. Calling this
    * overwrites any existing async validators.
    */
-  setAsyncValidators(newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null) {
+   override setAsyncValidators(newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null) {
     return super.setAsyncValidators(newValidator);
   }
 
@@ -170,7 +170,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    * expect(login.valid).toEqual(true);
    * ```
    */
-  setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
+   override setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
     return super.setErrors(errors, opts);
   }
 
@@ -182,7 +182,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    * @returns error data for that particular error. If an error is not present,
    * null is returned.
    */
-  getError<K extends StringKeys<V> = any>(errorCode: K) {
+   override getError<K extends StringKeys<V> = any>(errorCode: K) {
     return super.getError(errorCode) as V[K] | null;
   }
 
@@ -195,7 +195,7 @@ export class FormControl<T = any, V extends object = ValidatorsModel> extends Na
    *
    * If an error is not present, false is returned.
    */
-  hasError<K extends StringKeys<V> = any>(errorCode: K) {
+   override hasError<K extends StringKeys<V> = any>(errorCode: K) {
     return super.hasError(errorCode);
   }
 }

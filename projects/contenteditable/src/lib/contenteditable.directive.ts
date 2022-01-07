@@ -105,7 +105,7 @@ export class ContenteditableDirective implements ControlValueAccessor {
     }
     event.preventDefault();
     const { clipboardData } = event;
-    const text = clipboardData.getData('text/plain') || clipboardData.getData('text');
+    const text = clipboardData?.getData('text/plain') || clipboardData?.getData('text');
     this.document.execCommand('insertText', false, text);
   }
 

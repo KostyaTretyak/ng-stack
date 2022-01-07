@@ -77,7 +77,7 @@ describe('Validators', () => {
   describe('fileMaxSize', () => {
     it('null as content', () => {
       const maxSize = 10;
-      const content = null;
+      const content = null as any;
 
       const formData = new FormData();
       const blob = new Blob([content], { type: 'text/plain' });

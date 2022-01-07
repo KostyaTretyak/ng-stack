@@ -64,7 +64,7 @@ describe('FormBuilder', () => {
         iAgree: [null, Validators.required],
       });
 
-      formGroup1.get('otherArray').setValue(['string value', 2, 'three']);
+      formGroup1.get('otherArray')!.setValue(['string value', 2, 'three']);
 
       fb.array([
         fb.group({ item1: 'value1' }),
@@ -94,7 +94,7 @@ describe('FormBuilder', () => {
       });
 
       const formError = form.getError('wrongEmail');
-      const controlError = form.get('control').getError('email'); // Without errror, but it's wrong.
+      const controlError = form.get('control')!.getError('email'); // Without errror, but it's wrong.
     });
   });
 
@@ -110,7 +110,7 @@ describe('FormBuilder', () => {
     describe(`array()`, () => {
       it('case 1', () => {
         const fb = new FormBuilder();
-        let control = new FormControl('one');
+        let control = new FormControl<string>('one');
         expect(fb.array([control]).value).toEqual(['one']);
         control = new FormControl({ value: 'two', disabled: false });
         expect(fb.array([control]).value).toEqual(['two']);

@@ -3,7 +3,6 @@ import { FormBuilder as NativeFormBuilder } from '@angular/forms';
 
 import {
   FbControlConfig,
-  LegacyControlOptions,
   AbstractControlOptions,
   ValidatorFn,
   AsyncValidatorFn,
@@ -35,9 +34,9 @@ export class FormBuilder extends NativeFormBuilder {
    * - `validator`: A synchronous validator function, or an array of validator functions
    * - `asyncValidator`: A single async validator or array of async validator functions
    */
-  group<T extends object = any, V extends object = ValidatorsModel>(
+  override group<T extends object = any, V extends object = ValidatorsModel>(
     controlsConfig: { [P in keyof T]: FbControlConfig<T[P], V> },
-    options: AbstractControlOptions | LegacyControlOptions | null = null
+    options: AbstractControlOptions | null = null
   ): FormGroup<T, V> {
     return super.group(controlsConfig, options) as FormGroup<T, V>;
   }
@@ -78,12 +77,20 @@ export class DisabledFormControlComponent {
 }
 ```
    */
-  control<T = any, V extends object = ValidatorsModel>(
+  override control<T = any, V extends object = ValidatorsModel>(
     formState: FormControlState<T> = null,
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    validatorOrOpts?:
+      | ValidatorFn
+      | ValidatorFn[]
+      | AbstractControlOptions
+      | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ): FormControl<T, V> {
-    return super.control(formState, validatorOrOpts, asyncValidator) as FormControl<T, V>;
+    return super.control(
+      formState,
+      validatorOrOpts,
+      asyncValidator
+    ) as FormControl<T, V>;
   }
 
   /**
@@ -100,11 +107,19 @@ export class DisabledFormControlComponent {
    * @param asyncValidator A single async validator or array of async validator
    * functions.
    */
-  array<Item = any, V extends object = ValidatorsModel>(
+  override array<Item = any, V extends object = ValidatorsModel>(
     controlsConfig: FbControlConfig<Item, V>[],
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    validatorOrOpts?:
+      | ValidatorFn
+      | ValidatorFn[]
+      | AbstractControlOptions
+      | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ): FormArray<Item, V> {
-    return super.array(controlsConfig, validatorOrOpts, asyncValidator) as FormArray<Item, V>;
+    return super.array(
+      controlsConfig,
+      validatorOrOpts,
+      asyncValidator
+    ) as FormArray<Item, V>;
   }
 }

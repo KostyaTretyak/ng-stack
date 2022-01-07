@@ -3,25 +3,29 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ng-stack": {
-      "root": "",
-      "sourceRoot": "src",
+    "ng-stack-13": {
       "projectType": "application",
-      "prefix": "app",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "sass"
+          "style": "scss"
+        },
+        "@schematics/angular:application": {
+          "strict": true
         }
       },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/ng-stack",
+            "outputPath": "dist/ng-stack-13",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
-            "tsConfig": "src/tsconfig.app.json",
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
               "src/assets"
@@ -29,58 +33,57 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": [],
-            "vendorChunk": true,
-            "extractLicenses": false,
-            "buildOptimizer": false,
-            "sourceMap": true,
-            "optimization": false,
-            "namedChunks": true
+            "scripts": []
           },
           "configurations": {
             "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
-              "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "6kb"
-                }
-              ]
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "ng-stack:build"
-          },
           "configurations": {
             "production": {
-              "browserTarget": "ng-stack:build:production"
+              "browserTarget": "ng-stack-13:build:production"
+            },
+            "development": {
+              "browserTarget": "ng-stack-13:build:development"
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "ng-stack:build"
+            "browserTarget": "ng-stack-13:build"
           }
         },
         "test": {
@@ -88,157 +91,41 @@
           "options": {
             "main": "src/test.ts",
             "polyfills": "src/polyfills.ts",
-            "tsConfig": "src/tsconfig.spec.json",
-            "karmaConfig": "src/karma.conf.js",
-            "styles": [
-              "src/styles.scss"
-            ],
-            "scripts": [],
+            "tsConfig": "tsconfig.spec.json",
+            "karmaConfig": "karma.conf.js",
+            "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
               "src/assets"
-            ]
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
-      }
-    },
-    "ng-stack-e2e": {
-      "root": "e2e/",
-      "projectType": "application",
-      "prefix": "",
-      "architect": {
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "ng-stack:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "ng-stack:serve:production"
-            }
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": "e2e/tsconfig.e2e.json",
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
-      }
-    },
-    "contenteditable": {
-      "root": "projects/contenteditable",
-      "sourceRoot": "projects/contenteditable/src",
-      "projectType": "library",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/contenteditable/tsconfig.lib.json",
-            "project": "projects/contenteditable/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/contenteditable/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/contenteditable/src/test.ts",
-            "tsConfig": "projects/contenteditable/tsconfig.spec.json",
-            "karmaConfig": "projects/contenteditable/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/contenteditable/tsconfig.lib.json",
-              "projects/contenteditable/tsconfig.spec.json"
+            "styles": [
+              "src/styles.scss"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
-      }
-    },
-    "api-mock": {
-      "root": "projects/api-mock",
-      "sourceRoot": "projects/api-mock/src",
-      "projectType": "library",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/api-mock/tsconfig.lib.json",
-            "project": "projects/api-mock/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/api-mock/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/api-mock/src/test.ts",
-            "tsConfig": "projects/api-mock/tsconfig.spec.json",
-            "karmaConfig": "projects/api-mock/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/api-mock/tsconfig.lib.json",
-              "projects/api-mock/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "scripts": []
           }
         }
       }
     },
     "forms": {
+      "projectType": "library",
       "root": "projects/forms",
       "sourceRoot": "projects/forms/src",
-      "projectType": "library",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": "projects/forms/tsconfig.lib.json",
             "project": "projects/forms/ng-package.json"
           },
           "configurations": {
             "production": {
               "tsConfig": "projects/forms/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/forms/tsconfig.lib.json"
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
@@ -247,21 +134,71 @@
             "tsConfig": "projects/forms/tsconfig.spec.json",
             "karmaConfig": "projects/forms/karma.conf.js"
           }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+        }
+      }
+    },
+    "contenteditable": {
+      "projectType": "library",
+      "root": "projects/contenteditable",
+      "sourceRoot": "projects/contenteditable/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": [
-              "projects/forms/tsconfig.lib.json",
-              "projects/forms/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "project": "projects/contenteditable/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/contenteditable/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/contenteditable/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/contenteditable/src/test.ts",
+            "tsConfig": "projects/contenteditable/tsconfig.spec.json",
+            "karmaConfig": "projects/contenteditable/karma.conf.js"
+          }
+        }
+      }
+    },
+    "api-mock": {
+      "projectType": "library",
+      "root": "projects/api-mock",
+      "sourceRoot": "projects/api-mock/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/api-mock/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/api-mock/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/api-mock/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/api-mock/src/test.ts",
+            "tsConfig": "projects/api-mock/tsconfig.spec.json",
+            "karmaConfig": "projects/api-mock/karma.conf.js"
           }
         }
       }
     }
   },
-  "defaultProject": "ng-stack"
+  "defaultProject": "ng-stack-13"
 }

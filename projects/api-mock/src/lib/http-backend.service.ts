@@ -29,7 +29,7 @@ import { Status, getStatusText } from './http-status-codes';
 
 @Injectable()
 export class HttpBackendService implements HttpBackend {
-  protected isInited: boolean;
+  protected isInited: boolean = false;
   protected cachedData: CacheData = {};
   protected routes: ApiMockRoute[] = [];
   /**
@@ -39,7 +39,7 @@ export class HttpBackendService implements HttpBackend {
    *
    * Array of paths revert sorted by length.
    */
-  protected rootRoutes: PartialRoutes;
+  protected rootRoutes: PartialRoutes = [];
 
   constructor(
     protected apiMockService: ApiMockService,
@@ -47,6 +47,44 @@ export class HttpBackendService implements HttpBackend {
     protected xhrFactory: XhrFactory,
     @Optional() protected router: Router
   ) {}
+
+  handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+    try {
+      return this.handleReq(req);
+    } catch (err: any) {
+      this.logErrorResponse(req, 'Error 500: Internal Server Error;', err);
+      const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, err.message);
+      return throwError(internalErr);
+    }
+  }
+
+  /**
+   * Handles requests.
+   */
+  protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
+    if (!this.isInited) {
+      this.init();
+    }
+
+    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
+    const routeIndex = this.findRouteIndex(this.rootRoutes, normalizedUrl);
+
+    if (routeIndex == -1) {
+      return this.send404Error(req);
+    }
+
+    const groupRouteDryMatch = this.getRouteDryMatch(normalizedUrl, this.routes[routeIndex]);
+
+    if (groupRouteDryMatch.length) {
+      for (const routeDryMatch of groupRouteDryMatch) {
+        const chainParams = this.getChainParams(routeDryMatch);
+        if (chainParams) {
+          return this.sendResponse(req, chainParams);
+        }
+      }
+    }
+    return this.send404Error(req);
+  }
 
   protected init() {
     // Merge with default configs.
@@ -122,7 +160,7 @@ Any host must have a string type, and should not end with trailing slash.`
       );
     }
 
-    if (!isLastRoute) {
+    if (!isLastRoute && route.children) {
       route.children.forEach((child) => this.checkRoute(child, childPath));
     }
   }
@@ -153,44 +191,6 @@ Any host must have a string type, and should not end with trailing slash.`
 
     // Revert sorting by path length.
     return rootRoutes.sort((a, b) => b.length - a.length);
-  }
-
-  handle(req: HttpRequest<any>): Observable<HttpEvent<any>> {
-    try {
-      return this.handleReq(req);
-    } catch (err) {
-      this.logErrorResponse(req, 'Error 500: Internal Server Error;', err);
-      const internalErr = this.makeError(req, Status.INTERNAL_SERVER_ERROR, err.message);
-      return throwError(internalErr);
-    }
-  }
-
-  /**
-   * Handles requests.
-   */
-  protected handleReq(req: HttpRequest<any>): Observable<HttpEvent<any>> {
-    if (!this.isInited) {
-      this.init();
-    }
-
-    const normalizedUrl = req.url.charAt(0) == '/' ? req.url.slice(1) : req.url;
-    const routeIndex = this.findRouteIndex(this.rootRoutes, normalizedUrl);
-
-    if (routeIndex == -1) {
-      return this.send404Error(req);
-    }
-
-    const groupRouteDryMatch = this.getRouteDryMatch(normalizedUrl, this.routes[routeIndex]);
-
-    if (groupRouteDryMatch.length) {
-      for (const routeDryMatch of groupRouteDryMatch) {
-        const chainParams = this.getChainParams(routeDryMatch);
-        if (chainParams) {
-          return this.sendResponse(req, chainParams);
-        }
-      }
-    }
-    return this.send404Error(req);
   }
 
   protected findRouteIndex(rootRoutes: PartialRoutes, url: string): number {
@@ -237,8 +237,8 @@ Any host must have a string type, and should not end with trailing slash.`
       routes.push(route);
       pathOfRoute = [pathOfRoute, route.path].filter((s) => s).join('/');
       const splitedRoute = pathOfRoute.split('/');
-      let hasLastRestId: boolean;
-      let lastPrimaryKey: string;
+      let hasLastRestId: boolean = false;
+      let lastPrimaryKey: string = '';
       /**
        * `['posts', ':postId', 'comments', ':commentId']` -> 4 parts of a route.
        */
@@ -251,7 +251,7 @@ Any host must have a string type, and should not end with trailing slash.`
         // URL not matched to defined route path.
         return;
       } else if (countPartOfUrl == countPartOfRoute - 1) {
-        const lastElement = splitedRoute.pop();
+        const lastElement = splitedRoute.pop() || '';
         if (lastElement.charAt(0) == ':') {
           lastPrimaryKey = lastElement.slice(1);
         } else {
@@ -320,7 +320,7 @@ Any host must have a string type, and should not end with trailing slash.`
 
     if (!hasLastRestId) {
       const lastRoute = routes[routes.length - 1];
-      chainParams.push({ cacheKey: splitedUrl.join('/'), primaryKey: lastPrimaryKey, route: lastRoute });
+      chainParams.push({ cacheKey: splitedUrl.join('/'), primaryKey: lastPrimaryKey || '', route: lastRoute });
     }
 
     if (partsOfRoute.join('/') == partsOfUrl.join('/')) {
@@ -336,9 +336,8 @@ Any host must have a string type, and should not end with trailing slash.`
     }
     const queryParams: ObjectAny = {};
     keys.forEach((key) => {
-      let values: string | string[] = req.params.getAll(key);
-      values = values.length == 1 ? values[0] : values;
-      queryParams[key] = values;
+      const values = req.params.getAll(key);
+      queryParams[key] = values && values.length == 1 ? values[0] : values;
     });
     return queryParams;
   }
@@ -362,7 +361,7 @@ Any host must have a string type, and should not end with trailing slash.`
       return throwError(parents);
     }
 
-    let responseOptions = {} as ResponseOptions;
+    let responseOptions = {} as HttpErrorResponse | ResponseOptions;
 
     if (chainParam.route.dataCallback) {
       const mockData = this.cacheDataWithGetMethod(chainParam, parents, queryParams, req.body, req.headers);
@@ -392,7 +391,7 @@ Any host must have a string type, and should not end with trailing slash.`
       }
     }
 
-    return this.getResponse(req, chainParam, parents, queryParams, responseOptions);
+    return this.getResponse(req, chainParam, parents, queryParams, responseOptions as ResponseOptions);
   }
 
   /**
@@ -420,7 +419,7 @@ Any host must have a string type, and should not end with trailing slash.`
         reqBody: body,
         reqHeaders: this.transformHeaders(headers),
       };
-      const writeableData = chainParam.route.dataCallback(opts);
+      const writeableData = (chainParam.route.dataCallback && chainParam.route.dataCallback(opts)) || [];
       if (!Array.isArray(writeableData)) {
         throw new TypeError('route.dataCallback() should returns an array');
       }
@@ -437,14 +436,14 @@ Any host must have a string type, and should not end with trailing slash.`
 
   protected applyDataFromLocalStorage(chainParam: ChainParam): void {
     try {
-      const cachedData: CacheData = JSON.parse(localStorage.getItem(this.config.localStorageKey));
+      const cachedData: CacheData = JSON.parse(localStorage.getItem(this.config.localStorageKey!) || '""');
       const cacheKey = chainParam.cacheKey;
       if (cachedData && cachedData[cacheKey]) {
         const mockData = (this.cachedData[cacheKey] = cachedData[cacheKey]);
         this.bindReadonlyData(chainParam, mockData.writeableData);
       }
     } catch (err) {
-      localStorage.removeItem(this.config.localStorageKey);
+      localStorage.removeItem(this.config.localStorageKey!);
       if (this.config.showLog) {
         console.log(err);
         console.log(`%cRemoved localStorage data with key "${this.config.localStorageKey}"`, `color: brown;`);
@@ -454,12 +453,12 @@ Any host must have a string type, and should not end with trailing slash.`
 
   protected setToLocalStorage(cacheKey: string): void {
     try {
-      const cachedData = JSON.parse(localStorage.getItem(this.config.localStorageKey)) || {};
+      const cachedData = JSON.parse(localStorage.getItem(this.config.localStorageKey!) || '""') || {};
       cachedData[cacheKey] = this.clone(this.cachedData[cacheKey]);
       delete cachedData[cacheKey].readonlyData;
-      localStorage.setItem(this.config.localStorageKey, JSON.stringify(cachedData));
+      localStorage.setItem(this.config.localStorageKey!, JSON.stringify(cachedData));
     } catch (err) {
-      localStorage.removeItem(this.config.localStorageKey);
+      localStorage.removeItem(this.config.localStorageKey!);
       if (this.config.showLog) {
         console.log(err);
         console.log(`%cRemoved localStorage data with key "${this.config.localStorageKey}"`, `color: brown;`);
@@ -467,7 +466,7 @@ Any host must have a string type, and should not end with trailing slash.`
     }
   }
 
-  protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse {
+  protected getParents(req: HttpRequest<any>, chainParams: ChainParam[]): ObjectAny[] | HttpErrorResponse | undefined {
     const queryParams = this.getQueryParams(req);
     const parents: ObjectAny[] = [];
 
@@ -692,8 +691,8 @@ Any host must have a string type, and should not end with trailing slash.`
   protected getResponse(
     req: HttpRequest<any>,
     chainParam: ChainParam,
-    parents: ObjectAny[],
-    queryParams: Params,
+    parents: (ObjectAny[] | undefined),
+    queryParams?: Params,
     responseOptions: ResponseOptions = {} as any
   ): Observable<HttpResponse<any>> {
     /** The body should be always an array. */
@@ -737,7 +736,7 @@ Any host must have a string type, and should not end with trailing slash.`
       responseOptions.body = resOrBody;
       observable = of(new HttpResponse(responseOptions));
 
-      let logHeaders: ObjectAny = {};
+      let logHeaders: ObjectAny | undefined = {};
       if (responseOptions.headers instanceof HttpHeaders) {
         logHeaders = this.transformHeaders(responseOptions.headers);
       } else if (responseOptions.headers) {
@@ -752,7 +751,7 @@ Any host must have a string type, and should not end with trailing slash.`
       this.logSuccessResponse(req, resLog);
     }
 
-    return observable.pipe(delay(this.config.delay));
+    return observable.pipe(delay(this.config.delay!));
   }
 
   /**
@@ -783,8 +782,8 @@ Any host must have a string type, and should not end with trailing slash.`
   }
 
   protected logRequest(req: HttpRequest<any>) {
-    let logHeaders: ObjectAny;
-    let queryParams: ObjectAny;
+    let logHeaders: ObjectAny | undefined;
+    let queryParams: ObjectAny | undefined;
     let body: any;
     try {
       logHeaders = this.transformHeaders(req.headers);
@@ -795,7 +794,7 @@ Any host must have a string type, and should not end with trailing slash.`
       } else {
         body = req.body;
       }
-    } catch (err) {
+    } catch (err: any) {
       logHeaders = { parseError: err.message || 'error' };
       queryParams = { parseError: err.message || 'error' };
     }
@@ -852,15 +851,14 @@ Any host must have a string type, and should not end with trailing slash.`
     console.log('%cres:', `color: brown;`, ...consoleArgs);
   }
 
-  protected transformHeaders(headers: HttpHeaders) {
+  protected transformHeaders(headers?: HttpHeaders) {
     if (!headers || !headers.keys().length) {
       return undefined;
     }
     const logHeaders: ObjectAny = {};
     headers.keys().forEach((header) => {
-      let values: string | string[] = headers.getAll(header);
-      values = values.length == 1 ? values[0] : values;
-      logHeaders[header] = values;
+      let values = headers.getAll(header);
+      logHeaders[header] = values && values.length == 1 ? values[0] : values;
     });
     return logHeaders;
   }

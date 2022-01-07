@@ -1,31 +1,12 @@
 {
   "name": "@ng-stack/api-mock",
-  "version": "1.3.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/KostyaTretyak/ng-stack/tree/master/projects/api-mock"
-  },
-  "author": {
-    "name": "Костя Третяк",
-    "email": "ktretiak.in.ua@gmail.com"
-  },
-  "keywords": [
-    "angular",
-    "api-mock",
-    "rest-api",
-    "rest",
-    "angular-in-memory-web-api",
-    "in-memory-web-api"
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/KostyaTretyak/ng-stack/issues?q=label%3A%22project%3A+api-mock%22"
-  },
+  "version": "1.4.1",
   "peerDependencies": {
-    "@angular/core": ">=4.3.6 <12.0.0",
+    "@angular/common": ">=4.3.6 <14.0.0",
+    "@angular/core": ">=4.3.6 <14.0.0",
     "rxjs": ">=6.0.0"
   },
   "dependencies": {
-    "tslib": "^2.0.0"
+    "tslib": "^2.3.0"
   }
 }

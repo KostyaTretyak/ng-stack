@@ -15,12 +15,15 @@ import {
   FormControlState,
 } from './types';
 
-export class FormArray<Item = any, V extends object = ValidatorsModel> extends NativeFormArray {
-  readonly value: ExtractModelValue<Item>[];
-  readonly valueChanges: Observable<ExtractModelValue<Item>[]>;
-  readonly status: Status;
-  readonly statusChanges: Observable<Status>;
-  readonly errors: ValidationErrors<V> | null;
+export class FormArray<
+  Item = any,
+  V extends object = ValidatorsModel
+> extends NativeFormArray {
+  override readonly value: ExtractModelValue<Item>[];
+  override readonly valueChanges: Observable<ExtractModelValue<Item>[]>;
+  override readonly status: Status;
+  override readonly statusChanges: Observable<Status>;
+  override readonly errors: ValidationErrors<V> | null;
 
   /**
    * Creates a new `FormArray` instance.
@@ -36,8 +39,12 @@ export class FormArray<Item = any, V extends object = ValidatorsModel> extends N
    *
    */
   constructor(
-    public controls: ControlType<Item, V>[],
-    validatorOrOpts?: ValidatorFn | ValidatorFn[] | AbstractControlOptions | null,
+    public override controls: ControlType<Item, V>[],
+    validatorOrOpts?:
+      | ValidatorFn
+      | ValidatorFn[]
+      | AbstractControlOptions
+      | null,
     asyncValidator?: AsyncValidatorFn | AsyncValidatorFn[] | null
   ) {
     super(controls, validatorOrOpts, asyncValidator);
@@ -48,7 +55,7 @@ export class FormArray<Item = any, V extends object = ValidatorsModel> extends N
    *
    * @param index Index in the array to retrieve the control
    */
-  at(index: number) {
+  override at(index: number) {
     return super.at(index) as ControlType<Item, V>;
   }
 
@@ -57,7 +64,7 @@ export class FormArray<Item = any, V extends object = ValidatorsModel> extends N
    *
    * @param control Form control to be inserted
    */
-  push(control: ControlType<Item, V>) {
+  override push(control: ControlType<Item, V>) {
     return super.push(control);
   }
 
@@ -67,7 +74,7 @@ export class FormArray<Item = any, V extends object = ValidatorsModel> extends N
    * @param index Index in the array to insert the control
    * @param control Form control to be inserted
    */
-  insert(index: number, control: ControlType<Item, V>) {
+  override insert(index: number, control: ControlType<Item, V>) {
     return super.insert(index, control);
   }
 
@@ -77,7 +84,7 @@ export class FormArray<Item = any, V extends object = ValidatorsModel> extends N
    * @param index Index in the array to replace the control
    * @param control The Control control to replace the existing control
    */
-  setControl(index: number, control: ControlType<Item, V>) {
+  override setControl(index: number, control: ControlType<Item, V>) {
     return super.setControl(index, control);
   }
 
@@ -115,7 +122,10 @@ console.log(arr.value);   // ['Nancy', 'Drew']
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  setValue(value: ExtractModelValue<Item>[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  override setValue(
+    value: ExtractModelValue<Item>[],
+    options: { onlySelf?: boolean; emitEvent?: boolean } = {}
+  ) {
     return super.setValue(value, options);
   }
 
@@ -152,7 +162,10 @@ console.log(arr.value);   // ['Nancy', null]
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  patchValue(value: ExtractModelValue<Item>[], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  override patchValue(
+    value: ExtractModelValue<Item>[],
+    options: { onlySelf?: boolean; emitEvent?: boolean } = {}
+  ) {
     return super.patchValue(value, options);
   }
 
@@ -201,7 +214,10 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * The configuration options are passed to the
    * [updateValueAndValidity](https://angular.io/api/forms/AbstractControl#updateValueAndValidity) method.
    */
-  reset(value: FormControlState<Item>[] = [], options: { onlySelf?: boolean; emitEvent?: boolean } = {}) {
+  override reset(
+    value: FormControlState<Item>[] = [],
+    options: { onlySelf?: boolean; emitEvent?: boolean } = {}
+  ) {
     return super.reset(value, options);
   }
 
@@ -211,7 +227,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * Reports all values regardless of disabled status.
    * For enabled controls only, the `value` property is the best way to get the value of the array.
    */
-  getRawValue() {
+  override getRawValue() {
     return super.getRawValue() as ExtractModelValue<Item>[];
   }
 
@@ -219,7 +235,7 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * Sets the synchronous validators that are active on this control. Calling
    * this overwrites any existing sync validators.
    */
-  setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
+  override setValidators(newValidator: ValidatorFn | ValidatorFn[] | null) {
     return super.setValidators(newValidator);
   }
 
@@ -227,7 +243,9 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * Sets the async validators that are active on this control. Calling this
    * overwrites any existing async validators.
    */
-  setAsyncValidators(newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null) {
+  override setAsyncValidators(
+    newValidator: AsyncValidatorFn | AsyncValidatorFn[] | null
+  ) {
     return super.setAsyncValidators(newValidator);
   }
 
@@ -252,7 +270,10 @@ console.log(this.arr.get(0).status);  // 'DISABLED'
    * expect(login.valid).toEqual(true);
    * ```
    */
-  setErrors(errors: ValidationErrors | null, opts: { emitEvent?: boolean } = {}) {
+  override setErrors(
+    errors: ValidationErrors | null,
+    opts: { emitEvent?: boolean } = {}
+  ) {
     return super.setErrors(errors, opts);
   }
 
@@ -282,7 +303,10 @@ form.get('address').getError('someErrorCode', 'street');
    * @returns error data for that particular error. If the control or error is not present,
    * null is returned.
    */
-  getError<P extends StringKeys<V>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+  override getError<P extends StringKeys<V>, K extends StringKeys<Item>>(
+    errorCode: P,
+    controlName?: K
+  ) {
     return super.getError(errorCode, controlName) as V[P] | null;
   }
 
@@ -314,7 +338,10 @@ form.get('address').hasError('someErrorCode', 'street');
    *
    * If the control is not present, false is returned.
    */
-  hasError<P extends StringKeys<V>, K extends StringKeys<Item>>(errorCode: P, controlName?: K) {
+  override hasError<P extends StringKeys<V>, K extends StringKeys<Item>>(
+    errorCode: P,
+    controlName?: K
+  ) {
     return super.hasError(errorCode, controlName);
   }
 }

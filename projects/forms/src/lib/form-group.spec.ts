@@ -4,7 +4,7 @@ import { FormGroup } from './form-group';
 import { FormArray } from './form-array';
 import { FormControl } from './form-control';
 import { isString, isNumber, isObject, isArray } from './assert';
-import { Control } from './types';
+import { Control, ValidatorsModel } from './types';
 
 // tslint:disable: one-variable-per-declaration
 // tslint:disable: no-unused-expression
@@ -35,7 +35,7 @@ describe('FormGroup', () => {
     let formGroup: FormGroup<Profile>;
 
     describe('constructor()', () => {
-      formGroup = new FormGroup<Profile>({
+      formGroup = new FormGroup<Profile, ValidatorsModel>({
         firstName: new FormControl('Kostia'),
         // firstName: new FormControl(2),
         // firstName: new FormControl(true),
@@ -47,8 +47,8 @@ describe('FormGroup', () => {
           value: { city: 'Kyiv', street: 'Khreshchatyk' },
           disabled: false,
         }),
-        someControlArray: new FormControl(['one', 'two']),
-        someGroup: new FormGroup({ children: new FormControl(2) }),
+        someControlArray: new FormControl(['one', 'two']) as any, // For now just suppress error
+        someGroup: new FormGroup<SomeGroup>({ children: new FormControl(2) }),
         someArray: new FormArray<number>([
           new FormControl(1),
           new FormControl(2),
@@ -85,7 +85,7 @@ describe('FormGroup', () => {
         interface FormModel {
           one: Control<string[]>;
         }
-        let formGroup: FormGroup<FormModel>;
+        let formGroup: FormGroup<FormModel> = {} as any;
         const arr1: string[] = formGroup.value.one;
       });
     });
@@ -96,7 +96,7 @@ describe('FormGroup', () => {
       // isString(formGroup.value.other);
       isObject(formGroup.value.address);
       isString(formGroup.value.address.city);
-      isNumber(formGroup.value.address.numFlat);
+      isNumber(formGroup.value.address.numFlat!);
       isArray(formGroup.value.someArray);
     });
 
@@ -112,7 +112,7 @@ describe('FormGroup', () => {
       // formGroup.registerControl('address', new FormControl(123);
       // isObject(control2.value);
       // isString(control2.value.city);
-      isNumber(control2.value.numFlat);
+      isNumber(control2.value.numFlat!);
     });
 
     it('addControl()', () => {
@@ -149,8 +149,8 @@ describe('FormGroup', () => {
       formGroup.setValue(new Profile());
 
       new FormControl().setValue(123);
-      formGroup.get('firstName').setValue('some string');
-      formGroup.get('address').setValue(new Address());
+      formGroup.get('firstName')!.setValue('some string');
+      formGroup.get('address')!.setValue(new Address());
       // new FormGroup<{ firstName: string }>(null).get('firstName').setValue(123);
       // formGroup.get('firstName').setValue(123);
       // formGroup.get('someNumber').setValue([`it's wrong value`]);
@@ -167,8 +167,8 @@ describe('FormGroup', () => {
     it('patchValue()', () => {
       formGroup.patchValue(new Profile());
       formGroup.patchValue({ firstName: '' });
-      formGroup.get('firstName').patchValue('some string');
-      formGroup.get('address').setValue(new Address());
+      formGroup.get('firstName')!.patchValue('some string');
+      formGroup.get('address')!.setValue(new Address());
       // formGroup.get('firstName').patchValue(123);
       // formGroup.patchValue({ firstName: 123 });
       // formGroup.patchValue(new Address());
@@ -198,16 +198,16 @@ describe('FormGroup', () => {
     });
 
     it('get()', () => {
-      isString(formGroup.get('firstName').value);
+      isString(formGroup.get('firstName')!.value);
       // formGroup.get('notExistingKey');
       // isObject(formGroup.get('address').value);
-      isObject(formGroup.get('someGroup').value);
-      isArray(formGroup.get('someArray').value);
+      isObject(formGroup.get('someGroup')!.value);
+      isArray(formGroup.get('someArray')!.value);
 
-      const formControl1: FormControl<string> = formGroup.get('firstName');
+      const formControl1: FormControl<string> = formGroup.get('firstName')!;
       // const formControl2: FormControl<number> = formGroup.get('firstName');
-      const formControl3: FormControl<Address> = formGroup.get('address');
-      const formControl4: FormGroup<SomeGroup> = formGroup.get('someGroup');
+      const formControl3: FormControl<Address> = formGroup.get('address')!;
+      const formControl4: FormGroup<SomeGroup> = formGroup.get('someGroup')!;
     });
 
     it('getError()', () => {
@@ -242,7 +242,7 @@ describe('FormGroup', () => {
       });
 
       const formError = form.getError('wrongEmail');
-      const controlError = form.get('control').getError('email'); // Without error, but it's wrong.
+      const controlError = form.get('control')!.getError('email'); // Without error, but it's wrong.
     });
   });
 
@@ -262,9 +262,9 @@ describe('FormGroup', () => {
           array: new FormArray([new FormControl('v4'), new FormControl('v5')]),
         });
 
-        fg.get('group').get('c3').disable();
+        fg.get('group')!.get('c3')!.disable();
 
-        fg.get('array').at(1).disable();
+        fg.get('array')!.at(1).disable();
 
         expect(fg.getRawValue()).toEqual({ c1: 'v1', group: { c2: 'v2', c3: 'v3' }, array: ['v4', 'v5'] });
       });

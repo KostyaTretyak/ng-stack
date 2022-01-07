@@ -21,6 +21,6 @@
     "@angular/core": ">=4.0.0"
   },
   "dependencies": {
-    "tslib": "^2.0.0"
+    "tslib": "^2.3.0"
   }
 }
