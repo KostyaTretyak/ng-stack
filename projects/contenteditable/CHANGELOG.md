@@ -1,5 +1,5 @@
-<a name="2.0.0-beta.1"></a>
-# [2.0.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable-2.0.0-beta.1) (2022-02-14)
+<a name="2.0.0-beta.2"></a>
+# [2.0.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable-2.0.0-beta.2) (2022-02-14)
 
 ### Breaking Changes
 
