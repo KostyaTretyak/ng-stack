@@ -1,5 +1,13 @@
+<a name="2.0.0-beta.1"></a>
+# [2.0.0-beta.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable-2.0.0-beta.1) (2022-02-14)
+
+### Breaking Changes
+
+- Changed selector to `editable`.
+- The lib builded with Ivy Renderer.
+
 <a name="1.1.1"></a>
-# [1.1.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.1.1) (2020-10-15)
+## [1.1.1](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable%401.1.1) (2020-10-15)
 
 ### Fix
 

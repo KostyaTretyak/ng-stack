@@ -55,7 +55,7 @@ export class MyComponent implements OnInit {
 ```html
 <form #testForm="ngForm">
   <p
-    contenteditable="true"
+    editable="true"
     name="myFormName"
     [(ngModel)]="templateDrivenForm"
     ></p>
@@ -67,7 +67,7 @@ export class MyComponent implements OnInit {
 
 <hr>
 
-<p contenteditable="true" [formControl]="myControl"></p>
+<p editable="true" [formControl]="myControl"></p>
 
 <pre>
   {{ myControl.value | json }}
@@ -78,11 +78,11 @@ export class MyComponent implements OnInit {
 
 ### propValueAccessor
 
-With `contenteditable` directive you can pass optional `@Input` value for `propValueAccessor`:
+With `editable` directive you can pass optional `@Input` value for `propValueAccessor`:
 
 ```html
 <p
-  contenteditable="true"
+  editable="true"
   propValueAccessor="innerHTML"
   [formControl]="myControl"
   ></p>
@@ -96,12 +96,12 @@ this.elementRef.nativeElement[this.propValueAccessor]
 
 By default it using `textContent`.
 
-### `contenteditable` as @Input property
+### `editable` as @Input property
 
-Since version 1.0.0, `@ng-stack/contenteditable` accepts `contenteditable` as @Input property (note the square brackets):
+Since version 2.0.0, `@ng-stack/contenteditable` accepts `editable` as @Input property (note the square brackets):
 
 ```html
-<p [contenteditable]="isContenteditable"></p>
+<p [editable]="isContenteditable"></p>
 ```
 
 where `isContenteditable` is a boolean variable.
@@ -112,7 +112,7 @@ Since version 1.1.0, `@ng-stack/contenteditable` takes into account experimental
 
 ```html
 <p
-  contenteditable="true"
+  editable="true"
   unformattedPaste
   [formControl]="myControl"
   ></p>

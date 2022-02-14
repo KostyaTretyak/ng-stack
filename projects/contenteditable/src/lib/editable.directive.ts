@@ -15,12 +15,12 @@ import { DOCUMENT } from '@angular/common';
 /** @dynamic */
 @Directive({
   // tslint:disable-next-line:directive-selector
-  selector: '[contenteditable][formControlName],[contenteditable][formControl],[contenteditable][ngModel]',
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => ContenteditableDirective), multi: true }],
+  selector: '[editable][formControlName],[editable][formControl],[editable][ngModel]',
+  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => EditableDirective), multi: true }],
 })
-export class ContenteditableDirective implements ControlValueAccessor {
+export class EditableDirective implements ControlValueAccessor {
   @Input() propValueAccessor = 'textContent';
-  @HostBinding('attr.contenteditable') @Input() contenteditable = true;
+  @HostBinding('attr.contenteditable') @Input() editable: boolean | string = true;
 
   private onChange: (value: string) => void;
   private onTouched: () => void;

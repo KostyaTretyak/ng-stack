@@ -2,5 +2,5 @@
  * Public API Surface of contenteditable
  */
 
-export * from './lib/contenteditable.directive';
-export * from './lib/contenteditable.module';
+export * from './lib/editable.directive';
+export * from './lib/editable.module';
