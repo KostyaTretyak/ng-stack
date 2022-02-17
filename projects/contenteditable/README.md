@@ -11,11 +11,11 @@ npm install @ng-stack/contenteditable --save
 
 ## Usage
 
-Import and add `ContenteditableModule` to your project:
+Import and add `NgsContenteditableModule` to your project:
 
 ```ts
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ContenteditableModule } from '@ng-stack/contenteditable';
+import { NgsContenteditableModule } from '@ng-stack/contenteditable';
 
 // ...
 
@@ -23,7 +23,7 @@ import { ContenteditableModule } from '@ng-stack/contenteditable';
   // ...
   imports: [
     // Import this module to get available work angular with `contenteditable`
-    ContenteditableModule,
+    NgsContenteditableModule,
     // Import one or both of this modules
     FormsModule,
     ReactiveFormsModule
