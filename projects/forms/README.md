@@ -30,18 +30,18 @@ yarn add @ng-stack/forms
 
 ## Usage
 
-Import into your module `NgStackFormsModule`, and no need import `ReactiveFormsModule` because it's already
-reexported by `NgStackFormsModule`.
+Import into your module `NgsFormsModule`, and no need import `ReactiveFormsModule` because it's already
+reexported by `NgsFormsModule`.
 
 ```ts
-import { NgStackFormsModule } from '@ng-stack/forms';
+import { NgsFormsModule } from '@ng-stack/forms';
 
 // ...
 
 @NgModule({
   // ...
   imports: [
-    NgStackFormsModule
+    NgsFormsModule
   ]
 
 // ...

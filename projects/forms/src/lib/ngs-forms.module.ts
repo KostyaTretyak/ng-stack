@@ -9,4 +9,4 @@ import { InputFileDirective } from './input-file.directive';
   exports: [ReactiveFormsModule, InputFileDirective],
   providers: [FormBuilder],
 })
-export class NgStackFormsModule {}
+export class NgsFormsModule {}

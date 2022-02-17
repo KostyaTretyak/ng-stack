@@ -1,9 +1,16 @@
+<a name="3.0.0"></a>
+# [3.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms-3.0.0) (2022-02-17)
+
+### BREAKING CHANGES
+
+- Changed module name to `NgsFormsModule`.
+
 <a name="3.0.0-beta.2"></a>
-# [3.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms-3.0.0-beta.2) (2022-01-07)
+## [3.0.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms-3.0.0-beta.2) (2022-01-07)
 
 ### Features
 
-- Changed `peerDependencies` to support angular v12.
+- Changed `peerDependencies` to support angular v13.
 
 <a name="2.4.0"></a>
 ## [2.4.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms-2.4.0) (2021-05-15)

@@ -1,7 +1,7 @@
 /*
  * Public API Surface of forms
  */
-export { NgStackFormsModule } from './lib/ng-stack-forms.module';
+export { NgsFormsModule } from './lib/ngs-forms.module';
 export { FormArray } from './lib/form-array';
 export { FormBuilder } from './lib/form-builder';
 export { FormControl } from './lib/form-control';
