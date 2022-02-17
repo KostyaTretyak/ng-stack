@@ -5,4 +5,4 @@ import { EditableDirective } from './editable.directive';
   declarations: [EditableDirective],
   exports: [EditableDirective],
 })
-export class ContenteditableModule {}
+export class NgsContenteditableModule {}

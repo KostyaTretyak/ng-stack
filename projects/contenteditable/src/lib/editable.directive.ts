@@ -12,15 +12,21 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DOCUMENT } from '@angular/common';
 
-/** @dynamic */
 @Directive({
-  // tslint:disable-next-line:directive-selector
-  selector: '[editable][formControlName],[editable][formControl],[editable][ngModel]',
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => EditableDirective), multi: true }],
+  selector:
+    '[editable][formControlName],[editable][formControl],[editable][ngModel]',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => EditableDirective),
+      multi: true,
+    },
+  ],
 })
 export class EditableDirective implements ControlValueAccessor {
   @Input() propValueAccessor = 'textContent';
-  @HostBinding('attr.contenteditable') @Input() editable: boolean | string = true;
+  @HostBinding('attr.contenteditable') @Input() editable: boolean | string =
+    true;
 
   private onChange: (value: string) => void;
   private onTouched: () => void;
@@ -56,7 +62,11 @@ export class EditableDirective implements ControlValueAccessor {
    */
   writeValue(value: any): void {
     const normalizedValue = value == null ? '' : value;
-    this.renderer.setProperty(this.elementRef.nativeElement, this.propValueAccessor, normalizedValue);
+    this.renderer.setProperty(
+      this.elementRef.nativeElement,
+      this.propValueAccessor,
+      normalizedValue
+    );
   }
 
   /**
@@ -84,7 +94,11 @@ export class EditableDirective implements ControlValueAccessor {
    */
   setDisabledState(isDisabled: boolean): void {
     if (isDisabled) {
-      this.renderer.setAttribute(this.elementRef.nativeElement, 'disabled', 'true');
+      this.renderer.setAttribute(
+        this.elementRef.nativeElement,
+        'disabled',
+        'true'
+      );
       this.removeDisabledState = this.renderer.listen(
         this.elementRef.nativeElement,
         'keydown',
@@ -92,7 +106,10 @@ export class EditableDirective implements ControlValueAccessor {
       );
     } else {
       if (this.removeDisabledState) {
-        this.renderer.removeAttribute(this.elementRef.nativeElement, 'disabled');
+        this.renderer.removeAttribute(
+          this.elementRef.nativeElement,
+          'disabled'
+        );
         this.removeDisabledState();
       }
     }
@@ -100,12 +117,17 @@ export class EditableDirective implements ControlValueAccessor {
 
   @HostListener('paste', ['$event'])
   preventFormatedPaste(event: ClipboardEvent) {
-    if (this.unformattedPaste === null || this.unformattedPaste == 'false' || !this.document.execCommand) {
+    if (
+      this.unformattedPaste === null ||
+      this.unformattedPaste == 'false' ||
+      !this.document.execCommand
+    ) {
       return;
     }
     event.preventDefault();
     const { clipboardData } = event;
-    const text = clipboardData?.getData('text/plain') || clipboardData?.getData('text');
+    const text =
+      clipboardData?.getData('text/plain') || clipboardData?.getData('text');
     this.document.execCommand('insertText', false, text);
   }
 

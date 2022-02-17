@@ -3,4 +3,4 @@
  */
 
 export * from './lib/editable.directive';
-export * from './lib/editable.module';
+export * from './lib/ngs-contenteditable.module';

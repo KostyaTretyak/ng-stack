@@ -1,5 +1,12 @@
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable-2.0.0) (2022-02-17)
+
+### Breaking Changes
+
+- Changed module name to `NgsContenteditableModule`.
+
 <a name="2.0.0-beta.2"></a>
-# [2.0.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable-2.0.0-beta.2) (2022-02-14)
+## [2.0.0-beta.2](https://github.com/KostyaTretyak/ng-stack/releases/tag/contenteditable-2.0.0-beta.2) (2022-02-14)
 
 ### Breaking Changes
 
