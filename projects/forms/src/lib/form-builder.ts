@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder as NativeFormBuilder } from '@angular/forms';
+import { UntypedFormBuilder as NativeFormBuilder } from '@angular/forms';
 
 import {
   FbControlConfig,
