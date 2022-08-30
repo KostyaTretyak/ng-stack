@@ -1,4 +1,4 @@
-import { FormArray as NativeFormArray } from '@angular/forms';
+import { UntypedFormArray as NativeFormArray } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
@@ -295,7 +295,7 @@ form = new FormGroup({
    * The controlName to the 'street' control from the root form would be 'address' -> 'street'.
    *
    * It can be provided to this method in combination with `get()` method:
-   * 
+   *
 ```ts
 form.get('address').getError('someErrorCode', 'street');
 ```

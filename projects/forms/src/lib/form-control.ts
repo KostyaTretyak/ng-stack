@@ -1,4 +1,4 @@
-import { FormControl as NativeFormControl } from '@angular/forms';
+import { UntypedFormControl as NativeFormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs';
 
