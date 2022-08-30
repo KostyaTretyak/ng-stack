@@ -1,5 +1,12 @@
+<a name="3.1.0"></a>
+# [3.1.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms-3.1.0) (2022-08-30)
+
+### Features
+
+- [Added](https://github.com/KostyaTretyak/ng-stack/pull/110) support for Angular v14.
+
 <a name="3.0.0"></a>
-# [3.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms-3.0.0) (2022-02-17)
+## [3.0.0](https://github.com/KostyaTretyak/ng-stack/releases/tag/forms-3.0.0) (2022-02-17)
 
 ### BREAKING CHANGES
 
