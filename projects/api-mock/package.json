@@ -2,8 +2,8 @@
   "name": "@ng-stack/api-mock",
   "version": "1.4.1",
   "peerDependencies": {
-    "@angular/common": ">=4.3.6 <14.0.0",
-    "@angular/core": ">=4.3.6 <14.0.0",
+    "@angular/common": ">=4.3.6 <=15.0.0",
+    "@angular/core": ">=4.3.6 <=15.0.0",
     "rxjs": ">=6.0.0"
   },
   "dependencies": {
